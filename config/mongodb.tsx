@@ -14,8 +14,6 @@ async function connectToDatabase() {
 
     console.log('Conexión exitosa a MongoDB');
 
-    // Aquí puedes usar collection.find(), insertOne(), etc.
-
     await client.close(); // no olvides cerrar
   } catch (err) {
     console.error('Error al conectar a MongoDB:', err);
