@@ -14,7 +14,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { RootStackParamList } from '../../App'; // Ajusta esta ruta si es necesario
+import { RootStackParamList } from '../../App';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -98,10 +98,10 @@ export default function LoginScreen() {
                 </View>
             </ScrollView>
 
-            {/* Imagen fija abajo */}
+            { }
             <View style={styles.footerDecor}>
                 <Image
-                    source={require('../../assets/f4.png')}
+                    source={require('../../assets/f5.png')}
                     style={styles.footerImage}
                     resizeMode="cover"
                 />
@@ -196,13 +196,13 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 120,
-        zIndex: 1, // o elimínalo si no lo necesitas
+        height: 130,
+        zIndex: 100, // o elimínalo si no lo necesitas
         backgroundColor: '#fff', // para asegurar que se vea bien
     },
 
     footerImage: {
         width: '100%',
-        height: '100%',
+        height: '130%',
     }
 });
