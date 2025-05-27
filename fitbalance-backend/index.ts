@@ -16,46 +16,90 @@ if (!MONGODB_URI) {
     throw new Error('No se encontró MONGODB_URI en el archivo .env');
 }
 
-// Definir el esquema de Usuario
-interface IUsuario {
+// ✅ Esquema y modelo para usar la colección "Patients"
+interface IPatient {
     nombre: string;
     correo: string;
+    usuario: string;
+    password: string;
 }
 
-// Crear el modelo de Usuario
-const Usuario = mongoose.model<IUsuario>('Usuario', new mongoose.Schema({
-    nombre: { type: String, required: true },
-    correo: { type: String, required: true }
-}));
+const Patient = mongoose.model<IPatient>(
+    'Patient',
+    new mongoose.Schema(
+        {
+            nombre: { type: String, required: true },
+            correo: { type: String, required: true },
+            usuario: { type: String, required: true },
+            password: { type: String, required: true }
+        },
+        { collection: 'Patients' }
+    )
+);
 
-// Conectar a MongoDB
-mongoose.connect(MONGODB_URI)
+// ✅ Conexión a MongoDB
+mongoose
+    .connect(MONGODB_URI)
     .then(() => console.log('✅ Conectado a MongoDB Atlas'))
-    .catch((err: unknown) => console.error('❌ Error al conectar a MongoDB:', err));
+    .catch((err) => console.error('❌ Error al conectar a MongoDB:', err));
 
-// Ruta para obtener todos los usuarios
+// ✅ Ruta GET /usuarios — obtener todos los pacientes
 app.get('/usuarios', async (req: Request, res: Response) => {
     try {
-        const usuarios = await Usuario.find();
+        const usuarios = await Patient.find();
         res.json(usuarios);
-    } catch (err: unknown) {
-        console.error('Error al obtener usuarios:', err);
+    } catch (err) {
+        console.error('❌ Error al obtener usuarios:', err);
         res.status(500).json({ error: 'Error al obtener usuarios' });
     }
 });
 
-// Ruta para agregar un nuevo usuario
+// ✅ Ruta POST /usuarios — crear nuevo paciente
 app.post('/usuarios', async (req: Request, res: Response) => {
     try {
-        const nuevoUsuario = new Usuario(req.body);
+        const nuevoUsuario = new Patient(req.body);
         await nuevoUsuario.save();
         res.status(201).json(nuevoUsuario);
-    } catch (err: unknown) {
-        console.error('Error al guardar usuario:', err);
+    } catch (err) {
+        console.error('❌ Error al guardar usuario:', err);
         res.status(500).json({ error: 'Error al guardar usuario' });
     }
 });
 
+// ✅ Ruta POST /login — validar credenciales del paciente
+app.post('/login', async (req: Request, res: Response): Promise<void> => {
+    const { usuario, password } = req.body;
+
+    console.log('📥 Datos recibidos en /login:', { usuario, password });
+
+    if (!usuario || !password) {
+        res.status(400).json({ mensaje: 'Faltan campos: usuario y/o contraseña' });
+        return;
+    }
+
+    try {
+        const paciente = await Patient.findOne({ usuario, password });
+
+        if (!paciente) {
+            console.log('❌ No se encontró paciente con esas credenciales');
+            res.status(401).json({ mensaje: 'Credenciales incorrectas' });
+            return;
+        }
+
+        console.log('✅ Login exitoso para:', paciente.usuario);
+
+        res.json({
+            mensaje: 'Inicio de sesión exitoso',
+            usuario: paciente.usuario,
+            nombre: paciente.nombre
+        });
+    } catch (err) {
+        console.error('❌ Error al iniciar sesión:', err);
+        res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
+// ✅ Iniciar el servidor
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });

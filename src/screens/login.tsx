@@ -1,92 +1,124 @@
 import { Entypo, Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import axios from 'axios';
 import React, { useState } from 'react';
 import {
     Image,
     SafeAreaView,
+    ScrollView,
     StatusBar,
     StyleSheet,
-    Switch,
     Text,
     TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
+import { RootStackParamList } from '../../App'; // Ajusta esta ruta si es necesario
 
-export default function App() {
-    const [rememberMe, setRememberMe] = useState(false);
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
+
+export default function LoginScreen() {
+    const navigation = useNavigation<NavigationProp>();
+
+    const [usuario, setUsuario] = useState('');
+    const [password, setPassword] = useState('');
+    const [mensaje, setMensaje] = useState('');
+
+    const handleLogin = async () => {
+        try {
+            const res = await axios.post('http://192.168.1.75:3000/login', {
+                usuario,
+                password,
+            });
+            setMensaje(`✅ Bienvenido, ${res.data.nombre}`);
+
+            // Navega a RecipeSearch si todo sale bien
+            navigation.navigate('RecipeSearch');
+        } catch (error: any) {
+            setMensaje('❌ Usuario o contraseña incorrectos');
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" />
 
-            {/* Reemplazamos el fondo degradado por una imagen */}
-            <View style={styles.header}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <View style={styles.header}>
+                    <Image
+                        source={require('../../assets/bannerLogin1.png')}
+                        style={styles.logoImage}
+                        resizeMode="cover"
+                    />
+                </View>
+
+                <View style={styles.loginBox}>
+                    <View style={styles.inputWrapper}>
+                        <Ionicons name="person-outline" size={20} color="#999" />
+                        <TextInput
+                            placeholder="Username"
+                            placeholderTextColor="#999"
+                            style={styles.input}
+                            value={usuario}
+                            onChangeText={setUsuario}
+                            autoCapitalize="none"
+                        />
+                    </View>
+
+                    <View style={styles.inputWrapper}>
+                        <Entypo name="lock" size={20} color="#999" />
+                        <TextInput
+                            placeholder="Password"
+                            placeholderTextColor="#999"
+                            secureTextEntry
+                            style={styles.input}
+                            value={password}
+                            onChangeText={setPassword}
+                        />
+                    </View>
+
+                    <View style={styles.optionsRow}>
+                        <TouchableOpacity>
+                            <Text style={styles.optionText}>Forgot your password?</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                        <Text style={styles.loginText}>Login</Text>
+                    </TouchableOpacity>
+
+                    {mensaje ? (
+                        <Text style={{ textAlign: 'center', marginTop: 10 }}>{mensaje}</Text>
+                    ) : null}
+
+                    <Text style={styles.signUpText}>
+                        Want to try the app? <Text style={styles.linkText}>Sign up</Text>
+                    </Text>
+                </View>
+            </ScrollView>
+
+            {/* Imagen fija abajo */}
+            <View style={styles.footerDecor}>
                 <Image
-                    source={require('../../assets/a6.png')}
-                    style={styles.logoImage}
+                    source={require('../../assets/f4.png')}
+                    style={styles.footerImage}
                     resizeMode="cover"
                 />
-            </View>
-
-            <View style={styles.loginBox}>
-
-                <View style={styles.inputWrapper}>
-                    <Ionicons name="person-outline" size={20} color="#999" />
-                    <TextInput
-                        placeholder="Username"
-                        placeholderTextColor="#999"
-                        style={styles.input}
-                    />
-                </View>
-
-                <View style={styles.inputWrapper}>
-                    <Entypo name="lock" size={20} color="#999" />
-                    <TextInput
-                        placeholder="Password"
-                        placeholderTextColor="#999"
-                        secureTextEntry
-                        style={styles.input}
-                    />
-                </View>
-
-                <View style={styles.optionsRow}>
-                    <View style={styles.rememberMe}>
-                        <Switch
-                            value={rememberMe}
-                            onValueChange={setRememberMe}
-                            thumbColor={rememberMe ? "#5f2c82" : "#ccc"}
-                        />
-                        <Text style={styles.optionText}>Remember me</Text>
-                    </View>
-                    <TouchableOpacity>
-                        <Text style={styles.optionText}>Forget password?</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity style={styles.loginButton}>
-                    <Text style={styles.loginText}>Login</Text>
-                </TouchableOpacity>
-
-                <Text style={styles.signUpText}>
-                    New user? <Text style={styles.linkText}>Sign Up</Text>
-                </Text>
-
-                <Text style={styles.or}>OR</Text>
-
-                <View style={styles.socials}>
-                    <TouchableOpacity><Entypo name="linkedin" size={24} color="#0077b5" /></TouchableOpacity>
-                    <TouchableOpacity><Entypo name="facebook" size={24} color="#3b5998" /></TouchableOpacity>
-                    <TouchableOpacity><Entypo name="google--with-circle" size={24} color="#db4437" /></TouchableOpacity>
-                </View>
-
-                <Text style={styles.footerText}>Sign in with another account</Text>
             </View>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff' },
+    container: {
+        flex: 1,
+        backgroundColor: '#fff'
+    },
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: 'flex-start',
+    },
     header: {
         height: '50%',
         width: "100%",
@@ -137,7 +169,7 @@ const styles = StyleSheet.create({
     },
     loginButton: {
         backgroundColor: 'transparent',
-        borderColor: '#5f2c82',
+        borderColor: 'rgb(6, 80, 16)',
         borderWidth: 1.5,
         borderRadius: 25,
         paddingVertical: 12,
@@ -145,7 +177,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     loginText: {
-        color: '#5f2c82',
+        color: '#188827',
         fontWeight: 'bold',
         fontSize: 16,
     },
@@ -156,23 +188,21 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     linkText: {
-        color: '#5f2c82',
+        color: '#188827',
         fontWeight: '600',
     },
-    or: {
-        textAlign: 'center',
-        color: '#aaa',
-        marginBottom: 10,
+    footerDecor: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 120,
+        zIndex: 1, // o elimínalo si no lo necesitas
+        backgroundColor: '#fff', // para asegurar que se vea bien
     },
-    socials: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 20,
-        marginBottom: 10,
-    },
-    footerText: {
-        textAlign: 'center',
-        color: '#999',
-        fontSize: 12,
-    },
+
+    footerImage: {
+        width: '100%',
+        height: '100%',
+    }
 });
