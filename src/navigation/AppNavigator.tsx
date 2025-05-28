@@ -4,9 +4,6 @@ import React from 'react';
 import Login from '../screens/login';
 import RecipeSearch from '../screens/recipeSearch';
 
-
-
-
 export type RootStackParamList = {
     RecipeSearch: undefined;
     Login: undefined;
