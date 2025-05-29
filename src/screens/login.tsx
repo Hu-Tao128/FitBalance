@@ -34,7 +34,7 @@ export default function LoginScreen() {
             setMensaje(`✅ Bienvenido, ${res.data.nombre}`);
 
             // Navega a RecipeSearch si todo sale bien
-            navigation.navigate('RecipeSearch');
+            navigation.navigate('Home');
         } catch (error: any) {
             setMensaje('❌ Usuario o contraseña incorrectos');
         }

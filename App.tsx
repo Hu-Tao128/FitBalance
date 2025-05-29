@@ -1,6 +1,7 @@
 export type RootStackParamList = {
   Login: undefined;
   RecipeSearch: undefined;
+  Home: undefined;
 };
 
 import React from 'react';
