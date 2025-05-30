@@ -155,7 +155,7 @@ const Dashboard = () => {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <Ionicons name="home-outline" size={24} color="#fff" />
+        <Ionicons name="home-sharp" size={24} color="#fff" />
         <Ionicons name="book-outline" size={24} color="#fff" />
         <TouchableOpacity
           style={styles.fab}
