@@ -27,7 +27,7 @@ export default function LoginScreen() {
 
     const handleLogin = async () => {
         try {
-            const res = await axios.post('http://192.168.1.75:3000/login', {
+            const res = await axios.post('http://ayasc.ddns.net:3000/login', {
                 usuario,
                 password,
             });
