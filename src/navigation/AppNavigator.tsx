@@ -4,11 +4,13 @@ import React from 'react';
 import Home from '../screens/DashboardScreen';
 import Login from '../screens/login';
 import RecipeSearch from '../screens/recipeSearch';
+import SettingsUser from "../screens/settings";
 
 export type RootStackParamList = {
     RecipeSearch: undefined;
     Login: undefined;
     Home: undefined;
+    Settings: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -33,6 +35,11 @@ export default function AppNavigator() {
                     options={{ headerShown: false }}
                 />
 
+                <Stack.Screen
+                    name="Settings"
+                    component={SettingsUser}
+                    options={{headerShown: false}}
+                    />
 
 
             </Stack.Navigator>

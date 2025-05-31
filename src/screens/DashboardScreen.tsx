@@ -7,11 +7,18 @@ import {
   Modal,
   TouchableWithoutFeedback
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { RootStackParamList } from '../../App';
 
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 const Dashboard = () => {
+
+  const navigation = useNavigation<NavigationProp>();
+
   const [modalVisible, setModalVisible] = useState(false);
   const caloriasObjetivo = 2380;
   const caloriasComidas = 1190;
@@ -22,6 +29,10 @@ const Dashboard = () => {
   const proteinas = 30;
   const nutrientes = 80;
   const grasas = 30;
+
+  const handleSettings = async () => {
+    navigation.navigate('Settings');
+  }
 
   return (
     <View style={styles.container}>
@@ -164,7 +175,7 @@ const Dashboard = () => {
           <Ionicons name="add" size={28} color="#fff" />
         </TouchableOpacity>
         <Ionicons name="bar-chart-outline" size={24} color="#fff" />
-        <Ionicons name="settings-outline" size={24} color="#fff" />
+        <Ionicons name="settings-outline" size={24} color="#fff" onPress={handleSettings}/>
       </View>
 
       {/* Modal */}
