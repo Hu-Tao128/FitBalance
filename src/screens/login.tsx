@@ -28,9 +28,16 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [mensaje, setMensaje] = useState('');
 
+    // 1) Cambia aquí '192.168.1.42' por la IP local de tu computadora
+    //    donde estás corriendo tu servidor de Node/Express.
+    //    Por ejemplo: '192.168.1.42'  (sin puerto ni slash).
+    const SERVER_IP = '192.168.1.75';
+
     const handleLogin = async () => {
         try {
-            const res = await axios.post('http://ayasc.ddns.net:3000/login', {
+            // 2) La URL queda construida así:
+            //    http://<tu_ip_local>:3000/login
+            const res = await axios.post(`http://${SERVER_IP}:3000/login`, {
                 usuario,
                 password,
             });
@@ -39,16 +46,9 @@ export default function LoginScreen() {
                 nombre: res.data.nombre || res.data.name,
                 email: res.data.correo,
                 usuario: res.data.usuario || res.data.username,
-
             });
-            // Lsos datoas que se guardan
-
-            navigation.navigate('Root');
-            // La nueva ruta para la navegacion pr botones
 
             setMensaje(`✅ Bienvenido, ${res.data.nombre}`);
-
-            // Navega a RecipeSearch si todo sale bien
             navigation.navigate('Root');
         } catch (error: any) {
             setMensaje('❌ Usuario o contraseña incorrectos');
@@ -113,7 +113,6 @@ export default function LoginScreen() {
                 </View>
             </ScrollView>
 
-            { }
             <View style={styles.footerDecor}>
                 <Image
                     source={require('../../assets/f5.png')}
@@ -212,10 +211,9 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         height: 130,
-        zIndex: 100, // o elimínalo si no lo necesitas
-        backgroundColor: '#fff', // para asegurar que se vea bien
+        zIndex: 100,
+        backgroundColor: '#fff',
     },
-
     footerImage: {
         width: '100%',
         height: '130%',
