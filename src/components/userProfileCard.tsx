@@ -5,28 +5,29 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 type UserProfileProps = {
   nombre: string;
   email: string;
-  edad: number;
-  sexo: string;
-  altura_cm: number;
-  peso_kg: number;
-  objetivo: string;
-  ultima_consulta: string;
+  usuario?: string;
+  edad?: number;       // Hacer opcional
+  sexo?: string;       // Hacer opcional
+  altura_cm?: number;  // Hacer opcional
+  peso_kg?: number;    // Hacer opcional
+  objetivo?: string;   // Hacer opcional
+  ultima_consulta?: string; // Hacer opcional
 };
 
 const UserProfileCard = ({
   nombre,
   email,
-  edad,
-  sexo,
-  altura_cm,
-  peso_kg,
-  objetivo,
-  ultima_consulta,
+  edad = 0,              // Valor por defecto
+  sexo = 'No especificado', // Valor por defecto
+  altura_cm = 0,         // Valor por defecto
+  peso_kg = 0,           // Valor por defecto
+  objetivo = 'No especificado', // Valor por defecto
+  ultima_consulta = 'No registrada' // Valor por defecto
 }: UserProfileProps) => {
   return (
     <View style={styles.card}>
       <Image
-        source={require('../../assets/FitBalanceLogo')}
+        source={require('../../assets/NotFat.gif')}
         style={styles.avatar}
       />
       <Text style={styles.name}>{nombre}</Text>

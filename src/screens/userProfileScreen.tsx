@@ -1,22 +1,25 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet, Text } from 'react-native';
-import UserProfileCard from '../../components/userProfileCard';
+import UserProfileCard from '../components/userProfileCard';
+import { useUser } from '../context/UserContext';
 
 const UserProfileScreen = () => {
-  const user = {
-    nombre: 'Juan Martínez',
-    email: 'juan.martinez@example.com',
-    edad: 28,
-    sexo: 'masculino',
-    altura_cm: 180,
-    peso_kg: 85,
-    objetivo: 'ganar masa muscular',
-    ultima_consulta: '2025-05-15T12:00:00Z',
-  };
+  const { user } = useUser();
+
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.noUserText}>No hay usuario logueado</Text>
+      </View>
+    );
+  }
+
+  // Extrae solo las propiedades necesarias
+  const { usuario, ...userData } = user;
 
   return (
     <ScrollView style={styles.container}>
-      <UserProfileCard {...user} />
+      <UserProfileCard {...userData} />
       <View style={styles.notes}>
         <Text style={styles.notesTitle}>Notas del nutricionista</Text>
         <Text style={styles.noteText}>
@@ -35,10 +38,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#0d0d0d',
     padding: 20,
   },
+  noUserText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+  },
   notes: {
     backgroundColor: '#1c1c1e',
     borderRadius: 12,
     padding: 16,
+    marginTop: 20,
   },
   notesTitle: {
     color: '#34C759',
@@ -49,5 +59,6 @@ const styles = StyleSheet.create({
   noteText: {
     color: '#fff',
     fontSize: 14,
+    lineHeight: 20,
   },
 });

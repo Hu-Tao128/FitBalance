@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from '../screens/DashboardScreen';
 import RecipeSearch from '../screens/recipeSearch';
 import SettingsUser from "../screens/settings";
+import UserProfileScreen from '../screens/userProfileScreen';
 import { useState } from 'react';
 
 const Tab = createBottomTabNavigator();
@@ -57,9 +58,20 @@ export const BottomNavigation = () => {
                     headerShown: false,
                 }}
             >
+
                 <Tab.Screen name="Home" component={HomeScreen} />
                 <Tab.Screen name="RecipeSearch" component={RecipeSearch} />
                 <Tab.Screen name="Settings" component={SettingsUser} />
+                <Tab.Screen 
+                    name="UserProfile" 
+                    component={UserProfileScreen}
+                    options={{
+                    tabBarIcon: ({ color }) => (
+                        <Ionicons name="person-outline" size={24} color={color} />
+                    ),
+                    tabBarLabel: 'Perfil'
+                    }}
+                />
             </Tab.Navigator>
 
             {/* Modal */}

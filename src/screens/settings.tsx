@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView, Modal, TouchableWithoutFeedback } from 'react-native';
-import { Ionicons, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView } from 'react-native';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../App'; // Asegúrate de que la ruta sea correcta
+
+type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
 const SettingsScreen = () => {
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
-  const [darkMode, setDarkMode] = React.useState(true);
+  const navigation = useNavigation<SettingsScreenNavigationProp>();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [darkMode, setDarkMode] = useState(true);
 
   return (
     <View style={styles.container}>
@@ -18,7 +22,10 @@ const SettingsScreen = () => {
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Cuenta */}
         <Text style={styles.sectionHeader}>Cuenta</Text>
-        <TouchableOpacity style={styles.item}>
+        <TouchableOpacity 
+          style={styles.item}
+          onPress={() => navigation.navigate('UserProfile')} // Aquí está el cambio
+        >
           <Ionicons name="person-outline" size={24} color="#34C759" />
           <Text style={styles.itemText}>Perfil</Text>
         </TouchableOpacity>

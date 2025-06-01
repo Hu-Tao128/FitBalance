@@ -16,9 +16,12 @@ import {
 } from 'react-native';
 import { RootStackParamList } from '../../App';
 
+import { useUser } from "../context/UserContext";
+
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
+    const { login } = useUser();
     const navigation = useNavigation<NavigationProp>();
 
     const [usuario, setUsuario] = useState('');
@@ -31,6 +34,18 @@ export default function LoginScreen() {
                 usuario,
                 password,
             });
+
+            await login({
+                nombre: res.data.nombre || res.data.name,
+                email: res.data.correo,
+                usuario: res.data.usuario || res.data.username,
+
+            });
+            // Lsos datoas que se guardan
+
+            navigation.navigate('Root');
+            // La nueva ruta para la navegacion pr botones
+
             setMensaje(`✅ Bienvenido, ${res.data.nombre}`);
 
             // Navega a RecipeSearch si todo sale bien
