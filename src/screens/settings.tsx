@@ -63,59 +63,6 @@ const SettingsScreen = () => {
           <Text style={styles.itemText}>Cerrar sesión</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <Ionicons name="home-outline" size={24} color="#fff" />
-        <Ionicons name="book-outline" size={24} color="#fff" />
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => setModalVisible(true)}
-        >
-          <Ionicons name="add" size={28} color="#fff" />
-        </TouchableOpacity>
-        <Ionicons name="bar-chart-outline" size={24} color="#fff" />
-        <Ionicons name="settings-sharp" size={24} color="#fff" />
-      </View>
-
-        {/* Modal */}
-        <Modal
-            transparent
-            animationType="slide"
-            visible={modalVisible}
-            onRequestClose={() => setModalVisible(false)}
-            >
-            <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-            <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-                <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Registrar</Text>
-                <TouchableOpacity style={styles.modalOption}>
-                <View style={styles.optionRow}>
-                    <MaterialCommunityIcons name="food-apple" size={24} color="#34C759" />
-                    <Text style={styles.modalOptionText}>Registrar alimento</Text>
-                </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.modalOption}>
-                <View style={styles.optionRow}>
-                    <Ionicons name="water-outline" size={24} color="#34C759" />
-                    <Text style={styles.modalOptionText}>Registrar agua</Text>
-                </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.modalOption}>
-                <View style={styles.optionRow}>
-                    <MaterialCommunityIcons name="scale-bathroom" size={24} color="#34C759" />
-                    <Text style={styles.modalOptionText}>Nuevo peso</Text>
-                </View>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Text style={{ color: '#34C759', textAlign: 'right' }}>Cerrar</Text>
-                </TouchableOpacity>
-            </View>
-            </TouchableWithoutFeedback>
-            </View>
-            </TouchableWithoutFeedback>
-        </Modal>
     </View>
   );
 };

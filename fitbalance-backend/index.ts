@@ -2,6 +2,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
+import axios from "axios";
 
 dotenv.config();
 
@@ -97,6 +98,53 @@ app.post('/login', async (req: Request, res: Response): Promise<void> => {
         console.error('❌ Error al iniciar sesión:', err);
         res.status(500).json({ error: 'Error del servidor' });
     }
+});
+
+app.get('/api/recipes/search', async (req: Request, res: Response) => {
+  try {
+    const { query } = req.query;
+    
+    if (!query) {
+      return res.status(400).json({ error: 'Query parameter is required' });
+    }
+
+    const response = await axios.get(
+      `https://api.spoonacular.com/recipes/complexSearch`, {
+        params: {
+          query,
+          number: 10,
+          addRecipeNutrition: true,
+          apiKey: process.env.SPOONACULAR_APIKEY
+        }
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error searching recipes:', error);
+    res.status(500).json({ error: 'Failed to search recipes' });
+  }
+});
+
+// ✅ Nuevo endpoint para obtener detalles de receta
+app.get('/api/recipes/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const response = await axios.get(
+      `https://api.spoonacular.com/recipes/${id}/information`, {
+        params: {
+          includeNutrition: true,
+          apiKey: process.env.SPOONACULAR_APIKEY
+        }
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching recipe details:', error);
+    res.status(500).json({ error: 'Failed to fetch recipe details' });
+  }
 });
 
 // ✅ Iniciar el servidor

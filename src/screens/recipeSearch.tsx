@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-
+import { SPOONACULAR_APIKEY } from '@env';
 interface RecipeSummary {
   id: number;
   title: string;
@@ -33,6 +33,7 @@ interface RecipeDetail {
   extendedIngredients: {
     original: string;
   }[];
+
   analyzedInstructions: {
     name: string;
     steps: {
@@ -42,7 +43,7 @@ interface RecipeDetail {
   }[];
 }
 
-const SPOONACULAR_API_KEY = 'c42808d4bc17435ab8c4b5d9d75ecedd';
+const SPOONACULAR_API_KEY = SPOONACULAR_APIKEY;
 
 export default function RecipeSearchScreen() {
   const [query, setQuery] = useState('');
@@ -54,7 +55,7 @@ export default function RecipeSearchScreen() {
   const fetchRecipes = async () => {
     try {
       const response = await fetch(
-        `https://api.spoonacular.com/recipes/complexSearch?query=${query}&number=10&addRecipeNutrition=true&apiKey=${SPOONACULAR_API_KEY}`
+        `http://ayasc.ddns.net/api/recipes/search?query=${query}`
       );
       const data = await response.json();
       setRecipes(data.results);
@@ -67,9 +68,9 @@ export default function RecipeSearchScreen() {
     setLoadingDetail(true);
     try {
       const response = await fetch(
-        `https://api.spoonacular.com/recipes/${id}/information?includeNutrition=true&apiKey=${SPOONACULAR_API_KEY}`
+        `http://ayasc.ddns.net/api/recipes/${id}`
       );
-      const data: RecipeDetail = await response.json();
+      const data = await response.json();
       setSelectedRecipe(data);
       setModalVisible(true);
     } catch (error) {
