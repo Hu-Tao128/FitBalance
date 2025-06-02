@@ -33,7 +33,6 @@ export default function AppNavigator() {
         <Stack.Screen
           name="UserProfile"
           component={UserProfileScreen}
-          options={{ headerShown: false }}
         />
         {/* Añade Settings si es necesario */}
         <Stack.Screen
