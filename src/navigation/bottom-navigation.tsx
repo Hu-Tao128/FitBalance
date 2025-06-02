@@ -2,14 +2,16 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import * as React from 'react';
 import {
+    Modal,
+    TouchableWithoutFeedback,
+    Text,
     StyleSheet,
     TouchableOpacity,
     View
 } from 'react-native';
 import HomeScreen from '../screens/DashboardScreen';
-// 🔄 Cambiado: importación de WeighFoodScreen
 import { useState } from 'react';
-import SettingsUser from "../screens/settings";
+import SettingsStackNavigator from "../navigation/SettingsStackNavigator";
 import UserProfileScreen from '../screens/userProfileScreen';
 import WeighFoodScreen from '../screens/weighFood';
 
@@ -70,14 +72,19 @@ export const BottomNavigation = () => {
                 {/* 🔄 Cambiado: de RecipeSearch a weighFood */}
                 <Tab.Screen name="weighFood" component={WeighFoodScreen} />
 
-                <Tab.Screen name="Settings" component={SettingsUser} />
+                <Tab.Screen name="Settings" component={SettingsStackNavigator} />
 
                 <Tab.Screen
                     name="UserProfile"
                     component={UserProfileScreen}
                     options={{
+                        headerShown: true,
+                        headerTitle: 'Perfil',
+                        headerTintColor: '#34C759',
+                        headerStyle: { backgroundColor: '#0d0d0d' },
+                        headerTitleStyle: { color: '#fff' },
                         tabBarIcon: ({ color }) => (
-                            <Ionicons name="person-outline" size={24} color={color} />
+                        <Ionicons name="person-outline" size={24} color={color} />
                         ),
                         tabBarLabel: 'Perfil',
                     }}
@@ -85,7 +92,43 @@ export const BottomNavigation = () => {
             </Tab.Navigator>
 
             {/* Modal */}
-            {/* ...sin cambios */}
+            <Modal
+                transparent
+                animationType="slide"
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                    <View style={styles.modalOverlay}>
+                        <TouchableWithoutFeedback>
+                            <View style={styles.modalContent}>
+                                <Text style={styles.modalTitle}>Registrar</Text>
+                                <TouchableOpacity style={styles.modalOption}>
+                                    <View style={styles.optionRow}>
+                                        <MaterialCommunityIcons name="food-apple" size={24} color="#34C759" />
+                                        <Text style={styles.modalOptionText}>Registrar alimento</Text>
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.modalOption}>
+                                    <View style={styles.optionRow}>
+                                        <Ionicons name="water-outline" size={24} color="#34C759" />
+                                        <Text style={styles.modalOptionText}>Registrar agua</Text>
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.modalOption}>
+                                    <View style={styles.optionRow}>
+                                        <MaterialCommunityIcons name="scale-bathroom" size={24} color="#34C759" />
+                                        <Text style={styles.modalOptionText}>Nuevo peso</Text>
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                    <Text style={{ color: '#34C759', textAlign: 'right' }}>Cerrar</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </TouchableWithoutFeedback>
+                    </View>
+                </TouchableWithoutFeedback>
+            </Modal>
         </>
     );
 }

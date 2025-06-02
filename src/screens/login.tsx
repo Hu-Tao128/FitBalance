@@ -31,7 +31,7 @@ export default function LoginScreen() {
     // 1) Cambia aquí '192.168.1.42' por la IP local de tu computadora
     //    donde estás corriendo tu servidor de Node/Express.
     //    Por ejemplo: '192.168.1.42'  (sin puerto ni slash).
-    const SERVER_IP = 'ayasc.ddns.net';
+    const SERVER_IP = '192.168.137.1';
 
     const handleLogin = async () => {
         try {
