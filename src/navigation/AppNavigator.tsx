@@ -1,15 +1,17 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { BottomNavigation } from './bottom-navigation';
 import Login from '../screens/login';
-import UserProfileScreen from '../screens/userProfileScreen'; // Importa la pantalla
 import SettingsScreen from '../screens/settings'; // Importa Settings si es necesario
+import UserProfileScreen from '../screens/userProfileScreen'; // Importa la pantalla
+import weighFood from '../screens/weighFood'; // Importa weighFood si es necesario
+import { BottomNavigation } from './bottom-navigation';
 
 export type RootStackParamList = {
   Login: undefined;
   Root: undefined;
   UserProfile: undefined;
   Settings: undefined;
+  weighFood: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -37,6 +39,11 @@ export default function AppNavigator() {
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="weighFood"
+          component={weighFood}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

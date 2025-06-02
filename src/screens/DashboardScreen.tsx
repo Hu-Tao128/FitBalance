@@ -1,177 +1,189 @@
+
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
+  Modal,
+  ScrollView,
   StyleSheet,
-  TouchableOpacity
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import { RootStackParamList } from '../../App';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
-
-const Dashboard = () => {
-
-  const navigation = useNavigation<NavigationProp>();
-
+const Home = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const caloriasObjetivo = 2380;
-  const caloriasComidas = 1190;
-
-  const ProteinasObjetivo = 350;
-  const nutrientesObjetivo = 350;
-  const grasasObjetivo = 350;
-  const proteinas = 30;
-  const nutrientes = 80;
-  const grasas = 30;
-
-  const handleSettings = async () => {
-    navigation.navigate('Settings');
-  }
+  const caloriasComidas = 2000;
+  const caloriasRestantes = caloriasObjetivo - caloriasComidas;
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <Ionicons name="person-circle-outline" size={40} color="#fff" />
-        <Text style={styles.title}>nutrifrut</Text>
+        <Ionicons name="person-circle-outline" size={40} color="#eee" />
+        <Text style={styles.title}>FitBalance</Text>
         <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={28} color="#fff" />
+          <Ionicons name="notifications-outline" size={28} color="#eee" />
         </TouchableOpacity>
       </View>
 
-      {/* Main Content */}
-      <View style={[styles.section, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
-        <View>
-          <Text style={styles.sectionTitle}>Calorías</Text>
-          <Text style={styles.sectionText}>2380 Objetivo</Text>
-          {(caloriasObjetivo - caloriasComidas) > 0 ?(
-            <Text style={styles.sectionText}>
-              {caloriasComidas} Alcanzadas{"\n"}
-              {(caloriasObjetivo - caloriasComidas)} faltantes
-            </Text>
-          ) : (
-              <Text style={styles.sectionText}>
-              {(caloriasObjetivo - caloriasComidas) * -1} Sobrepasadas
-            </Text>
-          )}
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        <View style={styles.caloriesWrapper}>
+          <AnimatedCircularProgress
+            size={180}
+            width={16}
+            fill={(caloriasComidas / caloriasObjetivo) * 100}
+            tintColor="#34C759"
+            backgroundColor="#2c2c2e"
+            rotation={0}
+            lineCap="round"
+          >
+            {(fill: number) => (
+              <Text style={styles.caloriesNumber}>{Math.round(fill)}%</Text>
+            )}
+
+          </AnimatedCircularProgress>
+          <Text style={styles.subtext}>
+            {caloriasObjetivo} cal objetivo | {caloriasComidas} consumidas
+          </Text>
+          <Text style={[styles.subtext, { color: caloriasRestantes > 0 ? '#4caf50' : '#e53935' }]}>
+            {Math.abs(caloriasRestantes)} cal {caloriasRestantes > 0 ? 'faltantes' : 'excedidas'}
+          </Text>
         </View>
 
-        <AnimatedCircularProgress
-          size={90}
-          width={8}
-          fill={(caloriasComidas / caloriasObjetivo) * 100}
-          tintColor="#34C759"
-          backgroundColor="#333"
-          rotation={0}
-          lineCap="round"
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Macros</Text>
+
+          <View style={styles.macroRow}>
+            <View style={styles.macroItem}>
+              <AnimatedCircularProgress
+                size={70}
+                width={6}
+                fill={60}
+                tintColor="#4e8ef7"
+                backgroundColor="#3a3a3c"
+                rotation={0}
+                lineCap="round"
+              >
+                {() => <Text style={styles.macroLabel}>60%</Text>}
+              </AnimatedCircularProgress>
+              <Text style={styles.macroText}>Proteínas</Text>
+            </View>
+
+            <View style={styles.macroItem}>
+              <AnimatedCircularProgress
+                size={70}
+                width={6}
+                fill={75}
+                tintColor="#34C759"
+                backgroundColor="#3a3a3c"
+                rotation={0}
+                lineCap="round"
+              >
+                {() => <Text style={styles.macroLabel}>75%</Text>}
+              </AnimatedCircularProgress>
+              <Text style={styles.macroText}>Carbs</Text>
+            </View>
+
+            <View style={styles.macroItem}>
+              <AnimatedCircularProgress
+                size={70}
+                width={6}
+                fill={45}
+                tintColor="#f5a623"
+                backgroundColor="#3a3a3c"
+                rotation={0}
+                lineCap="round"
+              >
+                {() => <Text style={styles.macroLabel}>45%</Text>}
+              </AnimatedCircularProgress>
+              <Text style={styles.macroText}>Grasas</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.sectionRow}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Pasos</Text>
+            <Text style={styles.cardText}>Conéctate para monitorear</Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Ejercicio</Text>
+            <Text style={styles.cardText}>0 cal</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Comentario del nutriólogo</Text>
+          <Text style={styles.sectionText}>
+            {caloriasRestantes > 0
+              ? '¡Vas muy bien! Sigue así.'
+              : 'Te has excedido, intenta balancear tus próximas comidas.'}
+          </Text>
+        </View>
+      </ScrollView>
+
+      <View style={styles.bottomNav}>
+        <Ionicons name="home-outline" size={24} color="#34C759" />
+        <Ionicons name="book-outline" size={24} color="#ccc" />
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setModalVisible(true)}
         >
-          {(fill: number) => (
-            <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-              {Math.round(fill)}%
-            </Text>
-          )}
-        </AnimatedCircularProgress>
+          <Ionicons name="add" size={28} color="#fff" />
+        </TouchableOpacity>
+        <Ionicons name="bar-chart-outline" size={24} color="#ccc" />
+        <Ionicons name="settings-outline" size={24} color="#ccc" />
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Macros</Text>
-        <Text style={styles.sectionText}>Últimos 90 días</Text>
-
-        <View style={styles.macrosContainer}>
-          <View style={styles.macroItem}>
-            <AnimatedCircularProgress
-              size={80}
-              width={8}
-              fill={(proteinas / ProteinasObjetivo) * 100}
-              tintColor="#00bfff"
-              backgroundColor="#333"
-              rotation={0}
-              lineCap="round"
-            >
-              {(fill: number) => (
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-                  {Math.round(fill)}%
-                </Text>
-              )}
-            </AnimatedCircularProgress>
-            <Text style={styles.macroLabel}>Proteínas</Text>
+      <Modal
+        transparent
+        animationType="slide"
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Registrar</Text>
+                <TouchableOpacity style={styles.modalOption}>
+                  <View style={styles.optionRow}>
+                    <MaterialCommunityIcons name="food-apple" size={24} color="#34C759" />
+                    <Text style={styles.modalOptionText}>Registrar alimento</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalOption}>
+                  <View style={styles.optionRow}>
+                    <Ionicons name="water-outline" size={24} color="#34C759" />
+                    <Text style={styles.modalOptionText}>Registrar agua</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalOption}>
+                  <View style={styles.optionRow}>
+                    <MaterialCommunityIcons name="scale-bathroom" size={24} color="#34C759" />
+                    <Text style={styles.modalOptionText}>Nuevo peso</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Text style={{ color: '#34C759', textAlign: 'right' }}>Cerrar</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-
-          <View style={styles.macroItem}>
-            <AnimatedCircularProgress
-              size={80}
-              width={8}
-              fill={(nutrientes / nutrientesObjetivo) * 100}
-              tintColor="#dc143c"
-              backgroundColor="#333"
-              rotation={0}
-              lineCap="round"
-            >
-              {(fill: number) => (
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-                  {Math.round(fill)}%
-                </Text>
-              )}
-            </AnimatedCircularProgress>
-            <Text style={styles.macroLabel}>Nutrientes</Text>
-          </View>
-
-          <View style={styles.macroItem}>
-            <AnimatedCircularProgress
-              size={80}
-              width={8}
-              fill={(grasas / grasasObjetivo) * 100}
-              tintColor="#ffd700"
-              backgroundColor="#333"
-              rotation={0}
-              lineCap="round"
-            >
-              {(fill: number) => (
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-                  {Math.round(fill)}%
-                </Text>
-              )}
-            </AnimatedCircularProgress>
-            <Text style={styles.macroLabel}>Grasas</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.sectionRow}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Pasos</Text>
-          <Text style={styles.cardText}>Conéctese para monitorear</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Ejercicio</Text>
-          <Text style={styles.cardText}>0 cal</Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Comentarios de tu nutriologo</Text>
-          <Text style={styles.sectionText}>Soy un comentario de tu nutriologo</Text>
-          {(caloriasObjetivo - caloriasComidas) > 0 ?(
-            <Text style={styles.sectionText}>Vas bien</Text>
-          ) : (
-            <Text style={styles.sectionText}>Comentario del nutriologo cuando se exceden las calorias por dia</Text>
-          )}
-      </View>
-
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 };
 
-export default Dashboard;
+export default Home;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#1c1c1e',
     paddingTop: 50,
     paddingHorizontal: 20,
   },
@@ -184,34 +196,53 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#34C759', // verde acento
+    color: '#34C759',
+  },
+  caloriesWrapper: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  caloriesNumber: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#34C759',
+  },
+  caloriesLabel: {
+    fontSize: 14,
+    color: '#aaa',
+  },
+  subtext: {
+    marginTop: 6,
+    fontSize: 16,
+    color: '#ccc',
   },
   section: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#2c2c2e',
     padding: 20,
     borderRadius: 12,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   sectionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 10,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   card: {
     flex: 1,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#2c2c2e',
     borderRadius: 12,
     padding: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: '#eee',
+    marginBottom: 5,
   },
   sectionText: {
-    fontSize: 17,
-    color: '#999',
+    fontSize: 16,
+    color: '#bbb',
   },
   cardTitle: {
     fontSize: 16,
@@ -223,13 +254,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#aaa',
   },
+  macroRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 15,
+  },
+  macroItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  macroLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#eee',
+  },
+  macroText: {
+    marginTop: 6,
+    fontSize: 14,
+    color: '#bbb',
+  },
   bottomNav: {
     position: 'absolute',
     bottom: 10,
     left: 20,
     right: 20,
     height: 60,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#2c2c2e',
     borderRadius: 30,
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -240,9 +290,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     padding: 14,
     marginTop: -30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
     elevation: 4,
   },
   modalOverlay: {
@@ -251,7 +298,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
   },
   modalContent: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#1c1c1e',
     padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -271,24 +318,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   modalOptionText: {
-    color: 'rgb(255,255,255)'
+    color: '#fff',
+    fontSize: 16,
   },
-  macrosContainer: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  marginTop: 20,
-},
-macroItem: {
-  alignItems: 'center',
-  flex: 1,
-},
-macroText: {
-  color: '#fff',
-  fontWeight: 'bold',
-},
-macroLabel: {
-  marginTop: 8,
-  color: '#999',
-  fontSize: 14,
-},
 });
