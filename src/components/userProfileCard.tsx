@@ -5,25 +5,28 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 type UserProfileProps = {
   nombre: string;
   email: string;
-  usuario?: string;
-  edad?: number;       // Hacer opcional
-  sexo?: string;       // Hacer opcional
-  altura_cm?: number;  // Hacer opcional
-  peso_kg?: number;    // Hacer opcional
-  objetivo?: string;   // Hacer opcional
-  ultima_consulta?: string; // Hacer opcional
+  edad?: number;
+  sexo?: string;
+  altura_cm?: number;
+  peso_kg?: number;
+  objetivo?: string;
+  ultima_consulta?: string;
 };
 
 const UserProfileCard = ({
   nombre,
   email,
-  edad = 0,              // Valor por defecto
-  sexo = 'No especificado', // Valor por defecto
-  altura_cm = 0,         // Valor por defecto
-  peso_kg = 0,           // Valor por defecto
-  objetivo = 'No especificado', // Valor por defecto
-  ultima_consulta = 'No registrada' // Valor por defecto
+  edad = 0,
+  sexo = 'No especificado',
+  altura_cm = 0,
+  peso_kg = 0,
+  objetivo = 'No especificado',
+  ultima_consulta = 'No registrada'
 }: UserProfileProps) => {
+  // Calcular IMC si hay datos suficientes
+  const imc = altura_cm > 0 && peso_kg > 0 
+    ? (peso_kg / ((altura_cm / 100) ** 2)).toFixed(1)
+    : null;
   return (
     <View style={styles.card}>
       <Image
@@ -41,6 +44,14 @@ const UserProfileCard = ({
         <MaterialCommunityIcons name="human-male-height" size={20} color="#34C759" />
         <Text style={styles.infoText}>{altura_cm} cm • {peso_kg} kg</Text>
       </View>
+      {imc && (
+        <View style={styles.infoRow}>
+          <MaterialCommunityIcons name="human-male-height" size={20} color="#34C759" />
+          <Text style={styles.infoText}>
+            IMC: {imc} ({getImcCategory(Number(imc))})
+          </Text>
+        </View>
+      )}
       <View style={styles.infoRow}>
         <Ionicons name="barbell-outline" size={20} color="#34C759" />
         <Text style={styles.infoText}>Objetivo: {objetivo}</Text>
@@ -53,6 +64,13 @@ const UserProfileCard = ({
   );
 };
 
+function getImcCategory(imc: number): string {
+  if (imc < 18.5) return 'Bajo peso';
+  if (imc < 25) return 'Normal';
+  if (imc < 30) return 'Sobrepeso';
+  return 'Obesidad';
+}
+
 export default UserProfileCard;
 
 const styles = StyleSheet.create({
@@ -62,31 +80,62 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     marginBottom: 20,
+    width: '100%',
+    shadowColor: '#34C759',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 15,
+    borderWidth: 2,
+    borderColor: '#34C759',
   },
   name: {
-    fontSize: 20,
+    fontSize: 22,
     color: '#fff',
     fontWeight: 'bold',
+    marginBottom: 5,
   },
   email: {
     fontSize: 14,
-    color: '#ccc',
-    marginBottom: 10,
+    color: '#aaa',
+    marginBottom: 15,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 4,
+    marginVertical: 6,
+    width: '100%',
   },
   infoText: {
-    marginLeft: 8,
+    marginLeft: 10,
     color: '#fff',
-    fontSize: 14,
+    fontSize: 15,
+    flex: 1,
   },
+  sectionTitle: {
+    color: '#34C759',
+    fontWeight: 'bold',
+    alignSelf: 'flex-start',
+    marginTop: 15,
+    marginBottom: 5,
+    fontSize: 16,
+  },
+  imcBadge: {
+    backgroundColor: '#34C75920',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  imcText: {
+    color: '#34C759',
+    fontSize: 12,
+    fontWeight: 'bold',
+  }
 });

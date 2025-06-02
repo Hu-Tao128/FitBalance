@@ -31,7 +31,7 @@ export default function LoginScreen() {
     // 1) Cambia aquí '192.168.1.42' por la IP local de tu computadora
     //    donde estás corriendo tu servidor de Node/Express.
     //    Por ejemplo: '192.168.1.42'  (sin puerto ni slash).
-    const SERVER_IP = '192.168.1.75';
+    const SERVER_IP = 'ayasc.ddns.net';
 
     const handleLogin = async () => {
         try {
@@ -42,10 +42,26 @@ export default function LoginScreen() {
                 password,
             });
 
+            // 1. Primero guarda los datos básicos
+            const basicUserData = {
+            nombre: res.data.nombre,
+            email: res.data.correo,
+            usuario: res.data.usuario
+            };
+            await login(basicUserData);
+
+            // 2. Luego carga los datos completos
+            const userDetails = await axios.get(`http://${SERVER_IP}:3000/user/${res.data.usuario}`);
+            
+            // 3. Actualiza el estado con todos los datos
             await login({
-                nombre: res.data.nombre || res.data.name,
-                email: res.data.correo,
-                usuario: res.data.usuario || res.data.username,
+            ...basicUserData,
+            edad: userDetails.data.edad,
+            sexo: userDetails.data.sexo,
+            altura_cm: userDetails.data.altura_cm,
+            peso_kg: userDetails.data.peso_kg,
+            objetivo: userDetails.data.objetivo,
+            ultima_consulta: userDetails.data.ultima_consulta
             });
 
             setMensaje(`✅ Bienvenido, ${res.data.nombre}`);

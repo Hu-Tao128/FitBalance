@@ -19,23 +19,36 @@ if (!MONGODB_URI) {
 
 // ✅ Esquema y modelo para usar la colección "Patients"
 interface IPatient {
-    nombre: string;
-    correo: string;
-    usuario: string;
-    password: string;
+  nombre: string;
+  correo: string;
+  usuario: string;
+  password: string;
+  edad?: number;
+  sexo?: string;
+  altura_cm?: number;
+  peso_kg?: number;
+  objetivo?: string;
+  ultima_consulta?: string;
 }
 
+// Actualiza el esquema de Patient
 const Patient = mongoose.model<IPatient>(
-    'Patient',
-    new mongoose.Schema(
-        {
-            nombre: { type: String, required: true },
-            correo: { type: String, required: true },
-            usuario: { type: String, required: true },
-            password: { type: String, required: true }
-        },
-        { collection: 'Patients' }
-    )
+  'Patient',
+  new mongoose.Schema(
+    {
+      nombre: { type: String, required: true },
+      correo: { type: String, required: true },
+      usuario: { type: String, required: true, unique: true },
+      password: { type: String, required: true },
+      edad: { type: Number },
+      sexo: { type: String },
+      altura_cm: { type: Number },
+      peso_kg: { type: Number },
+      objetivo: { type: String },
+      ultima_consulta: { type: String }
+    },
+    { collection: 'Patients' }
+  )
 );
 
 // ✅ Conexión a MongoDB
@@ -91,13 +104,28 @@ app.post('/login', async (req: Request, res: Response): Promise<void> => {
 
         res.json({
             mensaje: 'Inicio de sesión exitoso',
+            id: paciente._id,
             usuario: paciente.usuario,
-            nombre: paciente.nombre
+            nombre: paciente.nombre,
+            correo: paciente.correo
         });
     } catch (err) {
         console.error('❌ Error al iniciar sesión:', err);
         res.status(500).json({ error: 'Error del servidor' });
     }
+});
+
+app.get('/user/:usuario', async (req, res) => { // Cambiado a :usuario
+  try {
+    const paciente = await Patient.findOne({ usuario: req.params.usuario }); // Usa Patient
+    if (!paciente) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    res.json(paciente);
+  } catch (error) {
+    console.error('Error al obtener usuario:', error);
+    res.status(500).json({ error: 'Error al obtener usuario' });
+  }
 });
 
 app.get('/api/recipes/search', async (req: Request, res: Response) => {
