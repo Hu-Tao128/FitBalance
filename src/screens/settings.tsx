@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView } from 're
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../App'; // Asegúrate de que la ruta sea correcta
+import { RootStackParamList } from '../../App';
 
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
@@ -24,7 +24,7 @@ const SettingsScreen = () => {
         <Text style={styles.sectionHeader}>Cuenta</Text>
         <TouchableOpacity 
           style={styles.item}
-          onPress={() => navigation.navigate('UserProfile')} // Aquí está el cambio
+          onPress={() => navigation.navigate('UserProfile')}
         >
           <Ionicons name="person-outline" size={24} color="#34C759" />
           <Text style={styles.itemText}>Perfil</Text>

@@ -4,7 +4,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from '../screens/DashboardScreen';
 import RecipeSearch from '../screens/recipeSearch';
-import SettingsUser from "../screens/settings";
+import SettingsStackNavigator from './SettingsStackNavigator';
 import UserProfileScreen from '../screens/userProfileScreen';
 import { useState } from 'react';
 
@@ -61,17 +61,22 @@ export const BottomNavigation = () => {
 
                 <Tab.Screen name="Home" component={HomeScreen} />
                 <Tab.Screen name="RecipeSearch" component={RecipeSearch} />
-                <Tab.Screen name="Settings" component={SettingsUser} />
+                <Tab.Screen name="Settings" component={SettingsStackNavigator} />
                 <Tab.Screen 
                     name="UserProfile" 
                     component={UserProfileScreen}
                     options={{
-                    tabBarIcon: ({ color }) => (
+                        headerShown: true,
+                        headerTitle: 'Perfil',
+                        headerTintColor: '#34C759',
+                        headerStyle: { backgroundColor: '#0d0d0d' },
+                        headerTitleStyle: { color: '#fff' },
+                        tabBarIcon: ({ color }) => (
                         <Ionicons name="person-outline" size={24} color={color} />
-                    ),
-                    tabBarLabel: 'Perfil'
+                        ),
+                        tabBarLabel: 'Perfil',
                     }}
-                />
+                    />
             </Tab.Navigator>
 
             {/* Modal */}

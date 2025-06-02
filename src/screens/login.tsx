@@ -1,8 +1,9 @@
+import React, { useState } from 'react';
+import axios from 'axios';
 import { Entypo, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import axios from 'axios';
-import React, { useState } from 'react';
+import { useUser } from "../context/UserContext";
 import {
     Image,
     SafeAreaView,
@@ -16,7 +17,6 @@ import {
 } from 'react-native';
 import { RootStackParamList } from '../../App';
 
-import { useUser } from "../context/UserContext";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
