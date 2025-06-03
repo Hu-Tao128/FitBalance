@@ -5,17 +5,26 @@ export type RootStackParamList = {
   RecipeSearch: undefined;
   Settings: undefined;
   UserProfile: undefined;
+  Test: undefined;
 };
 
-import React from 'react';
+import React, {useEffect}  from 'react';
 import 'react-native-gesture-handler';
 import AppNavigator from './src/navigation/AppNavigator'; 
 import { UserProvider } from "./src/context/UserContext";
+import { ThemeProvider } from "./src/context/ThemeContext";
+import { setupNotifications } from './src/services/NotificationsServices';
 
 export default function App() {
+  useEffect(() => {
+    setupNotifications();
+  }, []);
+
   return(
-    <UserProvider>
-      <AppNavigator />
-    </UserProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <AppNavigator />
+      </UserProvider>
+    </ThemeProvider>
   );
 }

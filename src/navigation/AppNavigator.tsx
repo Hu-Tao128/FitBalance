@@ -4,6 +4,7 @@ import Login from '../screens/login';
 import SettingsScreen from '../screens/settings'; // Importa Settings si es necesario
 import UserProfileScreen from '../screens/userProfileScreen'; // Importa la pantalla
 import weighFood from '../screens/weighFood'; // Importa weighFood si es necesario
+import NutritionixTest from "../screens/NutrionixTest";
 import { BottomNavigation } from './bottom-navigation';
 import { useUser } from '../context/UserContext';
 import { View, ActivityIndicator } from 'react-native';
@@ -14,6 +15,7 @@ export type RootStackParamList = {
   UserProfile: undefined;
   Settings: undefined;
   weighFood: undefined;
+  Test: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -68,6 +70,17 @@ export default function AppNavigator() {
                       headerShown: true
                     }}
                 />
+                  <Stack.Screen
+                      name="Test"
+                      component={NutritionixTest}
+                      options={{
+                          title: 'Registrar Alimento Test Nutrionixt',
+                          headerStyle: { backgroundColor: '#1c1c1e' },
+                          headerTintColor: '#fff',
+                          headerShown: true
+                      }}
+                  />
+
               </>
           ) : (
               // Usuario no autenticado - Solo pantalla de login

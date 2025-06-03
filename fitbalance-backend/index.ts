@@ -175,6 +175,55 @@ app.get('/api/recipes/:id', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/nutritionix/upc', async (req: Request, res: Response) => {
+    const { upc } = req.query;
+
+    if (!upc) {
+        return res.status(400).json({ error: 'Se requiere un parámetro "upc"' });
+    }
+
+    try {
+        const response = await axios.get('https://trackapi.nutritionix.com/v2/search/item', {
+            headers: {
+                'x-app-id': process.env.NUTRITIONIX_APP_ID!,
+                'x-app-key': process.env.NUTRITIONIX_APP_KEY!
+            },
+            params: { upc }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('❌ Error al consultar Nutritionix por UPC:', error);
+        res.status(500).json({ error: 'Error al obtener datos del producto' });
+    }
+});
+
+app.post('/api/nutritionix/natural', async (req: Request, res: Response) => {
+    const { query } = req.body;
+
+    if (!query) {
+        return res.status(400).json({ error: 'Se requiere un campo "query" en el cuerpo' });
+    }
+
+    try {
+        const response = await axios.post('https://trackapi.nutritionix.com/v2/natural/nutrients',
+            { query },
+            {
+                headers: {
+                    'x-app-id': process.env.NUTRITIONIX_APP_ID!,
+                    'x-app-key': process.env.NUTRITIONIX_APP_KEY!,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('❌ Error al consultar alimentos naturales:', error);
+        res.status(500).json({ error: 'Error al obtener datos nutricionales' });
+    }
+});
+
 // ✅ Iniciar el servidor
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);

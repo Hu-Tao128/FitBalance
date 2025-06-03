@@ -14,6 +14,7 @@ import { useState } from 'react';
 import SettingsStackNavigator from "../navigation/SettingsStackNavigator";
 import UserProfileScreen from '../screens/userProfileScreen';
 import WeighFoodScreen from '../screens/weighFood';
+import NutritionixTest from "../screens/NutrionixTest";
 
 const Tab = createBottomTabNavigator();
 
@@ -34,7 +35,7 @@ export const BottomNavigation = () => {
                         </TouchableOpacity>
 
                         {/* 🔄 Cambiado: Navegar a weighFood */}
-                        <TouchableOpacity onPress={() => navigation.navigate('weighFood')}>
+                        <TouchableOpacity onPress={() => navigation.navigate('Test')}>
                             <MaterialCommunityIcons
                                 name="scale-bathroom"
                                 size={24}
@@ -70,7 +71,7 @@ export const BottomNavigation = () => {
                 <Tab.Screen name="Home" component={HomeScreen} />
 
                 {/* 🔄 Cambiado: de RecipeSearch a weighFood */}
-                <Tab.Screen name="weighFood" component={WeighFoodScreen} />
+                <Tab.Screen name="Test" component={NutritionixTest} />
 
                 <Tab.Screen name="Settings" component={SettingsStackNavigator} />
 

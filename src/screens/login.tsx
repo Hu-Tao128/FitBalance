@@ -4,6 +4,7 @@ import { Entypo, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUser } from "../context/UserContext";
+import { useTheme } from "../context/ThemeContext";
 import {
     Image,
     SafeAreaView,
@@ -23,6 +24,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 export default function LoginScreen() {
     const { login } = useUser();
     const navigation = useNavigation<NavigationProp>();
+    const { darkMode, toggleTheme, colors } = useTheme();
 
     const [usuario, setUsuario] = useState('');
     const [password, setPassword] = useState('');
@@ -132,7 +134,7 @@ export default function LoginScreen() {
                 </View>
             </ScrollView>
 
-            <View style={styles.footerDecor}>
+            <View style={[styles.footerDecor, { backgroundColor: colors.background }]}>
                 <Image
                     source={require('../../assets/f5.png')}
                     style={styles.footerImage}
