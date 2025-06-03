@@ -19,7 +19,7 @@ const SettingsStackNavigator = () => {
       <Stack.Screen
         name="SettingsMain"
         component={SettingsUser}
-        options={{ title: 'Configuración' }}
+        options={{ headerShown: false }} // Solo ocultamos en Settings
       />
       <Stack.Screen
         name="UserProfile"

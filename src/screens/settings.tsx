@@ -16,9 +16,9 @@ const SettingsScreen = () => {
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   const handleLogout = async () => {
-    await logout(); // Ejecuta el logout
+    await logout();
     navigation.replace('Login'); // Redirige al login
-    setLogoutModalVisible(false); // Cierra el modal
+    setLogoutModalVisible(false);
   };
 
   return (

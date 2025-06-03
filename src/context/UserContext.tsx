@@ -17,6 +17,7 @@ type UserContextType = {
   user: User | null;
   login: (userData: User) => Promise<void>;
   logout: () => Promise<void>;
+  isLoading: boolean;
   updateUser: (newData: Partial<User>) => Promise<void>;
 };
 
@@ -24,25 +25,38 @@ const UserContext = createContext<UserContextType>({
   user: null,
   login: async () => {},
   logout: async () => {},
+  isLoading: true,
   updateUser: async () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
-      const storedUser = await AsyncStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      try {
+        const storedUser = await AsyncStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.error('Error loading user', error);
+      } finally {
+        setIsLoading(false);
       }
     };
+
     loadUser();
   }, []);
 
   const login = async (userData: User) => {
-    await AsyncStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    try {
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+    } catch (error) {
+      console.error('Error saving user', error);
+    }
   };
 
   const logout = async () => {
@@ -62,7 +76,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, login, logout, updateUser }}>
+    <UserContext.Provider value={{ user, login, logout, isLoading, updateUser }}>
       {children}
     </UserContext.Provider>
   );
