@@ -46,8 +46,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem('user');
-    setUser(null);
+    try {
+      await AsyncStorage.removeItem('user'); // Elimina el usuario almacenado
+      setUser(null); // Limpia el estado
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
   };
 
   const updateUser = async (newData: Partial<User>) => {

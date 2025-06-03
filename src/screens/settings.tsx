@@ -1,16 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView, Modal, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { useUser } from '../context/UserContext';
 
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
 const SettingsScreen = () => {
   const navigation = useNavigation<SettingsScreenNavigationProp>();
+  const { logout } = useUser();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+
+  const handleLogout = async () => {
+    await logout(); // Ejecuta el logout
+    navigation.replace('Login'); // Redirige al login
+    setLogoutModalVisible(false); // Cierra el modal
+  };
 
   return (
     <View style={styles.container}>
@@ -65,11 +74,50 @@ const SettingsScreen = () => {
           <MaterialIcons name="help-outline" size={24} color="#34C759" />
           <Text style={styles.itemText}>Ayuda</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.item}>
-          <Ionicons name="log-out-outline" size={24} color="#34C759" />
-          <Text style={styles.itemText}>Cerrar sesión</Text>
+        <TouchableOpacity
+            style={styles.item}
+            onPress={() => setLogoutModalVisible(true)} // Abre el modal al presionar
+        >
+          <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
+          <Text style={[styles.itemText, { color: '#FF3B30' }]}>Cerrar sesión</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Modal de confirmación de cierre de sesión */}
+      <Modal
+          animationType="fade"
+          transparent={true}
+          visible={logoutModalVisible}
+          onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setLogoutModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>¿Cerrar sesión?</Text>
+                <Text style={styles.modalText}>¿Estás seguro de que quieres salir de tu cuenta?</Text>
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                      style={[styles.modalButton, styles.cancelButton]}
+                      onPress={() => setLogoutModalVisible(false)}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancelar</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                      style={[styles.modalButton, styles.confirmButton]}
+                      onPress={handleLogout}
+                  >
+                    <Text style={styles.confirmButtonText}>Cerrar sesión</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
     </View>
   );
 };
@@ -116,7 +164,8 @@ const styles = StyleSheet.create({
   },
   switch: {
     marginLeft: 'auto',
-  },bottomNav: {
+  },
+  bottomNav: {
     position: 'absolute',
     bottom: 10,
     left: 20,
@@ -138,23 +187,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     elevation: 4,
   },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  modalContent: {
-    backgroundColor: '#0d0d0d',
-    padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#34C759',
-  },
   modalOption: {
     paddingVertical: 12,
   },
@@ -165,5 +197,56 @@ const styles = StyleSheet.create({
   },
   modalOptionText: {
     color: 'rgb(255,255,255)'
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#1c1c1e',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#aaa',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: '#2c2c2e',
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  confirmButton: {
+    backgroundColor: '#FF3B30',
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
