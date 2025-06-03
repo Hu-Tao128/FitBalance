@@ -31,13 +31,13 @@ export default function LoginScreen() {
     // 1) Cambia aquí '192.168.1.42' por la IP local de tu computadora
     //    donde estás corriendo tu servidor de Node/Express.
     //    Por ejemplo: '192.168.1.42'  (sin puerto ni slash).
-    const SERVER_IP = 'ayasc.ddns.net';
+    const SERVER_IP = 'fitbalance-424w.onrender.com';
 
     const handleLogin = async () => {
         try {
             // 2) La URL queda construida así:
             //    http://<tu_ip_local>:3000/login
-            const res = await axios.post(`http://${SERVER_IP}:3000/login`, {
+            const res = await axios.post(`https://${SERVER_IP}/login`, {
                 usuario,
                 password,
             });
@@ -51,7 +51,7 @@ export default function LoginScreen() {
             await login(basicUserData);
 
             // 2. Luego carga los datos completos
-            const userDetails = await axios.get(`http://${SERVER_IP}:3000/user/${res.data.usuario}`);
+            const userDetails = await axios.get(`http://${SERVER_IP}/user/${res.data.usuario}`);
             
             // 3. Actualiza el estado con todos los datos
             await login({
