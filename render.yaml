@@ -2,7 +2,7 @@ services:
   - type: web
     name: fitbalance-backend
     runtime: node
-    buildCommand: cd fitbalance-backend && npm install
+    buildCommand: yarn install && cd fitbalance-backend && npm install
     startCommand: cd fitbalance-backend && npm run dev
     envVars:
       - key: MONGODB_URI
