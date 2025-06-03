@@ -31,6 +31,9 @@ export default function LoginScreen() {
     // 1) Cambia aquí '192.168.1.42' por la IP local de tu computadora
     //    donde estás corriendo tu servidor de Node/Express.
     //    Por ejemplo: '192.168.1.42'  (sin puerto ni slash).
+
+    //Nota: ahora pones tu ip y el puerto
+    // 1    192.168.1.42:3000
     const SERVER_IP = 'fitbalance-424w.onrender.com';
 
     const handleLogin = async () => {
