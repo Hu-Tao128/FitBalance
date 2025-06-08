@@ -7,12 +7,7 @@ import {
     Text, TextInput, TouchableOpacity,
     View
 } from 'react-native';
-<<<<<<< Updated upstream
-import axios from 'axios';
 import BarCodeScanner from '../components/BardCodeScanner';
-=======
-import BarCodeScanner from '../components/BardCodeScanner'; // Corregido el nombre
->>>>>>> Stashed changes
 
 const SERVER_URL = 'http://192.168.1.74:3000';
 
