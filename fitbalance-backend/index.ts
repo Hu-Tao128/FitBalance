@@ -21,6 +21,7 @@ if (!MONGODB_URI) {
 interface IPatient {
   nombre: string;
   correo: string;
+  email: string;
   usuario: string;
   password: string;
   edad?: number;
@@ -92,7 +93,10 @@ app.post('/login', async (req: Request, res: Response): Promise<void> => {
     }
 
     try {
-        const paciente = await Patient.findOne({ usuario, password });
+        const paciente = await Patient.findOne({
+            usuario: usuario,
+            password: password
+        }).select('-password'); // Excluye la contraseña de la respuesta
 
         if (!paciente) {
             console.log('❌ No se encontró paciente con esas credenciales');
@@ -107,7 +111,7 @@ app.post('/login', async (req: Request, res: Response): Promise<void> => {
             id: paciente._id,
             usuario: paciente.usuario,
             nombre: paciente.nombre,
-            correo: paciente.correo
+            correo: paciente.correo || paciente.email // Maneja ambos casos
         });
     } catch (err) {
         console.error('❌ Error al iniciar sesión:', err);
@@ -119,6 +123,7 @@ app.get('/user/:usuario', async (req, res) => { // Cambiado a :usuario
   try {
     const paciente = await Patient.findOne({ usuario: req.params.usuario }); // Usa Patient
     if (!paciente) {
+        console.log('Usuario no encontrado')
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
     res.json(paciente);
@@ -154,7 +159,7 @@ app.get('/api/recipes/search', async (req: Request, res: Response) => {
   }
 });
 
-// ✅ Nuevo endpoint para obtener detalles de receta
+
 app.get('/api/recipes/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -186,15 +191,19 @@ app.get('/api/nutritionix/upc', async (req: Request, res: Response) => {
         const response = await axios.get('https://trackapi.nutritionix.com/v2/search/item', {
             headers: {
                 'x-app-id': process.env.NUTRITIONIX_APP_ID!,
-                'x-app-key': process.env.NUTRITIONIX_APP_KEY!
+                'x-app-key': process.env.NUTRITIONIX_APP_KEY!,
             },
-            params: { upc }
+            params: { upc },
         });
 
-        res.json(response.data);
-    } catch (error) {
-        console.error('❌ Error al consultar Nutritionix por UPC:', error);
-        res.status(500).json({ error: 'Error al obtener datos del producto' });
+        // Si Nutritionix responde con datos, enviarlos al frontend
+        return res.json(response.data);
+
+    } catch (err) {
+        const error = err as { response?: { data?: { error?: string } }, message?: string };
+        console.error(`❌ Error al consultar UPC: ${error.response?.data?.error || error.message || "Desconocido"}`);
+        res.status(500).json({ error: 'Error al consultar UPC en Nutritionix' });
+
     }
 });
 
@@ -219,7 +228,7 @@ app.post('/api/nutritionix/natural', async (req: Request, res: Response) => {
 
         res.json(response.data);
     } catch (error) {
-        console.error('❌ Error al consultar alimentos naturales:', error);
+        console.error('Error al consultar alimentos naturales:', error);
         res.status(500).json({ error: 'Error al obtener datos nutricionales' });
     }
 });

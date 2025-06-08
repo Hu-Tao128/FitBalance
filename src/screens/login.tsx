@@ -36,42 +36,49 @@ export default function LoginScreen() {
 
     //Nota: ahora pones tu ip y el puerto
     // 1    192.168.1.42:3000
-    const SERVER_IP = 'fitbalance-424w.onrender.com';
+    const SERVER_IP = '192.168.0.24:3000';
 
     const handleLogin = async () => {
         try {
-            // 2) La URL queda construida así:
-            //    http://<tu_ip_local>:3000/login
-            const res = await axios.post(`https://${SERVER_IP}/login`, {
+            // Usa http o https consistentemente
+            const res = await axios.post(`http://${SERVER_IP}/login`, {
                 usuario,
                 password,
             });
 
+            // Verifica la respuesta del servidor
+            console.log('Respuesta del servidor:', res.data);
+
+            if (!res.data.usuario) {
+                throw new Error('Credenciales incorrectas');
+            }
+
             // 1. Primero guarda los datos básicos
             const basicUserData = {
-            nombre: res.data.nombre,
-            email: res.data.email,
-            usuario: res.data.usuario
+                nombre: res.data.nombre,
+                email: res.data.correo || res.data.email, // Maneja ambos casos
+                usuario: res.data.usuario
             };
             await login(basicUserData);
 
             // 2. Luego carga los datos completos
             const userDetails = await axios.get(`http://${SERVER_IP}/user/${res.data.usuario}`);
-            
+
             // 3. Actualiza el estado con todos los datos
             await login({
-            ...basicUserData,
-            edad: userDetails.data.edad,
-            sexo: userDetails.data.sexo,
-            altura_cm: userDetails.data.altura_cm,
-            peso_kg: userDetails.data.peso_kg,
-            objetivo: userDetails.data.objetivo,
-            ultima_consulta: userDetails.data.ultima_consulta
+                ...basicUserData,
+                edad: userDetails.data.edad,
+                sexo: userDetails.data.sexo,
+                altura_cm: userDetails.data.altura_cm,
+                peso_kg: userDetails.data.peso_kg,
+                objetivo: userDetails.data.objetivo,
+                ultima_consulta: userDetails.data.ultima_consulta
             });
 
             setMensaje(`✅ Bienvenido, ${res.data.nombre}`);
             navigation.navigate('Root');
         } catch (error: any) {
+            console.error('Error en login:', error.response?.data || error.message);
             setMensaje('❌ Usuario o contraseña incorrectos');
         }
     };

@@ -1,185 +1,234 @@
-
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
 import {
-  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
+  View,
+  Alert,
+  Platform
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { Pedometer } from 'expo-sensors';
 
 const Home = () => {
-  const [modalVisible, setModalVisible] = useState(false);
   const caloriasObjetivo = 2380;
   const caloriasComidas = 2000;
   const caloriasRestantes = caloriasObjetivo - caloriasComidas;
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Ionicons name="person-circle-outline" size={40} color="#eee" />
-        <Text style={styles.title}>FitBalance</Text>
-        <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={28} color="#eee" />
-        </TouchableOpacity>
-      </View>
+  // Estados para el podómetro
+  const [steps, setSteps] = useState<number>(0);
+  const [pastStepCount, setPastStepCount] = useState<number>(0);
+  const [isPedometerAvailable, setIsPedometerAvailable] = useState<'checking' | 'available' | 'unavailable'>('checking');
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={styles.caloriesWrapper}>
+  // Configuración del podómetro
+  useEffect(() => {
+    const subscribe = async () => {
+      try {
+        // Solicitar permisos en Android
+        if (Platform.OS === 'android') {
+          const response = await Pedometer.requestPermissionsAsync();
+          if (!response.granted) {
+            setIsPedometerAvailable('unavailable');
+            Alert.alert(
+                'Permisos requeridos',
+                'Necesitamos acceso a los sensores de actividad para contar tus pasos',
+                [{ text: 'OK' }]
+            );
+            return;
+          }
+        }
+
+        // Verificar disponibilidad
+        const isAvailable = await Pedometer.isAvailableAsync();
+        setIsPedometerAvailable(isAvailable ? 'available' : 'unavailable');
+
+        if (isAvailable) {
+          // Obtener pasos de las últimas 24 horas
+          const end = new Date();
+          const start = new Date();
+          start.setDate(end.getDate() - 1);
+
+          const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
+          if (pastStepCountResult) {
+            setPastStepCount(pastStepCountResult.steps);
+          }
+
+          // Suscribirse a actualizaciones en tiempo real
+          return Pedometer.watchStepCount(result => {
+            setSteps(result.steps);
+          });
+        }
+      } catch (error) {
+        console.error('Error al configurar podómetro:', error);
+        setIsPedometerAvailable('unavailable');
+      }
+    };
+
+    const subscriptionPromise = subscribe();
+
+    return () => {
+      subscriptionPromise.then(subscription => {
+        if (subscription && subscription.remove) {
+          subscription.remove();
+        }
+      });
+    };
+  }, []);
+
+  const renderStepsCard = () => {
+    if (isPedometerAvailable === 'checking') {
+      return <Text style={styles.cardText}>Cargando...</Text>;
+    }
+
+    if (isPedometerAvailable === 'unavailable') {
+      return (
+          <TouchableOpacity onPress={() => Alert.alert(
+              'Función no disponible',
+              'El contador de pasos no está disponible en este dispositivo o requiere permisos adicionales'
+          )}>
+            <Text style={[styles.cardText, { color: '#ff5555' }]}>No disponible</Text>
+          </TouchableOpacity>
+      );
+    }
+
+    return (
+        <>
           <AnimatedCircularProgress
-            size={180}
-            width={16}
-            fill={(caloriasComidas / caloriasObjetivo) * 100}
-            tintColor="#34C759"
-            backgroundColor="#2c2c2e"
-            rotation={0}
-            lineCap="round"
+              size={60}
+              width={6}
+              fill={(steps / 10000) * 100}
+              tintColor="#34C759"
+              backgroundColor="#3a3a3c"
+              rotation={0}
+              lineCap="round"
           >
-            {(fill: number) => (
-              <Text style={styles.caloriesNumber}>{Math.round(fill)}%</Text>
+            {() => (
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>
+                  {steps}
+                </Text>
             )}
-
           </AnimatedCircularProgress>
-          <Text style={styles.subtext}>
-            {caloriasObjetivo} cal objetivo | {caloriasComidas} consumidas
+          <Text style={[styles.cardText, { marginTop: 5 }]}>
+            {Math.round((steps / 10000) * 100)}% de tu meta
           </Text>
-          <Text style={[styles.subtext, { color: caloriasRestantes > 0 ? '#4caf50' : '#e53935' }]}>
-            {Math.abs(caloriasRestantes)} cal {caloriasRestantes > 0 ? 'faltantes' : 'excedidas'}
+          <Text style={[styles.cardText, { fontSize: 12 }]}>
+            {pastStepCount} pasos en 24h
           </Text>
+        </>
+    );
+  };
+
+  return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Ionicons name="person-circle-outline" size={40} color="#eee" />
+          <Text style={styles.title}>FitBalance</Text>
+          <TouchableOpacity>
+            <Ionicons name="notifications-outline" size={28} color="#eee" />
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Macros</Text>
-
-          <View style={styles.macroRow}>
-            <View style={styles.macroItem}>
-              <AnimatedCircularProgress
-                size={70}
-                width={6}
-                fill={60}
-                tintColor="#4e8ef7"
-                backgroundColor="#3a3a3c"
-                rotation={0}
-                lineCap="round"
-              >
-                {() => <Text style={styles.macroLabel}>60%</Text>}
-              </AnimatedCircularProgress>
-              <Text style={styles.macroText}>Proteínas</Text>
-            </View>
-
-            <View style={styles.macroItem}>
-              <AnimatedCircularProgress
-                size={70}
-                width={6}
-                fill={75}
+        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+          <View style={styles.caloriesWrapper}>
+            <AnimatedCircularProgress
+                size={180}
+                width={16}
+                fill={(caloriasComidas / caloriasObjetivo) * 100}
                 tintColor="#34C759"
-                backgroundColor="#3a3a3c"
+                backgroundColor="#2c2c2e"
                 rotation={0}
                 lineCap="round"
-              >
-                {() => <Text style={styles.macroLabel}>75%</Text>}
-              </AnimatedCircularProgress>
-              <Text style={styles.macroText}>Carbs</Text>
-            </View>
-
-            <View style={styles.macroItem}>
-              <AnimatedCircularProgress
-                size={70}
-                width={6}
-                fill={45}
-                tintColor="#f5a623"
-                backgroundColor="#3a3a3c"
-                rotation={0}
-                lineCap="round"
-              >
-                {() => <Text style={styles.macroLabel}>45%</Text>}
-              </AnimatedCircularProgress>
-              <Text style={styles.macroText}>Grasas</Text>
-            </View>
+            >
+              {(fill: number) => (
+                  <Text style={styles.caloriesNumber}>{Math.round(fill)}%</Text>
+              )}
+            </AnimatedCircularProgress>
+            <Text style={styles.subtext}>
+              {caloriasObjetivo} cal objetivo | {caloriasComidas} consumidas
+            </Text>
+            <Text style={[styles.subtext, { color: caloriasRestantes > 0 ? '#4caf50' : '#e53935' }]}>
+              {Math.abs(caloriasRestantes)} cal {caloriasRestantes > 0 ? 'faltantes' : 'excedidas'}
+            </Text>
           </View>
-        </View>
 
-        <View style={styles.sectionRow}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Pasos</Text>
-            <Text style={styles.cardText}>Conéctate para monitorear</Text>
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Ejercicio</Text>
-            <Text style={styles.cardText}>0 cal</Text>
-          </View>
-        </View>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Macros</Text>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Comentario del nutriólogo</Text>
-          <Text style={styles.sectionText}>
-            {caloriasRestantes > 0
-              ? '¡Vas muy bien! Sigue así.'
-              : 'Te has excedido, intenta balancear tus próximas comidas.'}
-          </Text>
-        </View>
-      </ScrollView>
-
-      <View style={styles.bottomNav}>
-        <Ionicons name="home-outline" size={24} color="#34C759" />
-        <Ionicons name="book-outline" size={24} color="#ccc" />
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => setModalVisible(true)}
-        >
-          <Ionicons name="add" size={28} color="#fff" />
-        </TouchableOpacity>
-        <Ionicons name="bar-chart-outline" size={24} color="#ccc" />
-        <Ionicons name="settings-outline" size={24} color="#ccc" />
-      </View>
-
-      <Modal
-        transparent
-        animationType="slide"
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Registrar</Text>
-                <TouchableOpacity style={styles.modalOption}>
-                  <View style={styles.optionRow}>
-                    <MaterialCommunityIcons name="food-apple" size={24} color="#34C759" />
-                    <Text style={styles.modalOptionText}>Registrar alimento</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.modalOption}>
-                  <View style={styles.optionRow}>
-                    <Ionicons name="water-outline" size={24} color="#34C759" />
-                    <Text style={styles.modalOptionText}>Registrar agua</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.modalOption}>
-                  <View style={styles.optionRow}>
-                    <MaterialCommunityIcons name="scale-bathroom" size={24} color="#34C759" />
-                    <Text style={styles.modalOptionText}>Nuevo peso</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Text style={{ color: '#34C759', textAlign: 'right' }}>Cerrar</Text>
-                </TouchableOpacity>
+            <View style={styles.macroRow}>
+              <View style={styles.macroItem}>
+                <AnimatedCircularProgress
+                    size={70}
+                    width={6}
+                    fill={60}
+                    tintColor="#4e8ef7"
+                    backgroundColor="#3a3a3c"
+                    rotation={0}
+                    lineCap="round"
+                >
+                  {() => <Text style={styles.macroLabel}>60%</Text>}
+                </AnimatedCircularProgress>
+                <Text style={styles.macroText}>Proteínas</Text>
               </View>
-            </TouchableWithoutFeedback>
+
+              <View style={styles.macroItem}>
+                <AnimatedCircularProgress
+                    size={70}
+                    width={6}
+                    fill={75}
+                    tintColor="#34C759"
+                    backgroundColor="#3a3a3c"
+                    rotation={0}
+                    lineCap="round"
+                >
+                  {() => <Text style={styles.macroLabel}>75%</Text>}
+                </AnimatedCircularProgress>
+                <Text style={styles.macroText}>Carbs</Text>
+              </View>
+
+              <View style={styles.macroItem}>
+                <AnimatedCircularProgress
+                    size={70}
+                    width={6}
+                    fill={45}
+                    tintColor="#f5a623"
+                    backgroundColor="#3a3a3c"
+                    rotation={0}
+                    lineCap="round"
+                >
+                  {() => <Text style={styles.macroLabel}>45%</Text>}
+                </AnimatedCircularProgress>
+                <Text style={styles.macroText}>Grasas</Text>
+              </View>
+            </View>
           </View>
-        </TouchableWithoutFeedback>
-      </Modal>
-    </View>
+
+          <View style={styles.sectionRow}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Pasos</Text>
+              {renderStepsCard()}
+            </View>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Ejercicio</Text>
+              <Text style={styles.cardText}>0 cal</Text>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Comentario del nutriólogo</Text>
+            <Text style={styles.sectionText}>
+              {caloriasRestantes > 0
+                  ? '¡Vas muy bien! Sigue así.'
+                  : 'Te has excedido, intenta balancear tus próximas comidas.'}
+            </Text>
+          </View>
+        </ScrollView>
+      </View>
   );
 };
 
-export default Home;
-
+// Tus estilos permanecen igual
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -207,10 +256,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#34C759',
   },
-  caloriesLabel: {
-    fontSize: 14,
-    color: '#aaa',
-  },
   subtext: {
     marginTop: 6,
     fontSize: 16,
@@ -233,6 +278,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2c2c2e',
     borderRadius: 12,
     padding: 16,
+    alignItems: 'center',
   },
   sectionTitle: {
     fontSize: 18,
@@ -248,11 +294,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#fff',
-    marginBottom: 5,
+    marginBottom: 10,
   },
   cardText: {
     fontSize: 14,
     color: '#aaa',
+    textAlign: 'center',
   },
   macroRow: {
     flexDirection: 'row',
@@ -273,52 +320,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#bbb',
   },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 10,
-    left: 20,
-    right: 20,
-    height: 60,
-    backgroundColor: '#2c2c2e',
-    borderRadius: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  fab: {
-    backgroundColor: '#34C759',
-    borderRadius: 30,
-    padding: 14,
-    marginTop: -30,
-    elevation: 4,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  modalContent: {
-    backgroundColor: '#1c1c1e',
-    padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#34C759',
-  },
-  modalOption: {
-    paddingVertical: 12,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  modalOptionText: {
-    color: '#fff',
-    fontSize: 16,
-  },
 });
+
+export default Home;
