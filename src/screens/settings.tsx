@@ -5,14 +5,16 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { useUser } from '../context/UserContext';
+import { useTheme } from '../context/ThemeContext';
 
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
+
+const { colors, darkMode, toggleTheme } = useTheme();
 
 const SettingsScreen = () => {
   const navigation = useNavigation<SettingsScreenNavigationProp>();
   const { logout } = useUser();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   const handleLogout = async () => {
@@ -57,12 +59,12 @@ const SettingsScreen = () => {
           />
         </View>
         <View style={styles.item}>
-          <Ionicons name="moon-outline" size={24} color="#34C759" />
+          <Ionicons name="moon-outline" size={24} color={colors.primary} />
           <Text style={styles.itemText}>Modo oscuro</Text>
           <Switch
             value={darkMode}
-            onValueChange={setDarkMode}
-            trackColor={{ false: '#555', true: '#34C759' }}
+            onValueChange={toggleTheme}
+            trackColor={{ false: '#555', true: colors.primary}}
             thumbColor="#fff"
             style={styles.switch}
           />
@@ -127,7 +129,7 @@ export default SettingsScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: colors.background,
     paddingTop: 50,
     paddingHorizontal: 20,
   },
@@ -136,7 +138,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    color: '#34C759',
+    color: colors.primary,
     fontWeight: 'bold',
   },
   scroll: {
@@ -144,14 +146,14 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     fontSize: 16,
-    color: '#888',
+    color: colors.text,
     marginTop: 20,
     marginBottom: 10,
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1c1c1e',
+    backgroundColor: colors.card,
     padding: 16,
     borderRadius: 12,
     marginBottom: 10,
@@ -159,7 +161,7 @@ const styles = StyleSheet.create({
   itemText: {
     flex: 1,
     marginLeft: 12,
-    color: '#fff',
+    color: colors.text,
     fontSize: 16,
   },
   switch: {

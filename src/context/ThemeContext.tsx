@@ -30,9 +30,14 @@ const darkColors = {
     primary: '#34C759',
 };
 
-export const ThemeContext = createContext<ThemeContextType>({} as ThemeContextType);
+// Crea el contexto con un valor por defecto más completo
+const ThemeContext = createContext<ThemeContextType>({
+    darkMode: false,
+    toggleTheme: () => {},
+    colors: lightColors
+});
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+export const ThemeProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
     const [darkMode, setDarkMode] = useState(false);
 
     useEffect(() => {
@@ -42,10 +47,12 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
                 if (savedTheme !== null) {
                     setDarkMode(JSON.parse(savedTheme));
                 } else {
-                    setDarkMode(Appearance.getColorScheme() === 'dark');
+                    const colorScheme = Appearance.getColorScheme();
+                    setDarkMode(colorScheme === 'dark');
                 }
             } catch (error) {
                 console.error('Error loading theme', error);
+                setDarkMode(false);
             }
         };
 
@@ -55,18 +62,31 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     const toggleTheme = async () => {
         const newMode = !darkMode;
         setDarkMode(newMode);
-        await AsyncStorage.setItem('darkMode', JSON.stringify(newMode));
+        try {
+            await AsyncStorage.setItem('darkMode', JSON.stringify(newMode));
+        } catch (error) {
+            console.error('Error saving theme', error);
+        }
+    };
+
+    const value = {
+        darkMode,
+        toggleTheme,
+        colors: darkMode ? darkColors : lightColors
     };
 
     return (
-        <ThemeContext.Provider value={{
-            darkMode,
-            toggleTheme,
-            colors: darkMode ? darkColors : lightColors
-        }}>
+        <ThemeContext.Provider value={value}>
             {children}
         </ThemeContext.Provider>
     );
 };
 
-export const useTheme = () => useContext(ThemeContext);
+// Hook useTheme con verificación de contexto
+export const useTheme = () => {
+    const context = useContext(ThemeContext);
+    if (context === undefined) {
+        throw new Error('useTheme must be used within a ThemeProvider');
+    }
+    return context;
+};

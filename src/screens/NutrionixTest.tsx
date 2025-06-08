@@ -8,8 +8,10 @@ import {
     View
 } from 'react-native';
 import BarCodeScanner from '../components/BardCodeScanner';
+import { useTheme } from '../context/ThemeContext';
 
-const SERVER_URL = 'http://192.168.1.74:3000';
+const SERVER_URL = 'http://192.168.0.11:3000';
+const { colors } = useTheme();
 
 export default function NutritionixTest() {
     const [query, setQuery] = useState('');
@@ -194,6 +196,7 @@ export default function NutritionixTest() {
             <TextInput
                 style={styles.input}
                 placeholder="🍎 Ej: 1 manzana, 2 rebanadas de pan"
+                placeholderTextColor={colors.text}
                 value={query}
                 onChangeText={setQuery}
             />
@@ -214,7 +217,7 @@ export default function NutritionixTest() {
 const styles = StyleSheet.create({
     container: {
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: colors.background,
         flexGrow: 1,
     },
     title: {
@@ -222,18 +225,20 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 20,
         textAlign: 'center',
-        color: '#188827',
+        color: colors.primary,
     },
     input: {
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: colors.border,
         padding: 12,
         marginBottom: 10,
         borderRadius: 10,
         fontSize: 16,
+        color: colors.text,
+        backgroundColor: colors.card,
     },
     button: {
-        backgroundColor: '#188827',
+        backgroundColor: colors.primary,
         paddingVertical: 12,
         borderRadius: 10,
         marginBottom: 20,
@@ -251,7 +256,7 @@ const styles = StyleSheet.create({
     foodCard: {
         marginTop: 20,
         padding: 15,
-        backgroundColor: '#e7f7ea',
+        backgroundColor: colors.card,
         borderRadius: 12,
         shadowColor: '#000',
         shadowOpacity: 0.1,
@@ -262,13 +267,14 @@ const styles = StyleSheet.create({
     foodName: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#188827',
+        color: colors.primary,
         marginBottom: 5,
         textTransform: 'capitalize'
     },
     serving: {
         fontSize: 14,
         marginBottom: 10,
+        color: colors.text,
     },
     foodImage: {
         width: 80,
@@ -282,12 +288,13 @@ const styles = StyleSheet.create({
     },
     scannerContainer: {
         flex: 1,
+        backgroundColor: colors.background,
     },
     closeButton: {
         position: 'absolute',
         bottom: 30,
         alignSelf: 'center',
-        backgroundColor: '#188827',
+        backgroundColor: colors.primary,
         padding: 15,
         borderRadius: 10,
     },

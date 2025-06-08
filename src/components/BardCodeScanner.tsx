@@ -1,6 +1,9 @@
 import { CameraView, CameraType, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+
+const { colors } = useTheme();
 
 interface BarCodeScannerProps {
     onBarCodeScanned?: (scanningResult: BarcodeScanningResult) => void;
@@ -18,7 +21,7 @@ export default function BarCodeScanner({ onBarCodeScanned }: BarCodeScannerProps
         return (
             <View style={styles.container}>
                 <Text style={styles.message}>We need your permission to show the camera</Text>
-                <Button onPress={requestPermission} title="grant permission" />
+                <Button onPress={requestPermission} title="grant permission" color={colors.primary}/>
             </View>
         );
     }
@@ -51,10 +54,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
+        color: colors.background,
     },
     message: {
         textAlign: 'center',
         paddingBottom: 10,
+        color: colors.text,
     },
     camera: {
         flex: 1,

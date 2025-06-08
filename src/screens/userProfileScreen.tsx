@@ -2,6 +2,9 @@ import React from 'react';
 import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import UserProfileCard from '../components/userProfileCard';
 import { useUser } from '../context/UserContext';
+import { useTheme } from '../context/ThemeContext';
+
+const { colors } = useTheme();
 
 const UserProfileScreen = () => {
   const { user } = useUser();
@@ -35,29 +38,29 @@ export default UserProfileScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: colors.background,
     padding: 20,
   },
   noUserText: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 16,
     textAlign: 'center',
     marginTop: 20,
   },
   notes: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginTop: 20,
   },
   notesTitle: {
-    color: '#34C759',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   noteText: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 14,
     lineHeight: 20,
   },

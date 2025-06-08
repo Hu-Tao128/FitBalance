@@ -15,7 +15,7 @@ import {
     View
 } from 'react-native';
 import { RootStackParamList } from '../../App';
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from '../context/ThemeContext';
 import { useUser } from "../context/UserContext";
 
 
@@ -36,7 +36,7 @@ export default function LoginScreen() {
 
     //Nota: ahora pones tu ip y el puerto
     // 1    192.168.1.42:3000
-    const SERVER_IP = '192.168.1.74:3000';
+    const SERVER_IP = '192.168.0.11:3000';
 
     const handleLogin = async () => {
         try {

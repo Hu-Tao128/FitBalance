@@ -1,4 +1,3 @@
-
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
@@ -9,6 +8,10 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+
+import { useTheme } from '../context/ThemeContext';
+
+const { colors } = useTheme();
 
 const mealsData = {
     Desayuno: [
@@ -133,7 +136,7 @@ export default function WeighFoodScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: colors.background,
     },
     scroll: {
         paddingHorizontal: 16,
@@ -148,17 +151,18 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 10,
+        color: colors.text,
     },
     mealTitleChecked: {
         textDecorationLine: 'underline',
-        color: '#34C759',
+        color: colors.primary,
     },
     foodItemTouchable: {
         paddingVertical: 8,
     },
     foodItemText: {
         fontSize: 16,
-        color: '#333',
+        color: colors.text,
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -168,7 +172,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.5)',
     },
     modalContainer: {
-        backgroundColor: '#0d0d0d',
+        backgroundColor: colors.card,
         padding: 20,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
@@ -176,7 +180,7 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#fff',
+        color: colors.text,
         marginBottom: 20,
     },
     optionButton: {
@@ -186,11 +190,11 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     optionText: {
-        color: '#fff',
+        color: colors.text,
         fontSize: 16,
     },
     closeText: {
-        color: '#34C759',
+        color: colors.primary,
         marginTop: 20,
         textAlign: 'right',
     },

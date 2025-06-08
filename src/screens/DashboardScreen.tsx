@@ -11,6 +11,9 @@ import {
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { Pedometer } from 'expo-sensors';
+import { useTheme } from '../context/ThemeContext';
+
+const { colors } = useTheme();
 
 const Home = () => {
   const caloriasObjetivo = 2380;
@@ -123,10 +126,10 @@ const Home = () => {
   return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Ionicons name="person-circle-outline" size={40} color="#eee" />
+          <Ionicons name="person-circle-outline" size={40} color={colors.text} />
           <Text style={styles.title}>FitBalance</Text>
           <TouchableOpacity>
-            <Ionicons name="notifications-outline" size={28} color="#eee" />
+            <Ionicons name="notifications-outline" size={28} color={colors.text}/>
           </TouchableOpacity>
         </View>
 
@@ -232,7 +235,7 @@ const Home = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: colors.background,
     paddingTop: 50,
     paddingHorizontal: 20,
   },
@@ -245,7 +248,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#34C759',
+    color: colors.primary,
   },
   caloriesWrapper: {
     alignItems: 'center',
@@ -254,15 +257,15 @@ const styles = StyleSheet.create({
   caloriesNumber: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#34C759',
+    color: colors.primary,
   },
   subtext: {
     marginTop: 6,
     fontSize: 16,
-    color: '#ccc',
+    color: colors.text,
   },
   section: {
-    backgroundColor: '#2c2c2e',
+    backgroundColor: colors.card,
     padding: 20,
     borderRadius: 12,
     marginBottom: 12,
@@ -275,7 +278,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    backgroundColor: '#2c2c2e',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -283,22 +286,22 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#eee',
+    color: colors.text,
     marginBottom: 5,
   },
   sectionText: {
     fontSize: 16,
-    color: '#bbb',
+    color: colors.text,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#fff',
+    color: colors.text,
     marginBottom: 10,
   },
   cardText: {
     fontSize: 14,
-    color: '#aaa',
+    color: colors.text,
     textAlign: 'center',
   },
   macroRow: {
@@ -313,12 +316,12 @@ const styles = StyleSheet.create({
   macroLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#eee',
+    color: colors.text,
   },
   macroText: {
     marginTop: 6,
     fontSize: 14,
-    color: '#bbb',
+    color: colors.text,
   },
 });
 
