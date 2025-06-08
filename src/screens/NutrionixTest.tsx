@@ -4,7 +4,7 @@ import {
     StyleSheet, ActivityIndicator, Image, Modal
 } from 'react-native';
 import axios from 'axios';
-import BarCodeScanner from '../components/BardCodeScanner'; // Corregido el nombre
+import BarCodeScanner from '../components/BardCodeScanner';
 
 const SERVER_URL = 'http://192.168.0.24:3000';
 
@@ -20,8 +20,35 @@ export default function NutritionixTest() {
         setLoading(true);
         setError('');
         try {
-            const res = await axios.post(`${SERVER_URL}/api/nutritionix/natural`, { query });
-            setResult(res.data);
+            const res = await axios.post(`${SERVER_URL}/api/food/search`, { query });
+
+            // Manejar respuesta unificada
+            if (res.data.source === 'nutritionix') {
+                setResult(res.data.data);
+            } else if (res.data.source === 'fatsecret') {
+                // Adaptar la respuesta de FatSecret al formato esperado
+                const fatsecretFood = res.data.data.food;
+                setResult({
+                    foods: [{
+                        food_name: fatsecretFood.food_name,
+                        serving_qty: 1,
+                        serving_unit: 'serving',
+                        nf_calories: fatsecretFood.calories,
+                        nf_total_fat: fatsecretFood.fat,
+                        nf_saturated_fat: fatsecretFood.saturated_fat,
+                        nf_cholesterol: fatsecretFood.cholesterol,
+                        nf_sodium: fatsecretFood.sodium,
+                        nf_total_carbohydrate: fatsecretFood.carbohydrate,
+                        nf_dietary_fiber: fatsecretFood.fiber,
+                        nf_sugars: fatsecretFood.sugar,
+                        nf_protein: fatsecretFood.protein,
+                        nf_potassium: fatsecretFood.potassium,
+                        photo: {
+                            thumb: fatsecretFood.food_images?.[0] || 'https://via.placeholder.com/150'
+                        }
+                    }]
+                });
+            }
         } catch (err) {
             setError('Error al buscar por texto');
             console.error(err);
@@ -35,15 +62,42 @@ export default function NutritionixTest() {
         setLoading(true);
         setError('');
         try {
-            const res = await axios.get(`${SERVER_URL}/api/nutritionix/upc`, {
+            const res = await axios.get(`${SERVER_URL}/api/food/upc`, {
                 params: { upc },
             });
-            setResult(res.data);
+
+            // Manejar respuesta unificada
+            if (res.data.source === 'nutritionix') {
+                setResult(res.data.data);
+            } else if (res.data.source === 'fatsecret') {
+                // Adaptar la respuesta de FatSecret al formato esperado
+                const fatsecretFood = res.data.data.food;
+                setResult({
+                    foods: [{
+                        food_name: fatsecretFood.food_name,
+                        serving_qty: 1,
+                        serving_unit: 'serving',
+                        nf_calories: fatsecretFood.calories,
+                        nf_total_fat: fatsecretFood.fat,
+                        nf_saturated_fat: fatsecretFood.saturated_fat,
+                        nf_cholesterol: fatsecretFood.cholesterol,
+                        nf_sodium: fatsecretFood.sodium,
+                        nf_total_carbohydrate: fatsecretFood.carbohydrate,
+                        nf_dietary_fiber: fatsecretFood.fiber,
+                        nf_sugars: fatsecretFood.sugar,
+                        nf_protein: fatsecretFood.protein,
+                        nf_potassium: fatsecretFood.potassium,
+                        photo: {
+                            thumb: fatsecretFood.food_images?.[0] || 'https://via.placeholder.com/150'
+                        }
+                    }]
+                });
+            }
         } catch (err) {
             // Manejo seguro del error
             if (axios.isAxiosError(err)) {
                 if (err.response?.status === 404) {
-                    setError('🔍 Producto no encontrado');
+                    setError('🔍 Producto no encontrado en ninguna base de datos');
                 } else {
                     setError(`Error: ${err.response?.data?.error || err.message}`);
                 }
@@ -59,14 +113,55 @@ export default function NutritionixTest() {
     };
 
     const handleBarCodeScanned = ({ data }: { data: string }) => {
-        console.log('Código escaneado:', data); // Verifica el valor
+        console.log('Código escaneado:', data);
         setScanned(true);
         searchByBarcode(data);
     };
 
+    const renderFoodCards = () => {
+        if (!result?.foods) return null;
+
+        return result.foods.map((food: any, index: number) => (
+            <View key={index} style={styles.foodCard}>
+                <Text style={styles.foodName}>{food.food_name}</Text>
+                <Text style={styles.serving}>{food.serving_qty} {food.serving_unit}</Text>
+                {food.photo?.thumb && (
+                    <Image
+                        source={{ uri: food.photo.thumb }}
+                        style={styles.foodImage}
+                    />
+                )}
+                <View style={styles.nutritionList}>
+                    <Text>Calorías: {food.nf_calories || food.calories} kcal</Text>
+                    <Text>Grasa total: {food.nf_total_fat || food.fat} g</Text>
+                    {food.nf_saturated_fat !== undefined && (
+                        <Text>Grasa saturada: {food.nf_saturated_fat} g</Text>
+                    )}
+                    {food.nf_cholesterol !== undefined && (
+                        <Text>Colesterol: {food.nf_cholesterol} mg</Text>
+                    )}
+                    {food.nf_sodium !== undefined && (
+                        <Text>Sodio: {food.nf_sodium} mg</Text>
+                    )}
+                    <Text>Carbohidratos: {food.nf_total_carbohydrate || food.carbohydrate} g</Text>
+                    {food.nf_dietary_fiber !== undefined && (
+                        <Text>Fibra: {food.nf_dietary_fiber} g</Text>
+                    )}
+                    {food.nf_sugars !== undefined && (
+                        <Text>Azúcares: {food.nf_sugars} g</Text>
+                    )}
+                    <Text>Proteínas: {food.nf_protein || food.protein} g</Text>
+                    {food.nf_potassium !== undefined && (
+                        <Text>Potasio: {food.nf_potassium} mg</Text>
+                    )}
+                </View>
+            </View>
+        ));
+    };
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.title}>🔬 Nutritionix API Test</Text>
+            <Text style={styles.title}>🔬 Buscador de Alimentos</Text>
 
             <TouchableOpacity
                 style={styles.button}
@@ -107,34 +202,12 @@ export default function NutritionixTest() {
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            {result?.foods && result.foods.map((food: any, index: number) => (
-                <View key={index} style={styles.foodCard}>
-                    <Text style={styles.foodName}>{food.food_name}</Text>
-                    <Text style={styles.serving}>{food.serving_qty} {food.serving_unit}</Text>
-                    <Image
-                        source={{ uri: food.photo?.thumb }}
-                        style={styles.foodImage}
-                    />
-                    <View style={styles.nutritionList}>
-                        <Text>Calorías: {food.nf_calories} kcal</Text>
-                        <Text>Grasa total: {food.nf_total_fat} g</Text>
-                        <Text>Grasa saturada: {food.nf_saturated_fat} g</Text>
-                        <Text>Colesterol: {food.nf_cholesterol} mg</Text>
-                        <Text>Sodio: {food.nf_sodium} mg</Text>
-                        <Text>Carbohidratos: {food.nf_total_carbohydrate} g</Text>
-                        <Text>Fibra: {food.nf_dietary_fiber} g</Text>
-                        <Text>Azúcares: {food.nf_sugars} g</Text>
-                        <Text>Proteínas: {food.nf_protein} g</Text>
-                        <Text>Potasio: {food.nf_potassium} mg</Text>
-                    </View>
-                </View>
-            ))}
+            {renderFoodCards()}
         </ScrollView>
     );
 }
 
 // Los estilos permanecen igual
-
 const styles = StyleSheet.create({
     container: {
         padding: 20,

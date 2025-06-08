@@ -3,10 +3,11 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 
+
 export function usePushNotifications() {
     const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
-    const notificationListener = useRef<Notifications.Subscription>();
-    const responseListener = useRef<Notifications.Subscription>();
+    const notificationListener = useRef<ReturnType<typeof Notifications.addNotificationReceivedListener> | null>(null);
+    const responseListener = useRef<ReturnType<typeof Notifications.addNotificationResponseReceivedListener> | null>(null);
 
     useEffect(() => {
         const registerForPushNotificationsAsync = async () => {
