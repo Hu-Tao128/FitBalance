@@ -1,20 +1,21 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import * as React from 'react';
+import { useState } from 'react';
 import {
     Modal,
-    TouchableWithoutFeedback,
-    Text,
     StyleSheet,
+    Text,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View
 } from 'react-native';
-import HomeScreen from '../screens/DashboardScreen';
-import { useState } from 'react';
 import SettingsStackNavigator from "../navigation/SettingsStackNavigator";
-import UserProfileScreen from '../screens/userProfileScreen';
-import WeighFoodScreen from '../screens/weighFood';
+import HomeScreen from '../screens/DashboardScreen';
 import NutritionixTest from "../screens/NutrionixTest";
+import UserProfileScreen from '../screens/userProfileScreen';
+import weighFood from '../screens/weighFood';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -24,57 +25,59 @@ export const BottomNavigation = () => {
     return (
         <>
             <Tab.Navigator
-                tabBar={({ navigation, state }) => (
-                    <View style={styles.bottomNav}>
-                        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-                            <Ionicons
-                                name="home-sharp"
-                                size={24}
-                                color={state.index === 0 ? '#34C759' : '#fff'}
-                            />
-                        </TouchableOpacity>
+                tabBar={({ navigation, state }) => {
+                    const currentRoute = state.routeNames[state.index];
+                    return (
+                        <View style={styles.bottomNav}>
+                            <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+                                <Ionicons
+                                    name="home-sharp"
+                                    size={24}
+                                    color={currentRoute === 'Home' ? '#34C759' : '#fff'}
+                                />
+                            </TouchableOpacity>
 
-                        {/* 🔄 Cambiado: Navegar a weighFood */}
-                        <TouchableOpacity onPress={() => navigation.navigate('Test')}>
-                            <MaterialCommunityIcons
-                                name="scale-bathroom"
-                                size={24}
-                                color={state.index === 1 ? '#34C759' : '#fff'}
-                            />
-                        </TouchableOpacity>
+                            <TouchableOpacity onPress={() => navigation.navigate('WeighFood')}>
+                                <MaterialCommunityIcons
+                                    name="scale-bathroom"
+                                    size={24}
+                                    color={currentRoute === 'WeighFood' ? '#34C759' : '#fff'}
+                                />
+                            </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.fab}
-                            onPress={() => setModalVisible(true)}
-                        >
-                            <Ionicons name="add" size={28} color="#fff" />
-                        </TouchableOpacity>
+                            <TouchableOpacity onPress={() => navigation.navigate('Test')}>
+                                <MaterialCommunityIcons
+                                    name="silverware-fork-knife"
+                                    size={24}
+                                    color={currentRoute === 'Test' ? '#34C759' : '#fff'}
+                                />
+                            </TouchableOpacity>
 
-                        <TouchableOpacity>
-                            <Ionicons name="bar-chart-outline" size={24} color="#fff" />
-                        </TouchableOpacity>
+                            <TouchableOpacity>
+                                <Ionicons
+                                    name="bar-chart-outline"
+                                    size={24}
+                                    color={'#fff'} // sin navegación aún
+                                />
+                            </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                            <Ionicons
-                                name="settings-outline"
-                                size={24}
-                                color={state.index === 2 ? '#34C759' : '#fff'}
-                            />
-                        </TouchableOpacity>
-                    </View>
-                )}
-                screenOptions={{
-                    headerShown: false,
+                            <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+                                <Ionicons
+                                    name="settings-outline"
+                                    size={24}
+                                    color={currentRoute === 'Settings' ? '#34C759' : '#fff'}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    );
                 }}
+
+                screenOptions={{ headerShown: false }}
             >
-
                 <Tab.Screen name="Home" component={HomeScreen} />
-
-                {/* 🔄 Cambiado: de RecipeSearch a weighFood */}
                 <Tab.Screen name="Test" component={NutritionixTest} />
-
+                <Tab.Screen name="WeighFood" component={weighFood} />
                 <Tab.Screen name="Settings" component={SettingsStackNavigator} />
-
                 <Tab.Screen
                     name="UserProfile"
                     component={UserProfileScreen}
@@ -85,7 +88,7 @@ export const BottomNavigation = () => {
                         headerStyle: { backgroundColor: '#0d0d0d' },
                         headerTitleStyle: { color: '#fff' },
                         tabBarIcon: ({ color }) => (
-                        <Ionicons name="person-outline" size={24} color={color} />
+                            <Ionicons name="person-outline" size={24} color={color} />
                         ),
                         tabBarLabel: 'Perfil',
                     }}
@@ -134,7 +137,6 @@ export const BottomNavigation = () => {
     );
 }
 
-
 const styles = StyleSheet.create({
     bottomNav: {
         position: 'absolute',
@@ -147,16 +149,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around',
         alignItems: 'center',
-    },
-    fab: {
-        backgroundColor: '#34C759',
-        borderRadius: 30,
-        padding: 14,
-        marginTop: -30,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        elevation: 4,
     },
     modalOverlay: {
         flex: 1,

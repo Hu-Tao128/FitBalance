@@ -1,10 +1,14 @@
+import axios from "axios";
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
+<<<<<<< Updated upstream
 import axios from "axios";
 import crypto from 'crypto';
 import OAuth from 'oauth-1.0a';
+=======
+>>>>>>> Stashed changes
 
 dotenv.config();
 
@@ -20,7 +24,7 @@ const FATSECRET_CONSUMER_KEY = process.env.FATSECRET_CONSUMER_KEY as string;
 const FATSECRET_CONSUMER_SECRET = process.env.FATSECRET_CONSUMER_SECRET as string;
 
 if (!MONGODB_URI) {
-    throw new Error('No se encontró MONGODB_URI en el archivo .env');
+  throw new Error('No se encontró MONGODB_URI en el archivo .env');
 }
 
 if (!FATSECRET_CONSUMER_KEY || !FATSECRET_CONSUMER_SECRET) {
@@ -77,9 +81,9 @@ const Patient = mongoose.model<IPatient>(
 
 // Conexión a MongoDB
 mongoose
-    .connect(MONGODB_URI)
-    .then(() => console.log('✅ Conectado a MongoDB Atlas'))
-    .catch((err) => console.error('❌ Error al conectar a MongoDB:', err));
+  .connect(MONGODB_URI)
+  .then(() => console.log('✅ Conectado a MongoDB Atlas'))
+  .catch((err) => console.error('❌ Error al conectar a MongoDB:', err));
 
 // Funciones para FatSecret
 async function searchFatSecretByUPC(upc: string, region: string = 'mx') {
@@ -162,36 +166,49 @@ async function searchFatSecretByText(query: string) {
 
 // Rutas de usuarios
 app.get('/usuarios', async (req: Request, res: Response) => {
-    try {
-        const usuarios = await Patient.find();
-        res.json(usuarios);
-    } catch (err) {
-        console.error('❌ Error al obtener usuarios:', err);
-        res.status(500).json({ error: 'Error al obtener usuarios' });
-    }
+  try {
+    const usuarios = await Patient.find();
+    res.json(usuarios);
+  } catch (err) {
+    console.error('❌ Error al obtener usuarios:', err);
+    res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
 });
 
 app.post('/usuarios', async (req: Request, res: Response) => {
-    try {
-        const nuevoUsuario = new Patient(req.body);
-        await nuevoUsuario.save();
-        res.status(201).json(nuevoUsuario);
-    } catch (err) {
-        console.error('❌ Error al guardar usuario:', err);
-        res.status(500).json({ error: 'Error al guardar usuario' });
-    }
+  try {
+    const nuevoUsuario = new Patient(req.body);
+    await nuevoUsuario.save();
+    res.status(201).json(nuevoUsuario);
+  } catch (err) {
+    console.error('❌ Error al guardar usuario:', err);
+    res.status(500).json({ error: 'Error al guardar usuario' });
+  }
 });
 
 app.post('/login', async (req: Request, res: Response): Promise<void> => {
-    const { usuario, password } = req.body;
+  const { usuario, password } = req.body;
 
-    console.log('📥 Datos recibidos en /login:', { usuario, password });
+  console.log('📥 Datos recibidos en /login:', { usuario, password });
 
-    if (!usuario || !password) {
-        res.status(400).json({ mensaje: 'Faltan campos: usuario y/o contraseña' });
-        return;
+  if (!usuario || !password) {
+    res.status(400).json({ mensaje: 'Faltan campos: usuario y/o contraseña' });
+    return;
+  }
+
+  try {
+    const paciente = await Patient.findOne({
+      usuario: usuario,
+      password: password
+    }).select('-password'); // Excluye la contraseña de la respuesta
+
+    if (!paciente) {
+      console.log('❌ No se encontró paciente con esas credenciales');
+      res.status(401).json({ mensaje: 'Credenciales incorrectas' });
+      return;
     }
 
+<<<<<<< Updated upstream
     try {
         const paciente = await Patient.findOne({
             usuario: usuario,
@@ -231,6 +248,61 @@ app.get('/user/:usuario', async (req, res) => {
         console.error('Error al obtener usuario:', error);
         res.status(500).json({ error: 'Error al obtener usuario' });
     }
+=======
+    console.log('✅ Login exitoso para:', paciente.usuario);
+
+    res.json({
+      mensaje: 'Inicio de sesión exitoso',
+      id: paciente._id,
+      usuario: paciente.usuario,
+      nombre: paciente.nombre,
+      correo: paciente.correo || paciente.email // Maneja ambos casos
+    });
+  } catch (err) {
+    console.error('❌ Error al iniciar sesión:', err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+app.get('/user/:usuario', async (req, res) => { // Cambiado a :usuario
+  try {
+    const paciente = await Patient.findOne({ usuario: req.params.usuario }); // Usa Patient
+    if (!paciente) {
+      console.log('Usuario no encontrado')
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    res.json(paciente);
+  } catch (error) {
+    console.error('Error al obtener usuario:', error);
+    res.status(500).json({ error: 'Error al obtener usuario' });
+  }
+});
+
+app.get('/api/recipes/search', async (req: Request, res: Response) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.status(400).json({ error: 'Query parameter is required' });
+    }
+
+    const response = await axios.get(
+      `https://api.spoonacular.com/recipes/complexSearch`, {
+      params: {
+        query,
+        number: 10,
+        addRecipeNutrition: true,
+        apiKey: process.env.SPOONACULAR_APIKEY
+      }
+    }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error searching recipes:', error);
+    res.status(500).json({ error: 'Failed to search recipes' });
+  }
+>>>>>>> Stashed changes
 });
 
 // Rutas de recetas (Spoonacular)
@@ -264,6 +336,7 @@ app.get('/api/recipes/:id', async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
+<<<<<<< Updated upstream
         const response = await axios.get(
             `https://api.spoonacular.com/recipes/${id}/information`, {
                 params: {
@@ -272,6 +345,16 @@ app.get('/api/recipes/:id', async (req: Request, res: Response) => {
                 }
             }
         );
+=======
+    const response = await axios.get(
+      `https://api.spoonacular.com/recipes/${id}/information`, {
+      params: {
+        includeNutrition: true,
+        apiKey: process.env.SPOONACULAR_APIKEY
+      }
+    }
+    );
+>>>>>>> Stashed changes
 
         res.json(response.data);
     } catch (error) {
@@ -280,13 +363,19 @@ app.get('/api/recipes/:id', async (req: Request, res: Response) => {
     }
 });
 
+<<<<<<< Updated upstream
 app.get('/api/food/upc', async (req: Request, res: Response) => {
     const { upc } = req.query;
+=======
+app.get('/api/nutritionix/upc', async (req: Request, res: Response) => {
+  const { upc } = req.query;
+>>>>>>> Stashed changes
 
-    if (!upc) {
-        return res.status(400).json({ error: 'Se requiere un parámetro "upc"' });
-    }
+  if (!upc) {
+    return res.status(400).json({ error: 'Se requiere un parámetro "upc"' });
+  }
 
+<<<<<<< Updated upstream
     console.log(`🔍 UPC recibido: ${upc}`);
 
     // Si Nutritionix no tiene datos, buscamos en FatSecret
@@ -337,11 +426,36 @@ app.get('/api/food/upc', async (req: Request, res: Response) => {
 
 app.post('/api/food/search', async (req: Request, res: Response) => {
     const { query } = req.body;
+=======
+  try {
+    const response = await axios.get('https://trackapi.nutritionix.com/v2/search/item', {
+      headers: {
+        'x-app-id': process.env.NUTRITIONIX_APP_ID!,
+        'x-app-key': process.env.NUTRITIONIX_APP_KEY!,
+      },
+      params: { upc },
+    });
 
-    if (!query) {
-        return res.status(400).json({ error: 'Se requiere un campo "query" en el cuerpo' });
-    }
+    // Si Nutritionix responde con datos, enviarlos al frontend
+    return res.json(response.data);
 
+  } catch (err) {
+    const error = err as { response?: { data?: { error?: string } }, message?: string };
+    console.error(`❌ Error al consultar UPC: ${error.response?.data?.error || error.message || "Desconocido"}`);
+    res.status(500).json({ error: 'Error al consultar UPC en Nutritionix' });
+
+  }
+});
+
+app.post('/api/nutritionix/natural', async (req: Request, res: Response) => {
+  const { query } = req.body;
+>>>>>>> Stashed changes
+
+  if (!query) {
+    return res.status(400).json({ error: 'Se requiere un campo "query" en el cuerpo' });
+  }
+
+<<<<<<< Updated upstream
     try {
         // Primero intentamos con Nutritionix
         const nutritionixResponse = await axios.post('https://trackapi.nutritionix.com/v2/natural/nutrients',
@@ -383,9 +497,72 @@ app.post('/api/food/search', async (req: Request, res: Response) => {
         console.error('Error al consultar alimentos:', error);
         res.status(500).json({ error: 'Error al obtener datos nutricionales' });
     }
+=======
+  try {
+    const response = await axios.post('https://trackapi.nutritionix.com/v2/natural/nutrients',
+      { query },
+      {
+        headers: {
+          'x-app-id': process.env.NUTRITIONIX_APP_ID!,
+          'x-app-key': process.env.NUTRITIONIX_APP_KEY!,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error al consultar alimentos naturales:', error);
+    res.status(500).json({ error: 'Error al obtener datos nutricionales' });
+  }
+>>>>>>> Stashed changes
 });
 
 // Iniciar el servidor
 app.listen(PORT, () => {
+<<<<<<< Updated upstream
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
+=======
+  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+});
+
+
+// --------------------------COMIDA--------------------------------
+// ✅ Agrega este modelo en tu backend (en el mismo archivo o modularizado)
+interface Food {
+  name: string;
+  portion_size_g: number;
+  nutrients: {
+    energy_kj: number;
+    energy_kcal: number;
+    fat_g: number;
+    saturated_fat_g: number;
+    monounsaturated_fat_g: number;
+    polyunsaturated_fat_g: number;
+    carbohydrates_g: number;
+    sugar_g: number;
+    fiber_g: number;
+    protein_g: number;
+    salt_g: number;
+    cholesterol_mg: number;
+    potassium_mg: number;
+  };
+  percent_RI: any;
+}
+
+const Food = mongoose.model<Food>(
+  'Food',
+  new mongoose.Schema({}, { strict: false, collection: 'Food' })
+);
+
+
+app.get('/api/foods', async (req, res) => {
+  try {
+    const foods = await Food.find();
+    res.json(foods);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener alimentos' });
+  }
+});
+>>>>>>> Stashed changes

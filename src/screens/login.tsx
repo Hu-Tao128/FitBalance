@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
-import axios from 'axios';
 import { Entypo, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useUser } from "../context/UserContext";
-import { useTheme } from "../context/ThemeContext";
+import axios from 'axios';
+import React, { useState } from 'react';
 import {
     Image,
     SafeAreaView,
@@ -17,6 +15,8 @@ import {
     View
 } from 'react-native';
 import { RootStackParamList } from '../../App';
+import { useTheme } from "../context/ThemeContext";
+import { useUser } from "../context/UserContext";
 
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -36,7 +36,7 @@ export default function LoginScreen() {
 
     //Nota: ahora pones tu ip y el puerto
     // 1    192.168.1.42:3000
-    const SERVER_IP = '192.168.0.24:3000';
+    const SERVER_IP = '192.168.1.74:3000';
 
     const handleLogin = async () => {
         try {
