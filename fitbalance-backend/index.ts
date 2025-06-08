@@ -29,14 +29,14 @@ if (!FATSECRET_CONSUMER_KEY || !FATSECRET_CONSUMER_SECRET) {
 
 const fatSecretOAuth = new OAuth({
     consumer: {
-        key: FATSECRET_CONSUMER_KEY,
-        secret: FATSECRET_CONSUMER_SECRET
+        key: process.env.FATSECRET_CONSUMER_KEY!,
+        secret: process.env.FATSECRET_CONSUMER_SECRET!
     },
     signature_method: 'HMAC-SHA1',
-    hash_function(base_string, key) {
+    hash_function: (baseString: string, key: string) => {
         return crypto
             .createHmac('sha1', key)
-            .update(base_string)
+            .update(baseString)
             .digest('base64');
     }
 });
@@ -82,77 +82,80 @@ mongoose
     .catch((err) => console.error('❌ Error al conectar a MongoDB:', err));
 
 // Funciones para FatSecret
-async function searchFatSecretByUPC(upc: string, region?: string) {
-    const request_data = {
-        url: 'https://platform.fatsecret.com/rest/server.api',
-        method: 'GET',
-        data: {
-            method: 'food.find_id_for_upc',
-            upc: upc,
-            format: 'json',
-            ...(region && { region: region })
-        }
+async function searchFatSecretByUPC(upc: string, region: string = 'mx') {
+    const url = 'https://platform.fatsecret.com/rest/server.api';
+    const method = 'POST';
+    const data = {
+        method: 'food.find_id_for_upc',
+        upc,
+        region,
+        format: 'json'
     };
 
-    const oauth_data = fatSecretOAuth.authorize(request_data);
-    const headers = fatSecretOAuth.toHeader(oauth_data);
+    const requestData = { url, method, data };
+    const headers = {
+        ...fatSecretOAuth.toHeader(fatSecretOAuth.authorize(requestData)),
+        'Content-Type': 'application/x-www-form-urlencoded'
+    };
 
-    const response = await axios.get(request_data.url, {
-        params: request_data.data,
-        headers: {
-            ...headers,
-            'Content-Type': 'application/json'
-        }
-    });
-
-    return response.data;
+    try {
+        const response = await axios.post(
+            url,
+            new URLSearchParams(data),
+            { headers }
+        );
+        return response.data;
+    } catch (error: any) {
+        console.error('❌ Error en FatSecret (UPC):', error.response?.data || error.message);
+        throw error;
+    }
 }
 
 async function getFatSecretFoodDetails(foodId: string) {
-    const request_data = {
-        url: 'https://platform.fatsecret.com/rest/server.api',
-        method: 'GET',
-        data: {
-            method: 'food.get',
-            food_id: foodId,
-            format: 'json'
-        }
+    const url = 'https://platform.fatsecret.com/rest/server.api';
+    const method = 'POST';
+    const data = {
+        method: 'food.get',
+        food_id: foodId,
+        format: 'json'
     };
 
-    const headers = fatSecretOAuth.toHeader(fatSecretOAuth.authorize(request_data));
+    const requestData = { url, method, data };
+    const headers = {
+        ...fatSecretOAuth.toHeader(fatSecretOAuth.authorize(requestData)),
+        'Content-Type': 'application/x-www-form-urlencoded'
+    };
 
-    const response = await axios.get(request_data.url, {
-        params: request_data.data,
-        headers: {
-            ...headers,
-            'Content-Type': 'application/json'
-        }
-    });
+    const response = await axios.post(
+        url,
+        new URLSearchParams(data),
+        { headers }
+    );
 
     return response.data;
 }
 
 async function searchFatSecretByText(query: string) {
-    const request_data = {
-        url: 'https://platform.fatsecret.com/rest/server.api',
-        method: 'GET',
-        data: {
-            method: 'foods.search',
-            search_expression: query,
-            format: 'json',
-            max_results: 10
-        }
+    const url = 'https://platform.fatsecret.com/rest/server.api';
+    const method = 'POST';
+    const data = {
+        method: 'foods.search',
+        search_expression: query,
+        format: 'json',
+        max_results: '10'
     };
 
-    const headers = fatSecretOAuth.toHeader(fatSecretOAuth.authorize(request_data));
+    const requestData = { url, method, data };
+    const headers = {
+        ...fatSecretOAuth.toHeader(fatSecretOAuth.authorize(requestData)),
+        'Content-Type': 'application/x-www-form-urlencoded'
+    };
 
-    const response = await axios.get(request_data.url, {
-        params: request_data.data,
-        headers: {
-            ...headers,
-            'Content-Type': 'application/json'
-        }
-    });
+    const response = await axios.post(
+        url,
+        new URLSearchParams(data),
+        { headers }
+    );
 
     return response.data;
 }
