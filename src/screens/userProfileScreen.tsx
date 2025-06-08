@@ -4,10 +4,41 @@ import UserProfileCard from '../components/userProfileCard';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
 
-const { colors } = useTheme();
 
 const UserProfileScreen = () => {
   const { user } = useUser();
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      padding: 20,
+    },
+    noUserText: {
+      color: colors.text,
+      fontSize: 16,
+      textAlign: 'center',
+      marginTop: 20,
+    },
+    notes: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      marginTop: 20,
+    },
+    notesTitle: {
+      color: colors.primary,
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginBottom: 8,
+    },
+    noteText: {
+      color: colors.text,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+  });
 
   if (!user) {
     return (
@@ -34,34 +65,3 @@ const UserProfileScreen = () => {
 };
 
 export default UserProfileScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: 20,
-  },
-  noUserText: {
-    color: colors.text,
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  notes: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 20,
-  },
-  notesTitle: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  noteText: {
-    color: colors.text,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-});

@@ -11,15 +11,105 @@ import BarCodeScanner from '../components/BardCodeScanner';
 import { useTheme } from '../context/ThemeContext';
 
 const SERVER_URL = 'http://192.168.0.11:3000';
-const { colors } = useTheme();
 
 export default function NutritionixTest() {
+    const { colors } = useTheme();
     const [query, setQuery] = useState('');
     const [result, setResult] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showScanner, setShowScanner] = useState(false);
     const [scanned, setScanned] = useState(false);
+
+    const styles = StyleSheet.create({
+        container: {
+            padding: 20,
+            backgroundColor: colors.background,
+            flexGrow: 1,
+        },
+        title: {
+            fontSize: 20,
+            fontWeight: 'bold',
+            marginBottom: 20,
+            textAlign: 'center',
+            color: colors.primary,
+        },
+        input: {
+            borderWidth: 1,
+            borderColor: colors.border,
+            padding: 12,
+            marginBottom: 10,
+            borderRadius: 10,
+            fontSize: 16,
+            color: colors.text,
+            backgroundColor: colors.card,
+        },
+        button: {
+            backgroundColor: colors.primary,
+            paddingVertical: 12,
+            borderRadius: 10,
+            marginBottom: 20,
+        },
+        buttonText: {
+            textAlign: 'center',
+            color: '#fff',
+            fontWeight: 'bold',
+        },
+        error: {
+            color: 'red',
+            textAlign: 'center',
+            marginTop: 10,
+        },
+        foodCard: {
+            marginTop: 20,
+            padding: 15,
+            backgroundColor: colors.card,
+            borderRadius: 12,
+            shadowColor: '#000',
+            shadowOpacity: 0.1,
+            shadowOffset: { width: 0, height: 2 },
+            shadowRadius: 5,
+            elevation: 3,
+        },
+        foodName: {
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: colors.primary,
+            marginBottom: 5,
+            textTransform: 'capitalize'
+        },
+        serving: {
+            fontSize: 14,
+            marginBottom: 10,
+            color: colors.text,
+        },
+        foodImage: {
+            width: 80,
+            height: 80,
+            borderRadius: 10,
+            alignSelf: 'center',
+            marginBottom: 10,
+        },
+        nutritionList: {
+            gap: 2,
+        },
+        scannerContainer: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        closeButton: {
+            position: 'absolute',
+            bottom: 30,
+            alignSelf: 'center',
+            backgroundColor: colors.primary,
+            padding: 15,
+            borderRadius: 10,
+        },
+        closeButtonText: {
+            color: 'white',
+            fontWeight: 'bold',
+        },
+    });
 
     const searchByQuery = async () => {
         setLoading(true);
@@ -214,92 +304,3 @@ export default function NutritionixTest() {
 }
 
 // Los estilos permanecen igual
-const styles = StyleSheet.create({
-    container: {
-        padding: 20,
-        backgroundColor: colors.background,
-        flexGrow: 1,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        textAlign: 'center',
-        color: colors.primary,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: colors.border,
-        padding: 12,
-        marginBottom: 10,
-        borderRadius: 10,
-        fontSize: 16,
-        color: colors.text,
-        backgroundColor: colors.card,
-    },
-    button: {
-        backgroundColor: colors.primary,
-        paddingVertical: 12,
-        borderRadius: 10,
-        marginBottom: 20,
-    },
-    buttonText: {
-        textAlign: 'center',
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    error: {
-        color: 'red',
-        textAlign: 'center',
-        marginTop: 10,
-    },
-    foodCard: {
-        marginTop: 20,
-        padding: 15,
-        backgroundColor: colors.card,
-        borderRadius: 12,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    foodName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: colors.primary,
-        marginBottom: 5,
-        textTransform: 'capitalize'
-    },
-    serving: {
-        fontSize: 14,
-        marginBottom: 10,
-        color: colors.text,
-    },
-    foodImage: {
-        width: 80,
-        height: 80,
-        borderRadius: 10,
-        alignSelf: 'center',
-        marginBottom: 10,
-    },
-    nutritionList: {
-        gap: 2,
-    },
-    scannerContainer: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
-    closeButton: {
-        position: 'absolute',
-        bottom: 30,
-        alignSelf: 'center',
-        backgroundColor: colors.primary,
-        padding: 15,
-        borderRadius: 10,
-    },
-    closeButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
-});

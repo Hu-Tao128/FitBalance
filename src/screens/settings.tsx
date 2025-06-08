@@ -9,13 +9,141 @@ import { useTheme } from '../context/ThemeContext';
 
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
-const { colors, darkMode, toggleTheme } = useTheme();
-
 const SettingsScreen = () => {
+  const { colors, darkMode, toggleTheme } = useTheme();
   const navigation = useNavigation<SettingsScreenNavigationProp>();
   const { logout } = useUser();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 50,
+      paddingHorizontal: 20,
+    },
+    header: {
+      marginBottom: 20,
+    },
+    title: {
+      fontSize: 24,
+      color: colors.primary,
+      fontWeight: 'bold',
+    },
+    scroll: {
+      paddingBottom: 30,
+    },
+    sectionHeader: {
+      fontSize: 16,
+      color: colors.text,
+      marginTop: 20,
+      marginBottom: 10,
+    },
+    item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.card,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 10,
+    },
+    itemText: {
+      flex: 1,
+      marginLeft: 12,
+      color: colors.text,
+      fontSize: 16,
+    },
+    switch: {
+      marginLeft: 'auto',
+    },
+    bottomNav: {
+      position: 'absolute',
+      bottom: 10,
+      left: 20,
+      right: 20,
+      height: 60,
+      backgroundColor: '#1c1c1e',
+      borderRadius: 30,
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+    },
+    fab: {
+      backgroundColor: '#34C759',
+      borderRadius: 30,
+      padding: 14,
+      marginTop: -30,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      elevation: 4,
+    },
+    modalOption: {
+      paddingVertical: 12,
+    },
+    optionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    modalOptionText: {
+      color: 'rgb(255,255,255)'
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+      width: '80%',
+      backgroundColor: '#1c1c1e',
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#fff',
+      marginBottom: 10,
+    },
+    modalText: {
+      fontSize: 16,
+      color: '#aaa',
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    modalButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    modalButton: {
+      flex: 1,
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginHorizontal: 5,
+    },
+    cancelButton: {
+      backgroundColor: '#2c2c2e',
+    },
+    cancelButtonText: {
+      color: '#fff',
+      fontWeight: 'bold',
+    },
+    confirmButton: {
+      backgroundColor: '#FF3B30',
+    },
+    confirmButtonText: {
+      color: '#fff',
+      fontWeight: 'bold',
+    },
+  });
+
 
   const handleLogout = async () => {
     await logout();
@@ -125,130 +253,3 @@ const SettingsScreen = () => {
 };
 
 export default SettingsScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: 50,
-    paddingHorizontal: 20,
-  },
-  header: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
-    color: colors.primary,
-    fontWeight: 'bold',
-  },
-  scroll: {
-    paddingBottom: 30,
-  },
-  sectionHeader: {
-    fontSize: 16,
-    color: colors.text,
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 10,
-  },
-  itemText: {
-    flex: 1,
-    marginLeft: 12,
-    color: colors.text,
-    fontSize: 16,
-  },
-  switch: {
-    marginLeft: 'auto',
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 10,
-    left: 20,
-    right: 20,
-    height: 60,
-    backgroundColor: '#1c1c1e',
-    borderRadius: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  fab: {
-    backgroundColor: '#34C759',
-    borderRadius: 30,
-    padding: 14,
-    marginTop: -30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    elevation: 4,
-  },
-  modalOption: {
-    paddingVertical: 12,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  modalOptionText: {
-    color: 'rgb(255,255,255)'
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: '#1c1c1e',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 10,
-  },
-  modalText: {
-    fontSize: 16,
-    color: '#aaa',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  modalButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginHorizontal: 5,
-  },
-  cancelButton: {
-    backgroundColor: '#2c2c2e',
-  },
-  cancelButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  confirmButton: {
-    backgroundColor: '#FF3B30',
-  },
-  confirmButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-});

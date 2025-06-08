@@ -11,7 +11,6 @@ import {
 
 import { useTheme } from '../context/ThemeContext';
 
-const { colors } = useTheme();
 
 const mealsData = {
     Desayuno: [
@@ -33,6 +32,74 @@ export default function WeighFoodScreen() {
     const [selectedMeal, setSelectedMeal] = useState<string | null>(null);
     const [selectedItem, setSelectedItem] = useState<string | null>(null);
     const [registradas, setRegistradas] = useState<{ [meal: string]: { [item: string]: boolean } }>({});
+    const { colors } = useTheme();
+
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        scroll: {
+            paddingHorizontal: 16,
+            paddingTop: 20,
+        },
+        mealSection: {
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 20,
+        },
+        mealTitle: {
+            fontSize: 20,
+            fontWeight: 'bold',
+            marginBottom: 10,
+            color: colors.text,
+        },
+        mealTitleChecked: {
+            textDecorationLine: 'underline',
+            color: colors.primary,
+        },
+        foodItemTouchable: {
+            paddingVertical: 8,
+        },
+        foodItemText: {
+            fontSize: 16,
+            color: colors.text,
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        modalOverlay: {
+            flex: 1,
+            justifyContent: 'flex-end',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+        },
+        modalContainer: {
+            backgroundColor: colors.card,
+            padding: 20,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+        },
+        modalTitle: {
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: colors.text,
+            marginBottom: 20,
+        },
+        optionButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 12,
+            gap: 10,
+        },
+        optionText: {
+            color: colors.text,
+            fontSize: 16,
+        },
+        closeText: {
+            color: colors.primary,
+            marginTop: 20,
+            textAlign: 'right',
+        },
+    });
 
     const handleRegister = () => {
         if (selectedMeal && selectedItem) {
@@ -132,70 +199,3 @@ export default function WeighFoodScreen() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
-    scroll: {
-        paddingHorizontal: 16,
-        paddingTop: 20,
-    },
-    mealSection: {
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 20,
-    },
-    mealTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        color: colors.text,
-    },
-    mealTitleChecked: {
-        textDecorationLine: 'underline',
-        color: colors.primary,
-    },
-    foodItemTouchable: {
-        paddingVertical: 8,
-    },
-    foodItemText: {
-        fontSize: 16,
-        color: colors.text,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    modalOverlay: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContainer: {
-        backgroundColor: colors.card,
-        padding: 20,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: colors.text,
-        marginBottom: 20,
-    },
-    optionButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-        gap: 10,
-    },
-    optionText: {
-        color: colors.text,
-        fontSize: 16,
-    },
-    closeText: {
-        color: colors.primary,
-        marginTop: 20,
-        textAlign: 'right',
-    },
-});

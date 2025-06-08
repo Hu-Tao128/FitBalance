@@ -26,6 +26,102 @@ export default function LoginScreen() {
     const navigation = useNavigation<NavigationProp>();
     const { darkMode, toggleTheme, colors } = useTheme();
 
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: '#fff'
+        },
+        scrollContent: {
+            flexGrow: 1,
+            justifyContent: 'flex-start',
+        },
+        header: {
+            height: '50%',
+            width: "100%",
+            overflow: 'hidden',
+        },
+        logoImage: {
+            width: '100%',
+            height: '100%',
+        },
+        loginBox: {
+            marginTop: -50,
+            paddingHorizontal: 30,
+            paddingVertical: 20,
+        },
+        title: {
+            fontSize: 22,
+            fontWeight: '600',
+            marginBottom: 25,
+            textAlign: 'center',
+        },
+        inputWrapper: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#f1f1f1',
+            borderRadius: 12,
+            paddingHorizontal: 15,
+            marginBottom: 15,
+        },
+        input: {
+            flex: 1,
+            height: 50,
+            marginLeft: 10,
+            fontSize: 16,
+        },
+        optionsRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 25,
+        },
+        rememberMe: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        optionText: {
+            fontSize: 14,
+            color: '#777',
+            marginLeft: 5,
+        },
+        loginButton: {
+            backgroundColor: 'transparent',
+            borderColor: 'rgb(6, 80, 16)',
+            borderWidth: 1.5,
+            borderRadius: 25,
+            paddingVertical: 12,
+            alignItems: 'center',
+            marginBottom: 15,
+        },
+        loginText: {
+            color: '#188827',
+            fontWeight: 'bold',
+            fontSize: 16,
+        },
+        signUpText: {
+            textAlign: 'center',
+            fontSize: 14,
+            color: '#555',
+            marginBottom: 10,
+        },
+        linkText: {
+            color: '#188827',
+            fontWeight: '600',
+        },
+        footerDecor: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 130,
+            zIndex: 100,
+            backgroundColor: '#fff',
+        },
+        footerImage: {
+            width: '100%',
+            height: '130%',
+        }
+    });
+    
     const [usuario, setUsuario] = useState('');
     const [password, setPassword] = useState('');
     const [mensaje, setMensaje] = useState('');
@@ -151,99 +247,3 @@ export default function LoginScreen() {
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff'
-    },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: 'flex-start',
-    },
-    header: {
-        height: '50%',
-        width: "100%",
-        overflow: 'hidden',
-    },
-    logoImage: {
-        width: '100%',
-        height: '100%',
-    },
-    loginBox: {
-        marginTop: -50,
-        paddingHorizontal: 30,
-        paddingVertical: 20,
-    },
-    title: {
-        fontSize: 22,
-        fontWeight: '600',
-        marginBottom: 25,
-        textAlign: 'center',
-    },
-    inputWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f1f1f1',
-        borderRadius: 12,
-        paddingHorizontal: 15,
-        marginBottom: 15,
-    },
-    input: {
-        flex: 1,
-        height: 50,
-        marginLeft: 10,
-        fontSize: 16,
-    },
-    optionsRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 25,
-    },
-    rememberMe: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    optionText: {
-        fontSize: 14,
-        color: '#777',
-        marginLeft: 5,
-    },
-    loginButton: {
-        backgroundColor: 'transparent',
-        borderColor: 'rgb(6, 80, 16)',
-        borderWidth: 1.5,
-        borderRadius: 25,
-        paddingVertical: 12,
-        alignItems: 'center',
-        marginBottom: 15,
-    },
-    loginText: {
-        color: '#188827',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-    signUpText: {
-        textAlign: 'center',
-        fontSize: 14,
-        color: '#555',
-        marginBottom: 10,
-    },
-    linkText: {
-        color: '#188827',
-        fontWeight: '600',
-    },
-    footerDecor: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 130,
-        zIndex: 100,
-        backgroundColor: '#fff',
-    },
-    footerImage: {
-        width: '100%',
-        height: '130%',
-    }
-});

@@ -13,9 +13,9 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { Pedometer } from 'expo-sensors';
 import { useTheme } from '../context/ThemeContext';
 
-const { colors } = useTheme();
 
 const Home = () => {
+  const { colors } = useTheme();
   const caloriasObjetivo = 2380;
   const caloriasComidas = 2000;
   const caloriasRestantes = caloriasObjetivo - caloriasComidas;
@@ -24,6 +24,99 @@ const Home = () => {
   const [steps, setSteps] = useState<number>(0);
   const [pastStepCount, setPastStepCount] = useState<number>(0);
   const [isPedometerAvailable, setIsPedometerAvailable] = useState<'checking' | 'available' | 'unavailable'>('checking');
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 50,
+      paddingHorizontal: 20,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      color: colors.primary,
+    },
+    caloriesWrapper: {
+      alignItems: 'center',
+      marginBottom: 30,
+    },
+    caloriesNumber: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: colors.primary,
+    },
+    subtext: {
+      marginTop: 6,
+      fontSize: 16,
+      color: colors.text,
+    },
+    section: {
+      backgroundColor: colors.card,
+      padding: 20,
+      borderRadius: 12,
+      marginBottom: 12,
+    },
+    sectionRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 10,
+      marginBottom: 12,
+    },
+    card: {
+      flex: 1,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: 'center',
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 5,
+    },
+    sectionText: {
+      fontSize: 16,
+      color: colors.text,
+    },
+    cardTitle: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: colors.text,
+      marginBottom: 10,
+    },
+    cardText: {
+      fontSize: 14,
+      color: colors.text,
+      textAlign: 'center',
+    },
+    macroRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 15,
+    },
+    macroItem: {
+      alignItems: 'center',
+      flex: 1,
+    },
+    macroLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    macroText: {
+      marginTop: 6,
+      fontSize: 14,
+      color: colors.text,
+    },
+  });
 
   // Configuración del podómetro
   useEffect(() => {
@@ -230,99 +323,5 @@ const Home = () => {
       </View>
   );
 };
-
-// Tus estilos permanecen igual
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: 50,
-    paddingHorizontal: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-  caloriesWrapper: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  caloriesNumber: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-  subtext: {
-    marginTop: 6,
-    fontSize: 16,
-    color: colors.text,
-  },
-  section: {
-    backgroundColor: colors.card,
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  sectionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-    marginBottom: 12,
-  },
-  card: {
-    flex: 1,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 5,
-  },
-  sectionText: {
-    fontSize: 16,
-    color: colors.text,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 10,
-  },
-  cardText: {
-    fontSize: 14,
-    color: colors.text,
-    textAlign: 'center',
-  },
-  macroRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 15,
-  },
-  macroItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  macroLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  macroText: {
-    marginTop: 6,
-    fontSize: 14,
-    color: colors.text,
-  },
-});
 
 export default Home;
