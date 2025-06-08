@@ -14,6 +14,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { UserProvider } from "./src/context/UserContext";
 import { ThemeProvider } from "./src/context/ThemeContext";
 import { setupNotifications } from './src/services/NotificationsServices';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function App() {
   useEffect(() => {
@@ -21,10 +22,12 @@ export default function App() {
   }, []);
 
   return(
-    <ThemeProvider>
-      <UserProvider>
-        <AppNavigator />
-      </UserProvider>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <UserProvider>
+          <AppNavigator />
+        </UserProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

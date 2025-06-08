@@ -2,24 +2,20 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import * as React from 'react';
 import { useState } from 'react';
-import {
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View
-} from 'react-native';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, TouchableWithoutFeedback, Modal } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../context/ThemeContext'; // Importamos el hook
 import SettingsStackNavigator from "../navigation/SettingsStackNavigator";
 import HomeScreen from '../screens/DashboardScreen';
 import NutritionixTest from "../screens/NutrionixTest";
 import UserProfileScreen from '../screens/userProfileScreen';
 import weighFood from '../screens/weighFood';
 
-
 const Tab = createBottomTabNavigator();
 
 export const BottomNavigation = () => {
+    const insets = useSafeAreaInsets();
+    const { darkMode, colors } = useTheme();  // Usamos el hook para obtener los colores del tema
     const [modalVisible, setModalVisible] = useState(false);
 
     return (
@@ -28,50 +24,52 @@ export const BottomNavigation = () => {
                 tabBar={({ navigation, state }) => {
                     const currentRoute = state.routeNames[state.index];
                     return (
-                        <View style={styles.bottomNav}>
-                            <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-                                <Ionicons
-                                    name="home-sharp"
-                                    size={24}
-                                    color={currentRoute === 'Home' ? '#34C759' : '#fff'}
-                                />
-                            </TouchableOpacity>
+                        <SafeAreaView
+                            style={[styles.bottomNavWrapper, { paddingBottom: insets.bottom, backgroundColor: colors.card }]}>
+                            <View style={[styles.bottomNav, { backgroundColor: colors.card }]}>
+                                <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+                                    <Ionicons
+                                        name="home-sharp"
+                                        size={24}
+                                        color={currentRoute === 'Home' ? '#34C759' : colors.text} // Cambié aquí
+                                    />
+                                </TouchableOpacity>
 
-                            <TouchableOpacity onPress={() => navigation.navigate('WeighFood')}>
-                                <MaterialCommunityIcons
-                                    name="scale-bathroom"
-                                    size={24}
-                                    color={currentRoute === 'WeighFood' ? '#34C759' : '#fff'}
-                                />
-                            </TouchableOpacity>
+                                <TouchableOpacity onPress={() => navigation.navigate('WeighFood')}>
+                                    <MaterialCommunityIcons
+                                        name="scale-bathroom"
+                                        size={24}
+                                        color={currentRoute === 'WeighFood' ? '#34C759' : colors.text} // Cambié aquí
+                                    />
+                                </TouchableOpacity>
 
-                            <TouchableOpacity onPress={() => navigation.navigate('Test')}>
-                                <MaterialCommunityIcons
-                                    name="silverware-fork-knife"
-                                    size={24}
-                                    color={currentRoute === 'Test' ? '#34C759' : '#fff'}
-                                />
-                            </TouchableOpacity>
+                                <TouchableOpacity onPress={() => navigation.navigate('Test')}>
+                                    <MaterialCommunityIcons
+                                        name="silverware-fork-knife"
+                                        size={24}
+                                        color={currentRoute === 'Test' ? '#34C759' : colors.text} // Cambié aquí
+                                    />
+                                </TouchableOpacity>
 
-                            <TouchableOpacity>
-                                <Ionicons
-                                    name="bar-chart-outline"
-                                    size={24}
-                                    color={'#fff'} // sin navegación aún
-                                />
-                            </TouchableOpacity>
+                                <TouchableOpacity>
+                                    <Ionicons
+                                        name="bar-chart-outline"
+                                        size={24}
+                                        color={colors.text} // Cambié aquí
+                                    />
+                                </TouchableOpacity>
 
-                            <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                                <Ionicons
-                                    name="settings-outline"
-                                    size={24}
-                                    color={currentRoute === 'Settings' ? '#34C759' : '#fff'}
-                                />
-                            </TouchableOpacity>
-                        </View>
+                                <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+                                    <Ionicons
+                                        name="settings-outline"
+                                        size={24}
+                                        color={currentRoute === 'Settings' ? '#34C759' : colors.text} // Cambié aquí
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        </SafeAreaView>
                     );
                 }}
-
                 screenOptions={{ headerShown: false }}
             >
                 <Tab.Screen name="Home" component={HomeScreen} />
@@ -135,16 +133,18 @@ export const BottomNavigation = () => {
             </Modal>
         </>
     );
-}
+};
 
 const styles = StyleSheet.create({
+    bottomNavWrapper: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     bottomNav: {
-        position: 'absolute',
-        bottom: 10,
-        left: 20,
-        right: 20,
+        width: '90%',
         height: 60,
-        backgroundColor: '#1c1c1e',
         borderRadius: 30,
         flexDirection: 'row',
         justifyContent: 'space-around',
@@ -176,6 +176,6 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     modalOptionText: {
-        color: 'rgb(255,255,255)'
+        color: 'rgb(255,255,255)',
     },
 });
