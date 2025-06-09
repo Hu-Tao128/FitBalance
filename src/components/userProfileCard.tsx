@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 type UserProfileProps = {
   nombre: string;
@@ -27,6 +28,76 @@ const UserProfileCard = ({
   const imc = altura_cm > 0 && peso_kg > 0 
     ? (peso_kg / ((altura_cm / 100) ** 2)).toFixed(1)
     : null;
+
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    card: {
+      backgroundColor: colors.background,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 20,
+      width: '100%',
+      shadowColor: '#34C759',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 5,
+    },
+    avatar: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      marginBottom: 15,
+      borderWidth: 2,
+      borderColor: colors.border,
+    },
+    name: {
+      fontSize: 22,
+      color: colors.text,
+      fontWeight: 'bold',
+      marginBottom: 5,
+    },
+    email: {
+      fontSize: 14,
+      color: colors.text,
+      marginBottom: 15,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 6,
+      width: '100%',
+    },
+    infoText: {
+      marginLeft: 10,
+      color: colors.text,
+      fontSize: 15,
+      flex: 1,
+    },
+    sectionTitle: {
+      color: colors.primary,
+      fontWeight: 'bold',
+      alignSelf: 'flex-start',
+      marginTop: 15,
+      marginBottom: 5,
+      fontSize: 16,
+    },
+    imcBadge: {
+      backgroundColor: colors.background,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+      marginLeft: 8,
+    },
+    imcText: {
+      color: colors.text,
+      fontSize: 12,
+      fontWeight: 'bold',
+    }
+  });
+
   return (
     <View style={styles.card}>
       <Image
@@ -72,70 +143,3 @@ function getImcCategory(imc: number): string {
 }
 
 export default UserProfileCard;
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#1c1c1e',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 20,
-    width: '100%',
-    shadowColor: '#34C759',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 15,
-    borderWidth: 2,
-    borderColor: '#34C759',
-  },
-  name: {
-    fontSize: 22,
-    color: '#fff',
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  email: {
-    fontSize: 14,
-    color: '#aaa',
-    marginBottom: 15,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 6,
-    width: '100%',
-  },
-  infoText: {
-    marginLeft: 10,
-    color: '#fff',
-    fontSize: 15,
-    flex: 1,
-  },
-  sectionTitle: {
-    color: '#34C759',
-    fontWeight: 'bold',
-    alignSelf: 'flex-start',
-    marginTop: 15,
-    marginBottom: 5,
-    fontSize: 16,
-  },
-  imcBadge: {
-    backgroundColor: '#34C75920',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 8,
-  },
-  imcText: {
-    color: '#34C759',
-    fontSize: 12,
-    fontWeight: 'bold',
-  }
-});

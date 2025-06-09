@@ -79,17 +79,39 @@ export const BottomNavigation = () => {
                 <Tab.Screen
                     name="UserProfile"
                     component={UserProfileScreen}
-                    options={{
+                    options={({ route }) => ({
                         headerShown: true,
                         headerTitle: 'Perfil',
-                        headerTintColor: '#34C759',
-                        headerStyle: { backgroundColor: '#0d0d0d' },
-                        headerTitleStyle: { color: '#fff' },
-                        tabBarIcon: ({ color }) => (
-                            <Ionicons name="person-outline" size={24} color={color} />
+                        headerTintColor: colors.primary,
+                        headerStyle: {
+                            backgroundColor: colors.background,
+                            borderBottomColor: colors.border,
+                            borderBottomWidth: 1,
+                            elevation: 0, // Para Android
+                            shadowOpacity: 0, // Para iOS
+                        },
+                        headerTitleStyle: {
+                            color: colors.text,
+                            fontSize: 18,
+                            fontWeight: 'bold'
+                        },
+                        tabBarIcon: ({ focused }) => (
+                            <Ionicons
+                                name="person-outline"
+                                size={24}
+                                color={focused ? colors.primary : colors.text}
+                            />
                         ),
-                        tabBarLabel: 'Perfil',
-                    }}
+                        tabBarLabel: ({ focused }) => (
+                            <Text style={{
+                                color: focused ? colors.primary : colors.text,
+                                fontSize: 12,
+                                marginBottom: 4
+                            }}>
+                                Perfil
+                            </Text>
+                        ),
+                    })}
                 />
             </Tab.Navigator>
 
