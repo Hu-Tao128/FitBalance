@@ -77,51 +77,7 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Conectado a MongoDB Atlas'))
   .catch((err) => console.error('❌ Error al conectar a MongoDB:', err));
 
-// Funciones para FatSecret
-async function searchFatSecretByUPC(upc: string, region: string = 'mx') {
-  const url = 'https://platform.fatsecret.com/rest/server.api';
-  const method = 'POST';
-  const data = {
-    method: 'food.find_id_for_upc',
-    upc,
-    region,
-    format: 'json'
-  };
-
-  const requestData = { url, method, data };
-  const headers = {
-    ...fatSecretOAuth.toHeader(fatSecretOAuth.authorize(requestData)),
-    'Content-Type': 'application/x-www-form-urlencoded'
-  };
-
-  try {
-    const response = await axios.post(url, new URLSearchParams(data), { headers });
-    return response.data;
-  } catch (error: any) {
-    console.error('❌ Error en FatSecret (UPC):', error.response?.data || error.message);
-    throw error;
-  }
-}
-
-async function getFatSecretFoodDetails(foodId: string) {
-  const url = 'https://platform.fatsecret.com/rest/server.api';
-  const method = 'POST';
-  const data = {
-    method: 'food.get',
-    food_id: foodId,
-    format: 'json'
-  };
-
-  const requestData = { url, method, data };
-  const headers = {
-    ...fatSecretOAuth.toHeader(fatSecretOAuth.authorize(requestData)),
-    'Content-Type': 'application/x-www-form-urlencoded'
-  };
-
-  const response = await axios.post(url, new URLSearchParams(data), { headers });
-  return response.data;
-}
-
+// Fatsecret
 async function searchFatSecretByText(query: string) {
   const url = 'https://platform.fatsecret.com/rest/server.api';
   const method = 'POST';
@@ -141,6 +97,56 @@ async function searchFatSecretByText(query: string) {
   const response = await axios.post(url, new URLSearchParams(data), { headers });
   return response.data;
 }
+
+// Ruta de búsqueda por lenguaje natural usando Nutritionix y FatSecret
+app.post('/search-food', async (req: Request, res: Response) => {
+  const { query } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ error: 'Falta el parámetro "query"' });
+  }
+
+  try {
+    // 1. Buscar en Nutritionix
+    const nutritionixResponse = await axios.post(
+        'https://trackapi.nutritionix.com/v2/natural/nutrients',
+        { query },
+        {
+          headers: {
+            'x-app-id': process.env.NUTRITIONIX_APP_ID!,
+            'x-app-key': process.env.NUTRITIONIX_APP_KEY!,
+            'Content-Type': 'application/json'
+          }
+        }
+    );
+
+    const items = nutritionixResponse.data.foods;
+    if (items && items.length > 0) {
+      return res.json({
+        source: 'nutritionix',
+        results: items
+      });
+    }
+
+    // 2. Si no hay resultados, buscar en FatSecret
+    const fatSecretData = await searchFatSecretByText(query);
+    const foods = fatSecretData?.foods?.food;
+
+    if (foods && foods.length > 0) {
+      return res.json({
+        source: 'fatsecret',
+        results: foods
+      });
+    }
+
+    // 3. Si ninguna API devuelve resultados
+    return res.status(404).json({ message: 'No se encontraron alimentos con ese nombre.' });
+
+  } catch (error: any) {
+    console.error('Error en /search-food:', error.message);
+    return res.status(500).json({ error: 'Error en la búsqueda de alimentos' });
+  }
+});
 
 // Rutas
 app.get('/usuarios', async (req: Request, res: Response) => {
