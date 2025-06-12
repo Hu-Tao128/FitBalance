@@ -3,8 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type User = {
   nombre: string;
-  email: string;
   usuario: string;
+  email?: string;
   edad?: number;
   sexo?: string;
   altura_cm?: number;

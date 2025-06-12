@@ -132,12 +132,12 @@ export default function LoginScreen() {
 
     //Nota: ahora pones tu ip y el puerto
     // 1    192.168.1.42:3000
-    const SERVER_IP = '192.168.0.11:3000';
+    const SERVER_IP = 'fitbalance-backend-production.up.railway.app';
 
     const handleLogin = async () => {
         try {
             // Usa http o https consistentemente
-            const res = await axios.post(`http://${SERVER_IP}/login`, {
+            const res = await axios.post(`https://${SERVER_IP}/login`, {
                 usuario,
                 password,
             });
@@ -152,7 +152,6 @@ export default function LoginScreen() {
             // 1. Primero guarda los datos básicos
             const basicUserData = {
                 nombre: res.data.nombre,
-                email: res.data.correo || res.data.email, // Maneja ambos casos
                 usuario: res.data.usuario
             };
             await login(basicUserData);
@@ -163,6 +162,7 @@ export default function LoginScreen() {
             // 3. Actualiza el estado con todos los datos
             await login({
                 ...basicUserData,
+                email: userDetails.data.correo || userDetails.data.email, // Maneja ambos casos
                 edad: userDetails.data.edad,
                 sexo: userDetails.data.sexo,
                 altura_cm: userDetails.data.altura_cm,

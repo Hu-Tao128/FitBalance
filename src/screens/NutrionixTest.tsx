@@ -12,7 +12,7 @@ import { useTheme } from '../context/ThemeContext';
 import FoodDetails from '../components/FoodDetails';
 
 
-const SERVER_URL = 'http://192.168.0.11:3000';
+const SERVER_URL = 'https://fitbalance-backend-production.up.railway.app';
 
 export default function NutritionixTest() {
     const { colors } = useTheme();
