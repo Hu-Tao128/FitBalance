@@ -1,19 +1,19 @@
-// src/navigation/SettingsStackNavigator.tsx
-
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SettingsUser from '../screens/settings';
 import UserProfileScreen from '../screens/userProfileScreen';
+import { useTheme } from '../context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 
 const SettingsStackNavigator = () => {
+    const { colors } = useTheme();
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#0d0d0d' },
-        headerTintColor: '#34C759',
-        headerTitleStyle: { color: '#fff' },
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.primary,
+        headerTitleStyle: { color: colors.text },
       }}
     >
       <Stack.Screen

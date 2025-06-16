@@ -5,7 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 
 type UserProfileProps = {
   nombre: string;
-  email: string;
+  email?: string;
   edad?: number;
   sexo?: string;
   altura_cm?: number;
@@ -101,7 +101,7 @@ const UserProfileCard = ({
   return (
     <View style={styles.card}>
       <Image
-        source={require('../../assets/NotFat.gif')}
+        source={require('../../assets/FitBalanceLogo.jpg')}
         style={styles.avatar}
       />
       <Text style={styles.name}>{nombre}</Text>

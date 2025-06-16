@@ -38,6 +38,8 @@ export default function WeighFoodScreen() {
         container: {
             flex: 1,
             backgroundColor: colors.background,
+            paddingTop: 50,
+            paddingHorizontal: 20,
         },
         scroll: {
             paddingHorizontal: 16,

@@ -104,6 +104,7 @@ export const BottomNavigation = () => {
                         ),
                         tabBarLabel: ({ focused }) => (
                             <Text style={{
+                                backgroundColor: colors.background,
                                 color: focused ? colors.primary : colors.text,
                                 fontSize: 12,
                                 marginBottom: 4
