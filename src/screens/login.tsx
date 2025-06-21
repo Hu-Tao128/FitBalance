@@ -134,6 +134,8 @@ export default function LoginScreen() {
     // 1    192.168.1.42:3000
     const SERVER_IP = 'fitbalance-backend-production.up.railway.app';
 
+    //const SERVER_IP = 'mi-ippruebas';
+
     const handleLogin = async () => {
         try {
             // Usa http o https consistentemente
