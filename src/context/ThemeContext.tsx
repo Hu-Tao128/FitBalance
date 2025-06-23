@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Appearance } from 'react-native';
 
 type ThemeContextType = {
@@ -15,12 +15,13 @@ type ThemeContextType = {
 };
 
 const lightColors = {
-    background: '#ffffff',
-    text: '#121212',
-    card: '#f8f9fa',
-    border: '#e9ecef',
-    primary: '#34C759',
+    background: '#EEEFE0', // fondo general
+    text: '#000000 ',       // textos principales y títulos
+    card: '#D1D8BE',       // fondos de tarjetas/secciones
+    border: '#A7C1A8',     // bordes y líneas suaves
+    primary: '#819A91',    // color principal, botones, FAB, iconos activos
 };
+
 
 const darkColors = {
     background: '#0d0d0d',
@@ -33,11 +34,11 @@ const darkColors = {
 // Crea el contexto con un valor por defecto más completo
 const ThemeContext = createContext<ThemeContextType>({
     darkMode: false,
-    toggleTheme: () => {},
+    toggleTheme: () => { },
     colors: lightColors
 });
 
-export const ThemeProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [darkMode, setDarkMode] = useState(false);
 
     useEffect(() => {

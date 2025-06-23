@@ -1,15 +1,15 @@
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   Modal,
-  TouchableWithoutFeedback
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import { useNavigation } from '@react-navigation/native';
 
 const Dashboard = () => {
   const navigation = useNavigation();
@@ -41,13 +41,13 @@ const Dashboard = () => {
         <View>
           <Text style={styles.sectionTitle}>Calorías</Text>
           <Text style={styles.sectionText}>2380 Objetivo</Text>
-          {(caloriasObjetivo - caloriasComidas) > 0 ?(
+          {(caloriasObjetivo - caloriasComidas) > 0 ? (
             <Text style={styles.sectionText}>
               {caloriasComidas} Alcanzadas{"\n"}
               {(caloriasObjetivo - caloriasComidas)} faltantes
             </Text>
           ) : (
-              <Text style={styles.sectionText}>
+            <Text style={styles.sectionText}>
               {(caloriasObjetivo - caloriasComidas) * -1} Sobrepasadas
             </Text>
           )}
@@ -146,13 +146,13 @@ const Dashboard = () => {
       </View>
 
       <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Comentarios de tu nutriologo</Text>
-          <Text style={styles.sectionText}>Soy un comentario de tu nutriologo</Text>
-          {(caloriasObjetivo - caloriasComidas) > 0 ?(
-            <Text style={styles.sectionText}>Vas bien</Text>
-          ) : (
-            <Text style={styles.sectionText}>Comentario del nutriologo cuando se exceden las calorias por dia</Text>
-          )}
+        <Text style={styles.sectionTitle}>Comentarios de tu nutriologo</Text>
+        <Text style={styles.sectionText}>Soy un comentario de tu nutriologo</Text>
+        {(caloriasObjetivo - caloriasComidas) > 0 ? (
+          <Text style={styles.sectionText}>Vas bien</Text>
+        ) : (
+          <Text style={styles.sectionText}>Comentario del nutriologo cuando se exceden las calorias por dia</Text>
+        )}
       </View>
 
       {/* Bottom Navigation */}
@@ -178,33 +178,33 @@ const Dashboard = () => {
       >
         <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
           <View style={styles.modalOverlay}>
-          <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Registrar</Text>
-            <TouchableOpacity style={styles.modalOption}>
-              <View style={styles.optionRow}>
-                <MaterialCommunityIcons name="food-apple" size={24} color="#34C759" />
-                <Text style={styles.modalOptionText}>Registrar alimento</Text>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Registrar</Text>
+                <TouchableOpacity style={styles.modalOption}>
+                  <View style={styles.optionRow}>
+                    <MaterialCommunityIcons name="food-apple" size={24} color="#34C759" />
+                    <Text style={styles.modalOptionText}>Registrar alimento</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalOption}>
+                  <View style={styles.optionRow}>
+                    <Ionicons name="water-outline" size={24} color="#34C759" />
+                    <Text style={styles.modalOptionText}>Registrar agua</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalOption}>
+                  <View style={styles.optionRow}>
+                    <MaterialCommunityIcons name="scale-bathroom" size={24} color="#34C759" />
+                    <Text style={styles.modalOptionText}>Nuevo peso</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Text style={{ color: '#34C759', textAlign: 'right' }}>Cerrar</Text>
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalOption}>
-              <View style={styles.optionRow}>
-                <Ionicons name="water-outline" size={24} color="#34C759" />
-                <Text style={styles.modalOptionText}>Registrar agua</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalOption}>
-              <View style={styles.optionRow}>
-                <MaterialCommunityIcons name="scale-bathroom" size={24} color="#34C759" />
-                <Text style={styles.modalOptionText}>Nuevo peso</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={{ color: '#34C759', textAlign: 'right' }}>Cerrar</Text>
-            </TouchableOpacity>
+            </TouchableWithoutFeedback>
           </View>
-          </TouchableWithoutFeedback>
-        </View>
         </TouchableWithoutFeedback>
       </Modal>
     </View>
@@ -253,6 +253,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#fff',
+    textAlign: 'center',
   },
   sectionText: {
     fontSize: 17,
@@ -319,21 +320,21 @@ const styles = StyleSheet.create({
     color: 'rgb(255,255,255)'
   },
   macrosContainer: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  marginTop: 20,
-},
-macroItem: {
-  alignItems: 'center',
-  flex: 1,
-},
-macroText: {
-  color: '#fff',
-  fontWeight: 'bold',
-},
-macroLabel: {
-  marginTop: 8,
-  color: '#999',
-  fontSize: 14,
-},
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  macroItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  macroText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  macroLabel: {
+    marginTop: 8,
+    color: '#999',
+    fontSize: 14,
+  },
 });

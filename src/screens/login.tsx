@@ -179,7 +179,7 @@ export default function LoginScreen() {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
                     <Image
-                        source={require('../../assets/bannerLogin1.png')}
+                        source={require('../../assets/NewLogo.png')}
                         style={styles.logoImage}
                         resizeMode="cover"
                     />
