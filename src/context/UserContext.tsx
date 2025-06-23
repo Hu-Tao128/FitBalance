@@ -2,15 +2,21 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type User = {
-  nombre: string;
-  usuario: string;
+  id: string;
+  username: string;
+  name: string;
   email?: string;
-  edad?: number;
-  sexo?: string;
-  altura_cm?: number;
-  peso_kg?: number;
-  objetivo?: string;
-  ultima_consulta?: string;
+  phone?: string;
+  age?: number;
+  gender?: string;
+  height_cm?: number;
+  weight_kg?: number;
+  objective?: string;
+  allergies?: string[];
+  dietary_restrictions?: string[];
+  last_consultation?: string | null;
+  nutritionist_id?: string;
+  isActive?: boolean;
 };
 
 type UserContextType = {
@@ -61,18 +67,22 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem('user'); // Elimina el usuario almacenado
-      setUser(null); // Limpia el estado
+      await AsyncStorage.removeItem('user');
+      setUser(null);
     } catch (error) {
-      console.error('Error al cerrar sesión:', error);
+      console.error('Error logging out:', error);
     }
   };
 
   const updateUser = async (newData: Partial<User>) => {
     if (!user) return;
     const updatedUser = { ...user, ...newData };
-    await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+    try {
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
   };
 
   return (

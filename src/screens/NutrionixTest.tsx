@@ -1,16 +1,12 @@
 import axios from 'axios';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator, Image, Modal,
-    ScrollView,
-    StyleSheet,
-    Text, TextInput, TouchableOpacity,
-    View
+    ActivityIndicator, Modal, ScrollView,
+    StyleSheet, Text, TextInput, TouchableOpacity, View
 } from 'react-native';
 import BarCodeScanner from '../components/BardCodeScanner';
 import { useTheme } from '../context/ThemeContext';
 import FoodDetails from '../components/FoodDetails';
-
 
 const SERVER_URL = 'https://fitbalance-backend-production.up.railway.app';
 
@@ -25,9 +21,10 @@ export default function NutritionixTest() {
 
     const styles = StyleSheet.create({
         container: {
-            padding: 20,
+            flex: 1,
             backgroundColor: colors.background,
-            flexGrow: 1,
+            paddingTop: 50,
+            paddingHorizontal: 20,
         },
         title: {
             fontSize: 20,
@@ -62,39 +59,6 @@ export default function NutritionixTest() {
             textAlign: 'center',
             marginTop: 10,
         },
-        foodCard: {
-            marginTop: 20,
-            padding: 15,
-            backgroundColor: colors.card,
-            borderRadius: 12,
-            shadowColor: '#000',
-            shadowOpacity: 0.1,
-            shadowOffset: { width: 0, height: 2 },
-            shadowRadius: 5,
-            elevation: 3,
-        },
-        foodName: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: colors.primary,
-            marginBottom: 5,
-            textTransform: 'capitalize'
-        },
-        serving: {
-            fontSize: 14,
-            marginBottom: 10,
-            color: colors.text,
-        },
-        foodImage: {
-            width: 80,
-            height: 80,
-            borderRadius: 10,
-            alignSelf: 'center',
-            marginBottom: 10,
-        },
-        nutritionList: {
-            gap: 2,
-        },
         scannerContainer: {
             flex: 1,
             backgroundColor: colors.background,
@@ -111,25 +75,22 @@ export default function NutritionixTest() {
             color: 'white',
             fontWeight: 'bold',
         },
-        calorieText: {
-            color: colors.text, // o cualquier color que prefieras
-            fontWeight: 'bold',
-            fontSize: 16,
-        },
-
     });
 
     const searchByQuery = async () => {
+        
         setLoading(true);
         setError('');
+
+        if (query.trim() || query == null) {
+            return setError("No has puesto un nombre de alimento");
+        }
         try {
             const res = await axios.post(`${SERVER_URL}/search-food`, { query });
 
-            // Manejar respuesta unificada
             if (res.data.source === 'nutritionix') {
                 setResult({ foods: res.data.results });
             } else if (res.data.source === 'fatsecret') {
-                // Adaptar la respuesta de FatSecret al formato esperado
                 const fatsecretFood = res.data.results.food[0];
                 setResult({
                     foods: [{
@@ -169,8 +130,6 @@ export default function NutritionixTest() {
 
             if (response.data.status === 1) {
                 const product = response.data.product;
-
-                // Formatea los datos al mismo esquema esperado en renderFoodCards
                 setResult({
                     foods: [{
                         food_name: product.product_name || 'Producto sin nombre',
@@ -195,11 +154,8 @@ export default function NutritionixTest() {
                 setError('🔍 Producto no encontrado en Open Food Facts');
             }
         } catch (err) {
-            if (axios.isAxiosError(err)) {
-                setError(`Error: ${err.message}`);
-            } else {
-                setError('Error desconocido');
-            }
+            setError('Error al buscar por código de barras');
+            console.error(err);
         } finally {
             setLoading(false);
             setScanned(false);
@@ -210,47 +166,6 @@ export default function NutritionixTest() {
         console.log('Código escaneado:', data);
         setScanned(true);
         searchByBarcode(data);
-    };
-
-    const renderFoodCards = () => {
-        if (!result?.foods) return null;
-
-        return result.foods.map((food: any, index: number) => (
-            <View key={index} style={styles.foodCard}>
-                <Text style={styles.foodName}>{food.food_name}</Text>
-                <Text style={styles.serving}>{food.serving_qty} {food.serving_unit}</Text>
-                {food.photo?.thumb && (
-                    <Image
-                        source={{ uri: food.photo.thumb }}
-                        style={styles.foodImage}
-                    />
-                )}
-                <View style={styles.nutritionList}>
-                    <Text style={styles.calorieText}>Calorías: {food.nf_calories || food.calories} kcal</Text>
-                    <Text style={styles.calorieText}>Grasa total: {food.nf_total_fat || food.fat || 0} g</Text>
-                    {food.nf_saturated_fat !== undefined && (
-                        <Text style={styles.calorieText}>Grasa saturada: {food.nf_saturated_fat || 0} g</Text>
-                    )}
-                    {food.nf_cholesterol !== undefined && (
-                        <Text style={styles.calorieText}>Colesterol: {food.nf_cholesterol || 0} mg</Text>
-                    )}
-                    {food.nf_sodium !== undefined && (
-                        <Text style={styles.calorieText}>Sodio: {food.nf_sodium} mg</Text>
-                    )}
-                    <Text style={styles.calorieText}>Carbohidratos: {food.nf_total_carbohydrate || food.carbohydrate} g</Text>
-                    {food.nf_dietary_fiber !== undefined && (
-                        <Text style={styles.calorieText}>Fibra: {food.nf_dietary_fiber || 0} g</Text>
-                    )}
-                    {food.nf_sugars !== undefined && (
-                        <Text style={styles.calorieText}>Azúcares: {food.nf_sugars || 0} g</Text>
-                    )}
-                    <Text style={styles.calorieText}>Proteínas: {food.nf_protein || food.protein} g</Text>
-                    {food.nf_potassium !== undefined && (
-                        <Text style={styles.calorieText}>Potasio: {food.nf_potassium || 0} mg</Text>
-                    )}
-                </View>
-            </View>
-        ));
     };
 
     return (
@@ -284,7 +199,7 @@ export default function NutritionixTest() {
 
             <TextInput
                 style={styles.input}
-                placeholder="🍎 Ej: 1 manzana, 2 rebanadas de pan"
+                placeholder="Ej: 1 manzana, 2 rebanadas de pan"
                 placeholderTextColor={colors.text}
                 value={query}
                 onChangeText={setQuery}
@@ -294,10 +209,10 @@ export default function NutritionixTest() {
             </TouchableOpacity>
 
             {loading && <ActivityIndicator size="large" color="#188827" style={{ marginTop: 20 }} />}
-
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            {renderFoodCards()}
+            {/* Aquí usamos el componente */}
+            {result?.foods && <FoodDetails foods={result.foods} />}
         </ScrollView>
     );
 }

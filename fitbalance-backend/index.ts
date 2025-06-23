@@ -2,7 +2,7 @@ import axios from "axios";
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
-import mongoose from 'mongoose';
+import  mongoose, {Types} from 'mongoose';
 
 dotenv.config();
 
@@ -28,33 +28,48 @@ const NUTRITIONIX_APP_KEY = getEnv('NUTRITIONIX_APP_KEY');
 
 // 📦 Modelos de Mongoose
 interface IPatient {
-  nombre: string;
-  correo: string;
-  email: string;
-  usuario: string;
+  _id: string;
+  username: string;
   password: string;
-  edad?: number;
-  sexo?: string;
-  altura_cm?: number;
-  peso_kg?: number;
-  objetivo?: string;
-  ultima_consulta?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  age?: number;
+  gender?: string;
+  height_cm?: number;
+  weight_kg?: number;
+  objective?: string;
+  allergies?: string[];
+  dietary_restrictions?: string[];
+  registration_date?: Date;
+  notes?: string;
+  last_consultation?: Date | null;
+  nutritionist_id?: string;
+  isActive?: boolean;
 }
 
 const Patient = mongoose.model<IPatient>(
-    'Patient',
-    new mongoose.Schema({
-      nombre: { type: String, required: true },
-      correo: { type: String, required: true },
-      usuario: { type: String, required: true, unique: true },
-      password: { type: String, required: true },
-      edad: { type: Number },
-      sexo: { type: String },
-      altura_cm: { type: Number },
-      peso_kg: { type: Number },
-      objetivo: { type: String },
-      ultima_consulta: { type: String }
-    }, { collection: 'Patients' })
+  'Patient',
+  new mongoose.Schema({
+    _id: { type: String, required: true },
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    phone: { type: String },
+    age: { type: Number },
+    gender: { type: String, enum: ['male', 'female', 'other'] },
+    height_cm: { type: Number },
+    weight_kg: { type: Number },
+    objective: { type: String },
+    allergies: { type: [String], default: [] },
+    dietary_restrictions: { type: [String], default: [] },
+    registration_date: { type: Date, default: Date.now },
+    notes: { type: String, default: '' },
+    last_consultation: { type: Date, default: null },
+    nutritionist_id: { type: String },
+    isActive: { type: Boolean, default: true }
+  }, { collection: 'Patients' })
 );
 
 interface IFood {
@@ -79,17 +94,69 @@ interface IFood {
 }
 
 const Food = mongoose.model<IFood>(
-    'Food',
-    new mongoose.Schema({}, { strict: false, collection: 'Food' })
+  'Food',
+  new mongoose.Schema({}, { strict: false, collection: 'Food' })
+);
+
+
+interface WeeklyPlanFood {
+  food_id: string;
+  grams: number;
+}
+
+interface WeeklyMeal {
+  day: string; // Ej: "monday"
+  type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  time: string;
+  foods: WeeklyPlanFood[];
+}
+
+interface IWeeklyPlan {
+  patient_id: string;
+  week_start: Date;
+  dailyCalories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+  meals: WeeklyMeal[];
+}
+
+const WeeklyPlan = mongoose.model<IWeeklyPlan>(
+  'WeeklyPlan',
+  new mongoose.Schema({
+    patient_id: { type: String, required: true },
+    week_start: { type: Date, required: true },
+    dailyCalories: { type: Number, required: true },
+    protein: { type: Number, required: true },
+    fat: { type: Number, required: true },
+    carbs: { type: Number, required: true },
+    meals: [{
+      day: {
+        type: String,
+        enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+        required: true
+      },
+      type: {
+        type: String,
+        enum: ['breakfast', 'lunch', 'dinner', 'snack'],
+        required: true
+      },
+      time: { type: String, required: true },
+      foods: [{
+        food_id: { type: String, required: true },
+        grams: { type: Number, required: true, min: 1 }
+      }]
+    }]
+  }, { collection: 'WeeklyPlan' })
 );
 
 // 🔌 Conexión a MongoDB
 mongoose.connect(MONGODB_URI)
-    .then(() => console.log('✅ Conectado a MongoDB Atlas'))
-    .catch((err) => {
-      console.error('❌ Error al conectar a MongoDB:', err);
-      process.exit(1);
-    });
+  .then(() => console.log('✅ Conectado a MongoDB Atlas'))
+  .catch((err) => {
+    console.error('❌ Error al conectar a MongoDB:', err);
+    process.exit(1);
+  });
 
 // 🧠 Token de FatSecret (con cache)
 let fatSecretAccessToken: string | null = null;
@@ -102,17 +169,17 @@ async function getFatSecretToken(): Promise<string> {
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
   const response = await axios.post(
-      'https://oauth.fatsecret.com/connect/token',
-      new URLSearchParams({
-        grant_type: 'client_credentials',
-        scope: 'basic'
-      }),
-      {
-        headers: {
-          'Authorization': `Basic ${credentials}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
+    'https://oauth.fatsecret.com/connect/token',
+    new URLSearchParams({
+      grant_type: 'client_credentials',
+      scope: 'basic'
+    }),
+    {
+      headers: {
+        'Authorization': `Basic ${credentials}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
       }
+    }
   );
 
   const token = response.data.access_token;
@@ -127,19 +194,19 @@ async function searchFatSecretByText(query: string) {
   const accessToken = await getFatSecretToken();
 
   const response = await axios.post(
-      'https://platform.fatsecret.com/rest/server.api',
-      new URLSearchParams({
-        method: 'foods.search',
-        search_expression: query,
-        format: 'json',
-        max_results: '10'
-      }),
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
+    'https://platform.fatsecret.com/rest/server.api',
+    new URLSearchParams({
+      method: 'foods.search',
+      search_expression: query,
+      format: 'json',
+      max_results: '10'
+    }),
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
       }
+    }
   );
 
   return response.data;
@@ -155,15 +222,15 @@ app.post('/search-food', async (req: Request, res: Response) => {
 
   try {
     const nutritionixResponse = await axios.post(
-        'https://trackapi.nutritionix.com/v2/natural/nutrients',
-        { query },
-        {
-          headers: {
-            'x-app-id': NUTRITIONIX_APP_ID,
-            'x-app-key': NUTRITIONIX_APP_KEY,
-            'Content-Type': 'application/json'
-          }
+      'https://trackapi.nutritionix.com/v2/natural/nutrients',
+      { query },
+      {
+        headers: {
+          'x-app-id': NUTRITIONIX_APP_ID,
+          'x-app-key': NUTRITIONIX_APP_KEY,
+          'Content-Type': 'application/json'
         }
+      }
     );
 
     const items = nutritionixResponse.data.foods;
@@ -192,65 +259,45 @@ app.post('/search-food', async (req: Request, res: Response) => {
   }
 });
 
-// 🧾 Rutas de usuarios
-app.get('/usuarios', async (_req, res) => {
-  try {
-    const usuarios = await Patient.find();
-    res.json(usuarios);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al obtener usuarios' });
-  }
-});
-
-app.post('/usuarios', async (req, res) => {
-  try {
-    const nuevoUsuario = new Patient(req.body);
-    await nuevoUsuario.save();
-    res.status(201).json(nuevoUsuario);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al guardar usuario' });
-  }
-});
-
 app.post('/login', async (req, res) => {
-  const { usuario, password } = req.body;
+  const { username, password } = req.body;
 
-  if (!usuario || !password) {
-    return res.status(400).json({ mensaje: 'Faltan campos: usuario y/o contraseña' });
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Missing fields: username and/or password' });
   }
 
   try {
-    const paciente = await Patient.findOne({ usuario, password }).select('-password');
+    const patient = await Patient.findOne({ username, password }).select('-password');
 
-    if (!paciente) {
-      return res.status(401).json({ mensaje: 'Credenciales incorrectas' });
+    if (!patient) {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     res.json({
-      mensaje: 'Inicio de sesión exitoso',
-      id: paciente._id,
-      usuario: paciente.usuario,
-      nombre: paciente.nombre,
-      correo: paciente.correo || paciente.email
+      message: 'Login successful',
+      id: patient._id,
+      username: patient.username,
+      name: patient.name,
+      email: patient.email
     });
   } catch (err) {
-    res.status(500).json({ error: 'Error del servidor' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-app.get('/user/:usuario', async (req, res) => {
-  const { usuario } = req.params;
+app.get('/user/:username', async (req, res) => {
+  const { username } = req.params;
 
   try {
-    const paciente = await Patient.findOne({ usuario }).select('-password');
+    const patient = await Patient.findOne({ username }).select('-password');
 
-    if (!paciente) {
-      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    if (!patient) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(paciente);
+    res.json(patient);
   } catch (err) {
-    res.status(500).json({ error: 'Error al obtener los datos del usuario' });
+    res.status(500).json({ error: 'Error fetching user data' });
   }
 });
 
@@ -261,6 +308,69 @@ app.get('/api/food', async (_req, res) => {
     res.json(foods);
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener alimentos' });
+  }
+});
+
+app.get('/dailyplan', async (req: Request, res: Response) => {
+  const { patient_id } = req.query;
+
+  if (!patient_id || typeof patient_id !== 'string') {
+    return res.status(400).json({ error: 'Falta el parámetro patient_id' });
+  }
+
+  try {
+    // 1. Validar y convertir el ID correctamente
+    if (!mongoose.Types.ObjectId.isValid(patient_id)) {
+      return res.status(400).json({ error: 'ID de paciente no válido' });
+    }
+    const patientObjectId = new mongoose.Types.ObjectId(patient_id);
+
+    // 2. Obtener fecha actual
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    
+    // 3. Día de la semana
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeek = days[today.getUTCDay()];
+
+    // 4. Consulta CORRECTA usando el ObjectId convertido
+    const weeklyPlan = await WeeklyPlan.findOne({
+      "patient_id": patientObjectId  // Usamos el ObjectId convertido
+    }).sort({ week_start: -1 }).lean();
+
+    console.log('Resultado de búsqueda:', weeklyPlan); // Debug
+
+    if (!weeklyPlan) {
+      return res.status(404).json({ 
+        message: 'No se encontró ningún plan nutricional.',
+        debug: {
+          patientIdUsed: patientObjectId,
+          today: today.toISOString()
+        }
+      });
+    }
+
+    // 5. Filtrar comidas del día actual
+    const dailyMeals = weeklyPlan.meals.filter(meal => meal.day === dayOfWeek);
+
+    // 6. Respuesta
+    return res.json({
+      date: today.toISOString().split('T')[0],
+      day: dayOfWeek,
+      nutritionalValues: {
+        calories: weeklyPlan.dailyCalories,
+        protein: weeklyPlan.protein,
+        fat: weeklyPlan.fat,
+        carbs: weeklyPlan.carbs
+      },
+      meals: dailyMeals
+    });
+
+  } catch (err) {
+    console.error('Error en /dailyplan:', err);
+    return res.status(500).json({ 
+      error: 'Error al obtener el plan diario'
+    });
   }
 });
 

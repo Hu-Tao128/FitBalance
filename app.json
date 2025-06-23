@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "nutifrut",
-    "slug": "nutifrut",
+    "name": "FitBalance",
+    "slug": "FitBalance",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/FitBalanceLogo.jpg",

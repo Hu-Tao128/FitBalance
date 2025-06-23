@@ -4,30 +4,49 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 
 type UserProfileProps = {
-  nombre: string;
+  id: string;
+  name: string;
+  username: string;
   email?: string;
-  edad?: number;
-  sexo?: string;
-  altura_cm?: number;
-  peso_kg?: number;
-  objetivo?: string;
-  ultima_consulta?: string;
+  phone?: string;
+  age?: number;
+  gender?: string;
+  height_cm?: number;
+  weight_kg?: number;
+  objective?: string;
+  allergies?: string[];
+  dietary_restrictions?: string[];
+  last_consultation?: string | null;
+  nutritionist_id?: string;
+  isActive?: boolean;
 };
 
 const UserProfileCard = ({
-  nombre,
+  id,
+  name,
+  username,
   email,
-  edad = 0,
-  sexo = 'No especificado',
-  altura_cm = 0,
-  peso_kg = 0,
-  objetivo = 'No especificado',
-  ultima_consulta = 'No registrada'
+  phone,
+  age = 0,
+  gender = 'Not specified',
+  height_cm = 0,
+  weight_kg = 0,
+  objective = 'Not specified',
+  last_consultation = null
 }: UserProfileProps) => {
-  // Calcular IMC si hay datos suficientes
-  const imc = altura_cm > 0 && peso_kg > 0 
-    ? (peso_kg / ((altura_cm / 100) ** 2)).toFixed(1)
+  // Calculate BMI if there's enough data
+  const bmi = height_cm > 0 && weight_kg > 0 
+    ? (weight_kg / ((height_cm / 100) ** 2)).toFixed(1)
     : null;
+
+  const formatLastConsultation = () => {
+    if (!last_consultation) return 'Not registered';
+    try {
+      return new Date(last_consultation).toLocaleDateString();
+    } catch (e) {
+      return 'Invalid date';
+    }
+  };
 
   const { colors } = useTheme();
 
@@ -59,6 +78,11 @@ const UserProfileCard = ({
       fontWeight: 'bold',
       marginBottom: 5,
     },
+    username: {
+      fontSize: 14,
+      color: colors.text,
+      marginBottom: 5,
+    },
     email: {
       fontSize: 14,
       color: colors.text,
@@ -84,14 +108,14 @@ const UserProfileCard = ({
       marginBottom: 5,
       fontSize: 16,
     },
-    imcBadge: {
+    bmiBadge: {
       backgroundColor: colors.background,
       paddingHorizontal: 12,
       paddingVertical: 4,
       borderRadius: 12,
       marginLeft: 8,
     },
-    imcText: {
+    bmiText: {
       color: colors.text,
       fontSize: 12,
       fontWeight: 'bold',
@@ -104,42 +128,46 @@ const UserProfileCard = ({
         source={require('../../assets/FitBalanceLogo.jpg')}
         style={styles.avatar}
       />
-      <Text style={styles.name}>{nombre}</Text>
+      <Text style={styles.name}>{name}</Text>
+      <Text style={styles.username}>@{username}</Text>
       <Text style={styles.email}>{email}</Text>
+      {phone && <Text style={styles.email}>Phone: {phone}</Text>}
 
       <View style={styles.infoRow}>
         <Ionicons name="body-outline" size={20} color="#34C759" />
-        <Text style={styles.infoText}>{edad} años • {sexo}</Text>
+        <Text style={styles.infoText}>{age} years • {gender}</Text>
       </View>
       <View style={styles.infoRow}>
         <MaterialCommunityIcons name="human-male-height" size={20} color="#34C759" />
-        <Text style={styles.infoText}>{altura_cm} cm • {peso_kg} kg</Text>
+        <Text style={styles.infoText}>{height_cm} cm • {weight_kg} kg</Text>
       </View>
-      {imc && (
+      {bmi && (
         <View style={styles.infoRow}>
           <MaterialCommunityIcons name="human-male-height" size={20} color="#34C759" />
           <Text style={styles.infoText}>
-            IMC: {imc} ({getImcCategory(Number(imc))})
+            BMI: {bmi} ({getBmiCategory(Number(bmi))})
           </Text>
         </View>
       )}
       <View style={styles.infoRow}>
         <Ionicons name="barbell-outline" size={20} color="#34C759" />
-        <Text style={styles.infoText}>Objetivo: {objetivo}</Text>
+        <Text style={styles.infoText}>Objective: {objective}</Text>
       </View>
       <View style={styles.infoRow}>
         <Ionicons name="calendar-outline" size={20} color="#34C759" />
-        <Text style={styles.infoText}>Última consulta: {new Date(ultima_consulta).toLocaleDateString()}</Text>
+        <Text style={styles.infoText}>
+          Last consultation: {formatLastConsultation()}
+        </Text>
       </View>
     </View>
   );
 };
 
-function getImcCategory(imc: number): string {
-  if (imc < 18.5) return 'Bajo peso';
-  if (imc < 25) return 'Normal';
-  if (imc < 30) return 'Sobrepeso';
-  return 'Obesidad';
+function getBmiCategory(bmi: number): string {
+  if (bmi < 18.5) return 'Underweight';
+  if (bmi < 25) return 'Normal';
+  if (bmi < 30) return 'Overweight';
+  return 'Obese';
 }
 
 export default UserProfileCard;

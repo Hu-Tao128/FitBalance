@@ -18,7 +18,6 @@ import { RootStackParamList } from '../../App';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from "../context/UserContext";
 
-
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
@@ -122,62 +121,54 @@ export default function LoginScreen() {
         }
     });
     
-    const [usuario, setUsuario] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [mensaje, setMensaje] = useState('');
+    const [message, setMessage] = useState('');
 
-    // 1) Cambia aquí '192.168.1.42' por la IP local de tu computadora
-    //    donde estás corriendo tu servidor de Node/Express.
-    //    Por ejemplo: '192.168.1.42'  (sin puerto ni slash).
-
-    //Nota: ahora pones tu ip y el puerto
-    // 1    192.168.1.42:3000
-    const SERVER_IP = 'fitbalance-backend-production.up.railway.app';
-
-    //const SERVER_IP = 'mi-ippruebas';
+    const SERVER_IP = '192.168.0.16:3000';
 
     const handleLogin = async () => {
         try {
-            // Usa http o https consistentemente
-            const res = await axios.post(`https://${SERVER_IP}/login`, {
-                usuario,
-                password,
+            // Make login request with username and password
+            const res = await axios.post(`http://${SERVER_IP}/login`, {
+                username,
+                password
             });
 
-            // Verifica la respuesta del servidor
-            console.log('Respuesta del servidor:', res.data);
+            console.log('Server response:', res.data);
 
-            if (!res.data.usuario) {
-                throw new Error('Credenciales incorrectas');
+            if (!res.data.username) {
+                throw new Error('Invalid credentials');
             }
 
-            // 1. Primero guarda los datos básicos
-            const basicUserData = {
-                nombre: res.data.nombre,
-                usuario: res.data.usuario
-            };
-            await login(basicUserData);
+            // Get full user details
+            const userDetailsRes = await axios.get(`http://${SERVER_IP}/user/${username}`);
+            const userDetails = userDetailsRes.data;
 
-            // 2. Luego carga los datos completos
-            const userDetails = await axios.get(`http://${SERVER_IP}/user/${res.data.usuario}`);
-
-            // 3. Actualiza el estado con todos los datos
+            // Update user context with all data
             await login({
-                ...basicUserData,
-                email: userDetails.data.correo || userDetails.data.email, // Maneja ambos casos
-                edad: userDetails.data.edad,
-                sexo: userDetails.data.sexo,
-                altura_cm: userDetails.data.altura_cm,
-                peso_kg: userDetails.data.peso_kg,
-                objetivo: userDetails.data.objetivo,
-                ultima_consulta: userDetails.data.ultima_consulta
+                id: userDetails._id,
+                name: userDetails.name,
+                username: userDetails.username,
+                email: userDetails.email,
+                phone: userDetails.phone,
+                age: userDetails.age,
+                gender: userDetails.gender,
+                height_cm: userDetails.height_cm,
+                weight_kg: userDetails.weight_kg,
+                objective: userDetails.objective,
+                allergies: userDetails.allergies || [],
+                dietary_restrictions: userDetails.dietary_restrictions || [],
+                last_consultation: userDetails.last_consultation,
+                nutritionist_id: userDetails.nutritionist_id,
+                isActive: userDetails.isActive
             });
 
-            setMensaje(`✅ Bienvenido, ${res.data.nombre}`);
+            setMessage(`✅ Welcome, ${userDetails.name}`);
             navigation.navigate('Root');
         } catch (error: any) {
-            console.error('Error en login:', error.response?.data || error.message);
-            setMensaje('❌ Usuario o contraseña incorrectos');
+            console.error('Login error:', error.response?.data || error.message);
+            setMessage('❌ Invalid username or password');
         }
     };
 
@@ -201,8 +192,8 @@ export default function LoginScreen() {
                             placeholder="Username"
                             placeholderTextColor="#999"
                             style={styles.input}
-                            value={usuario}
-                            onChangeText={setUsuario}
+                            value={username}
+                            onChangeText={setUsername}
                             autoCapitalize="none"
                         />
                     </View>
@@ -229,8 +220,8 @@ export default function LoginScreen() {
                         <Text style={styles.loginText}>Login</Text>
                     </TouchableOpacity>
 
-                    {mensaje ? (
-                        <Text style={{ textAlign: 'center', marginTop: 10 }}>{mensaje}</Text>
+                    {message ? (
+                        <Text style={{ textAlign: 'center', marginTop: 10 }}>{message}</Text>
                     ) : null}
 
                     <Text style={styles.signUpText}>

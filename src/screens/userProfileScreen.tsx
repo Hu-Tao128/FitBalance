@@ -4,7 +4,6 @@ import UserProfileCard from '../components/userProfileCard';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
 
-
 const UserProfileScreen = () => {
   const { user } = useUser();
   const { colors } = useTheme();
@@ -43,21 +42,21 @@ const UserProfileScreen = () => {
   if (!user) {
     return (
       <View style={styles.container}>
-        <Text style={styles.noUserText}>No hay usuario logueado</Text>
+        <Text style={styles.noUserText}>No user logged in</Text>
       </View>
     );
   }
 
-  // Extrae solo las propiedades necesarias
-  const { usuario, ...userData } = user;
+  // Extract only the necessary properties
+  const { username, ...userData } = user;
 
   return (
     <ScrollView style={styles.container}>
-      <UserProfileCard {...userData} />
+      <UserProfileCard {...userData} username={username} />
       <View style={styles.notes}>
-        <Text style={styles.notesTitle}>Notas del nutricionista</Text>
+        <Text style={styles.notesTitle}>Nutritionist Notes</Text>
         <Text style={styles.noteText}>
-          Buen seguimiento. Incluir suplemento de proteína vegetal.
+          Good progress. Include plant-based protein supplement.
         </Text>
       </View>
     </ScrollView>
