@@ -133,6 +133,11 @@ export default function LoginScreen() {
             const res = await axios.post(`https://${SERVER_IP}/login`, {
                 username,
                 password
+            }, 
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                }
             });
 
             console.log('Server response:', res.data);
@@ -142,7 +147,7 @@ export default function LoginScreen() {
             }
 
             // Get full user details
-            const userDetailsRes = await axios.get(`http://${SERVER_IP}/user/${username}`);
+            const userDetailsRes = await axios.get(`https://${SERVER_IP}/user/${username}`);
             const userDetails = userDetailsRes.data;
 
             // Update user context with all data
