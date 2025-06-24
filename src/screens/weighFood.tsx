@@ -8,7 +8,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
-const SERVER_URL = 'http://172.18.2.209:3000';
+const SERVER_URL = 'https://fitbalance-backend-production.up.railway.app';
 
 type MealType = 'Desayuno' | 'Almuerzo' | 'Cena' | 'Snack';
 type RawMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
