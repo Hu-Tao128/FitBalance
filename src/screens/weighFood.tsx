@@ -8,7 +8,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
-const SERVER_URL = 'http://192.168.0.16:3000';
+const SERVER_URL = 'http://172.18.2.209:3000';
 
 type MealType = 'Desayuno' | 'Almuerzo' | 'Cena' | 'Snack';
 type RawMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';

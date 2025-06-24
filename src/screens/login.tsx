@@ -125,12 +125,12 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
-    const SERVER_IP = '192.168.0.16:3000';
+    const SERVER_IP = 'fitbalance-backend-production.up.railway.app';
 
     const handleLogin = async () => {
         try {
             // Make login request with username and password
-            const res = await axios.post(`http://${SERVER_IP}/login`, {
+            const res = await axios.post(`https://${SERVER_IP}/login`, {
                 username,
                 password
             });
