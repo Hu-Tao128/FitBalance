@@ -1,13 +1,17 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Login from '../screens/login';
-import SettingsScreen from '../screens/settings'; // Importa Settings si es necesario
-import UserProfileScreen from '../screens/userProfileScreen'; // Importa la pantalla
-import weighFood from '../screens/weighFood'; // Importa weighFood si es necesario
-import NutritionixTest from "../screens/NutrionixTest";
-import { BottomNavigation } from './bottom-navigation';
+import { ActivityIndicator, View } from 'react-native';
 import { useUser } from '../context/UserContext';
-import { View, ActivityIndicator } from 'react-native';
+import Login from '../screens/login';
+import SettingsScreen from '../screens/settings';
+import UserProfileScreen from '../screens/userProfileScreen';
+import weighFood from '../screens/weighFood';
+import { BottomNavigation } from './bottom-navigation';
+
+// NUEVAS IMPORTACIONES
+import FoodClassicSearch from '../screens/FoodClassicSearch';
+import FoodScanner from '../screens/FoodScanner';
+import FoodSearchOptions from '../screens/FoodSearchOptions';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -15,7 +19,9 @@ export type RootStackParamList = {
   UserProfile: undefined;
   Settings: undefined;
   weighFood: undefined;
-  Test: undefined;
+  FoodSearchOptions: undefined;
+  FoodScanner: undefined;
+  FoodClassicSearch: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -25,72 +31,87 @@ export default function AppNavigator() {
 
   if (isLoading) {
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#34C759" />
-        </View>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#34C759" />
+      </View>
     );
   }
 
   return (
-      <NavigationContainer>
-        <Stack.Navigator>
-          {user ? (
-              // Usuario autenticado - Flujo principal
-              <>
-                <Stack.Screen
-                    name="Root"
-                    component={BottomNavigation}
-                    options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                    name="UserProfile"
-                    component={UserProfileScreen}
-                    options={{
-                      title: 'Perfil',
-                      headerStyle: { backgroundColor: '#1c1c1e' },
-                      headerTintColor: '#fff'
-                    }}
-                />
-                <Stack.Screen
-                    name="Settings"
-                    component={SettingsScreen}
-                    options={{
-                      title: 'Ajustes',
-                      headerStyle: { backgroundColor: '#1c1c1e' },
-                      headerTintColor: '#fff'
-                    }}
-                />
-                <Stack.Screen
-                    name="weighFood"
-                    component={weighFood}
-                    options={{
-                      title: 'Registrar Alimento',
-                      headerStyle: { backgroundColor: '#1c1c1e' },
-                      headerTintColor: '#fff',
-                      headerShown: true
-                    }}
-                />
-                  <Stack.Screen
-                      name="Test"
-                      component={NutritionixTest}
-                      options={{
-                          title: 'Registrar Alimento Test Nutrionixt',
-                          headerStyle: { backgroundColor: '#1c1c1e' },
-                          headerTintColor: '#fff',
-                          headerShown: true
-                      }}
-                  />
-
-              </>
-          ) : (
-              // Usuario no autenticado - Solo pantalla de login
-              <Stack.Screen
-                  name="Login"
-                  component={Login}
-                  options={{ headerShown: false }}
-              />
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
+    <NavigationContainer>
+      <Stack.Navigator>
+        {user ? (
+          <>
+            <Stack.Screen
+              name="Root"
+              component={BottomNavigation}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="UserProfile"
+              component={UserProfileScreen}
+              options={{
+                title: 'Perfil',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff'
+              }}
+            />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{
+                title: 'Ajustes',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff'
+              }}
+            />
+            <Stack.Screen
+              name="weighFood"
+              component={weighFood}
+              options={{
+                title: 'Registrar Alimento',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff',
+                headerShown: true
+              }}
+            />
+            {/* NUEVAS PANTALLAS */}
+            <Stack.Screen
+              name="FoodSearchOptions"
+              component={FoodSearchOptions}
+              options={{
+                title: 'Buscar Alimentos',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff',
+              }}
+            />
+            <Stack.Screen
+              name="FoodScanner"
+              component={FoodScanner}
+              options={{
+                title: 'Escanear Alimento',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff',
+              }}
+            />
+            <Stack.Screen
+              name="FoodClassicSearch"
+              component={FoodClassicSearch}
+              options={{
+                title: 'Buscar por Nombre',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff',
+              }}
+            />
+          </>
+        ) : (
+          <Stack.Screen
+            name="Login"
+            component={Login}
+            options={{ headerShown: false }}
+          />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }

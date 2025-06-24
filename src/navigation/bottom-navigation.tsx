@@ -2,12 +2,12 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import * as React from 'react';
 import { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, TouchableWithoutFeedback, Modal } from 'react-native';
+import { Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext'; // Importamos el hook
 import SettingsStackNavigator from "../navigation/SettingsStackNavigator";
 import HomeScreen from '../screens/DashboardScreen';
-import NutritionixTest from "../screens/NutrionixTest";
+import NutritionixTest from "../screens/FoodSearchOptions";
 import UserProfileScreen from '../screens/userProfileScreen';
 import weighFood from '../screens/weighFood';
 
