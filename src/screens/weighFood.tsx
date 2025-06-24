@@ -136,7 +136,7 @@ export default function WeighFoodScreen() {
         []
     );
 
-    const fetchWeeklyPlan = async () => {
+    const fetchWeeklyPlan = useCallback(async () => {
         if (!user) {
             console.warn('No hay usuario autenticado');
             setLoading(false);
@@ -148,15 +148,12 @@ export default function WeighFoodScreen() {
             setLoading(true);
             const todayISO = new Date().toISOString().split('T')[0];
 
-            const response = await axios.get(`${SERVER_URL}/weeklyplan`, {
-            params: {
-                date: todayISO,
-                patient_id: user.id
-            }
-            });
+            console.log(user.id);
 
-            console.log('Respuesta del servidor:', response.data); // Agrega este log
+            const response = await axios.get(`${SERVER_URL}/weeklyplan/daily/${user.id}`);
 
+            console.log('Respuesta del servidor:', response.data); 
+            
             if (!response.data) {
             throw new Error('El servidor respondió sin datos');
             }
@@ -168,7 +165,7 @@ export default function WeighFoodScreen() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?.id]);
 
     useEffect(() => {
         if (user) {

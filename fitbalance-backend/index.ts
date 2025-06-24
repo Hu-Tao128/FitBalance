@@ -2,7 +2,7 @@ import axios from "axios";
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
-import  mongoose, {Types} from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 dotenv.config();
 
@@ -98,57 +98,63 @@ const Food = mongoose.model<IFood>(
   new mongoose.Schema({}, { strict: false, collection: 'Food' })
 );
 
-
-interface WeeklyPlanFood {
+interface IWeeklyPlanFood {
   food_id: string;
   grams: number;
 }
 
-interface WeeklyMeal {
-  day: string; // Ej: "monday"
+const FoodSchema = new Schema<IWeeklyPlanFood>({
+  food_id: { type: String, required: true },
+  grams: { type: Number, required: true, min: 1 },
+}, { _id: false });
+
+interface IWeeklyMeal {
+  day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
   type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   time: string;
-  foods: WeeklyPlanFood[];
+  foods: IWeeklyPlanFood[];
 }
 
-interface IWeeklyPlan {
-  patient_id: string;
+const MealSchema = new Schema<IWeeklyMeal>({
+  day: {
+    type: String,
+    enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+    required: true,
+  },
+  type: {
+    type: String,
+    enum: ['breakfast', 'lunch', 'dinner', 'snack'],
+    required: true,
+  },
+  time: { type: String, required: true },
+  foods: { type: [FoodSchema], required: true },
+}, { _id: false });
+
+export interface IWeeklyPlan extends Document {
+  patient_id: Types.ObjectId;
   week_start: Date;
   dailyCalories: number;
   protein: number;
   fat: number;
   carbs: number;
-  meals: WeeklyMeal[];
+  meals: IWeeklyMeal[];
 }
 
-const WeeklyPlan = mongoose.model<IWeeklyPlan>(
-  'WeeklyPlan',
-  new mongoose.Schema({
-    patient_id: { type: String, required: true },
-    week_start: { type: Date, required: true },
-    dailyCalories: { type: Number, required: true },
-    protein: { type: Number, required: true },
-    fat: { type: Number, required: true },
-    carbs: { type: Number, required: true },
-    meals: [{
-      day: {
-        type: String,
-        enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-        required: true
-      },
-      type: {
-        type: String,
-        enum: ['breakfast', 'lunch', 'dinner', 'snack'],
-        required: true
-      },
-      time: { type: String, required: true },
-      foods: [{
-        food_id: { type: String, required: true },
-        grams: { type: Number, required: true, min: 1 }
-      }]
-    }]
-  }, { collection: 'WeeklyPlan' })
-);
+const WeeklyPlanSchema = new Schema<IWeeklyPlan>({
+  patient_id: { type: Schema.Types.ObjectId, required: true, ref: 'Patient' },
+  week_start: { type: Date, required: true },
+  dailyCalories: { type: Number, required: true },
+  protein: { type: Number, required: true },
+  fat: { type: Number, required: true },
+  carbs: { type: Number, required: true },
+  meals: { type: [MealSchema], required: true },
+}, {
+  collection: 'WeeklyPlan',
+  timestamps: true
+});
+
+const WeeklyPlan = mongoose.model<IWeeklyPlan>('WeeklyPlan', WeeklyPlanSchema);
+
 
 // 🔌 Conexión a MongoDB
 mongoose.connect(MONGODB_URI)
@@ -311,68 +317,76 @@ app.get('/api/food', async (_req, res) => {
   }
 });
 
-app.get('/dailyplan', async (req: Request, res: Response) => {
-  const { patient_id } = req.query;
+app.get('/weeklyplan', async (_req: Request, res: Response) => {
+  try {
+    const weeklyPlans = await mongoose.model('WeeklyPlan').find().sort({ week_start: -1 }).lean();
+    return res.json(weeklyPlans);
+  } catch (error) {
+    console.error('❌ Error al obtener los WeeklyPlan:', error);
+    return res.status(500).json({ error: 'Error al obtener los planes semanales.' });
+  }
+});
 
-  if (!patient_id || typeof patient_id !== 'string') {
-    return res.status(400).json({ error: 'Falta el parámetro patient_id' });
+app.get('/weeklyplan/latest/:patient_id', async (req: Request, res: Response) => {
+  const { patient_id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(patient_id)) {
+    return res.status(400).json({ error: 'ID de paciente no válido' });
   }
 
   try {
-    // 1. Validar y convertir el ID correctamente
-    if (!mongoose.Types.ObjectId.isValid(patient_id)) {
-      return res.status(400).json({ error: 'ID de paciente no válido' });
-    }
-    const patientObjectId = new mongoose.Types.ObjectId(patient_id);
+    const latestPlan = await WeeklyPlan.findOne({
+      patient_id: JSON.parse(patient_id),
+    })
+    .sort({ week_start: -1 })
+    .lean();
 
-    // 2. Obtener fecha actual
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-    
-    // 3. Día de la semana
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const dayOfWeek = days[today.getUTCDay()];
-
-    // 4. Consulta CORRECTA usando el ObjectId convertido
-    const weeklyPlan = await WeeklyPlan.findOne({
-      "patient_id": patientObjectId  // Usamos el ObjectId convertido
-    }).sort({ week_start: -1 }).lean();
-
-    console.log('Resultado de búsqueda:', weeklyPlan); // Debug
-
-    if (!weeklyPlan) {
-      return res.status(404).json({ 
-        message: 'No se encontró ningún plan nutricional.',
-        debug: {
-          patientIdUsed: patientObjectId,
-          today: today.toISOString()
-        }
-      });
+    if (!latestPlan) {
+      return res.status(404).json({ message: 'No se encontró ningún plan semanal.' });
     }
 
-    // 5. Filtrar comidas del día actual
-    const dailyMeals = weeklyPlan.meals.filter(meal => meal.day === dayOfWeek);
+    return res.json(latestPlan);
 
-    // 6. Respuesta
-    return res.json({
-      date: today.toISOString().split('T')[0],
-      day: dayOfWeek,
-      nutritionalValues: {
-        calories: weeklyPlan.dailyCalories,
-        protein: weeklyPlan.protein,
-        fat: weeklyPlan.fat,
-        carbs: weeklyPlan.carbs
-      },
-      meals: dailyMeals
-    });
-
-  } catch (err) {
-    console.error('Error en /dailyplan:', err);
-    return res.status(500).json({ 
-      error: 'Error al obtener el plan diario'
-    });
+  } catch (error) {
+    console.error('❌ Error en /weeklyplan/latest:', error);
+    return res.status(500).json({ error: 'Error al obtener el plan semanal más reciente' });
   }
 });
+
+// 📅 Obtener comidas del día actual para un paciente
+app.get('/weeklyplan/daily/:patient_id', async (req: Request, res: Response) => {
+  const { patient_id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(patient_id)) {
+    return res.status(400).json({ error: 'ID de paciente no válido' });
+  }
+
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+
+  try {
+    const latestPlan = await WeeklyPlan.findOne({
+      patient_id: new mongoose.Types.ObjectId(patient_id)
+    }).sort({ week_start: -1 }).lean();
+
+    if (!latestPlan) {
+      return res.status(404).json({ message: 'No se encontró ningún plan semanal.' });
+    }
+
+    const todayMeals = latestPlan.meals.filter(meal => meal.day === today);
+
+    return res.json({
+      dailyCalories: latestPlan.dailyCalories,
+      protein: latestPlan.protein,
+      fat: latestPlan.fat,
+      carbs: latestPlan.carbs,
+      meals: todayMeals
+    });
+  } catch (error) {
+    console.error('❌ Error en /weeklyplan/daily:', error);
+    return res.status(500).json({ error: 'Error al obtener las comidas del día.' });
+  }
+});
+
 
 // 🚀 Arranque del servidor
 app.listen(PORT, () => {
