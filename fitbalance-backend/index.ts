@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import mongoose, { Schema, Document, Types } from 'mongoose';
+import bcrypt from 'bcrypt';
+
 
 dotenv.config();
 
@@ -273,23 +275,31 @@ app.post('/login', async (req, res) => {
   }
 
   try {
-    const patient = await Patient.findOne({ username, password }).select('-password');
+    const patient = await Patient.findOne({ username });
 
     if (!patient) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    const isMatch = await bcrypt.compare(password, patient.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Eliminar el campo password antes de enviar
+    const { password: _, ...safePatient } = patient.toObject();
+
     res.json({
       message: 'Login successful',
-      id: patient._id,
-      username: patient.username,
-      name: patient.name,
-      email: patient.email
+      ...safePatient
     });
+
   } catch (err) {
+    console.error('❌ Error en /login:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 app.get('/user/:username', async (req, res) => {
   const { username } = req.params;
