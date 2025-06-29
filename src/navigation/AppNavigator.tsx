@@ -9,6 +9,7 @@ import weighFood from '../screens/weighFood';
 import { BottomNavigation } from './bottom-navigation';
 
 // NUEVAS IMPORTACIONES
+import CreateMealScreen from '../screens/CreateMealScreen'; // <<--- AGREGA ESTA LÍNEA
 import FoodClassicSearch from '../screens/FoodClassicSearch';
 import FoodScanner from '../screens/FoodScanner';
 import FoodSearchOptions from '../screens/FoodSearchOptions';
@@ -22,6 +23,7 @@ export type RootStackParamList = {
   FoodSearchOptions: undefined;
   FoodScanner: undefined;
   FoodClassicSearch: undefined;
+  CreateMealScreen: undefined; // <<--- AGREGA AQUÍ
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -99,6 +101,15 @@ export default function AppNavigator() {
               component={FoodClassicSearch}
               options={{
                 title: 'Buscar por Nombre',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff',
+              }}
+            />
+            <Stack.Screen
+              name="CreateMealScreen"
+              component={CreateMealScreen}
+              options={{
+                title: 'Crear Comida Personalizada',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}

@@ -44,6 +44,9 @@ export default function FoodSearchOptions({ navigation }: any) {
             <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('FoodClassicSearch')}>
                 <Text style={styles.buttonText}>Buscar por nombre o descripción</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CreateMealScreen')}>
+                <Text style={styles.buttonText}>Crear tus platillos</Text>
+            </TouchableOpacity>
         </View>
     );
 }
