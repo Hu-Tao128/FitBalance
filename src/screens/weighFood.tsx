@@ -205,18 +205,29 @@ export default function WeighFoodScreen() {
         );
     }
 
-    if (error) {
+    const todayMeals = weeklyPlan?.meals.filter(meal => meal.day === today) ?? [];
+
+    if (!weeklyPlan || todayMeals.length === 0) {
         return (
             <View style={styles.container}>
-                <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity onPress={fetchWeeklyPlan}>
-                    <Text style={styles.closeText}>Reintentar</Text>
-                </TouchableOpacity>
+                <View style={[styles.mealSection, { 
+                    backgroundColor: colors.card,
+                    marginTop: 20,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 30
+                }]}>
+                    <Ionicons name="calendar-outline" size={40} color={colors.text} style={{ marginBottom: 15 }} />
+                    <Text style={[styles.mealTitle, { textAlign: 'center' }]}>
+                        No tienes planes para esta semana
+                    </Text>
+                    <Text style={{ color: colors.text, textAlign: 'center', marginTop: 10 }}>
+                        Contacta a tu nutricionista para obtener tu plan alimenticio
+                    </Text>
+                </View>
             </View>
         );
     }
-
-    const todayMeals = weeklyPlan?.meals.filter(meal => meal.day === today) ?? [];
 
     return (
         <View style={styles.container}>

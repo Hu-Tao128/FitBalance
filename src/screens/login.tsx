@@ -125,54 +125,52 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
-    const SERVER_IP = '172.17.5.224:3000';
+    const SERVER_IP = 'fitbalance-backend-production.up.railway.app';
 
     const handleLogin = async () => {
         try {
-            // Make login request with username and password
-            const res = await axios.post(`http://${SERVER_IP}/login`, {
-                username,
-                password
-            }, 
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                }
+            const SERVER_URL = 'https://fitbalance-backend-production.up.railway.app';
+            
+            // 1. Hacer login
+            const res = await axios.post(`${SERVER_URL}/login`, {
+            username,
+            password
+            }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
             });
 
             console.log('Server response:', res.data);
 
-            if (!res.data.username) {
-                throw new Error('Invalid credentials');
+            // Verificar respuesta correctamente
+            if (!res.data.patient || !res.data.patient.username) {
+            throw new Error('Invalid credentials');
             }
 
-            // Get full user details
-            const userDetailsRes = await axios.get(`http://${SERVER_IP}/user/${username}`);
-            const userDetails = userDetailsRes.data;
-
-            // Update user context with all data
+            // 2. Actualizar contexto de usuario con los datos del login
             await login({
-                id: userDetails._id,
-                name: userDetails.name,
-                username: userDetails.username,
-                email: userDetails.email,
-                phone: userDetails.phone,
-                age: userDetails.age,
-                gender: userDetails.gender,
-                height_cm: userDetails.height_cm,
-                weight_kg: userDetails.weight_kg,
-                objective: userDetails.objective,
-                allergies: userDetails.allergies || [],
-                dietary_restrictions: userDetails.dietary_restrictions || [],
-                last_consultation: userDetails.last_consultation,
-                nutritionist_id: userDetails.nutritionist_id,
-                isActive: userDetails.isActive
+            id: res.data.patient._id,
+            name: res.data.patient.name,
+            username: res.data.patient.username,
+            email: res.data.patient.email,
+            phone: res.data.patient.phone,
+            age: res.data.patient.age,
+            gender: res.data.patient.gender,
+            height_cm: res.data.patient.height_cm,
+            weight_kg: res.data.patient.weight_kg,
+            objective: res.data.patient.objective,
+            allergies: res.data.patient.allergies || [],
+            dietary_restrictions: res.data.patient.dietary_restrictions || [],
+            last_consultation: res.data.patient.last_consultation,
+            nutritionist_id: res.data.patient.nutritionist_id,
+            isActive: res.data.patient.isActive
             });
 
-            setMessage(`✅ Welcome, ${userDetails.name}`);
+            setMessage(`✅ Welcome, ${res.data.patient.name}`);
             navigation.navigate('Root');
         } catch (error: any) {
-            console.error('Login error:', error.response?.data || error.message);
+            console.error('Login error:', error);
             setMessage('❌ Invalid username or password');
         }
     };
