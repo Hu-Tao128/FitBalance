@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import BarCodeScanner from '../components/BardCodeScanner';
 import FoodDetails from '../components/FoodDetails';
 import { useTheme } from '../context/ThemeContext';
@@ -17,18 +17,6 @@ export default function FoodScanner({ navigation }: any) {
             flex: 1,
             backgroundColor: colors.background,
             justifyContent: 'center',
-        },
-        closeButton: {
-            position: 'absolute',
-            bottom: 30,
-            alignSelf: 'center',
-            backgroundColor: colors.primary,
-            padding: 15,
-            borderRadius: 10,
-        },
-        closeButtonText: {
-            color: 'white',
-            fontWeight: 'bold',
         },
         error: {
             color: 'red',
@@ -89,9 +77,6 @@ export default function FoodScanner({ navigation }: any) {
             {loading && <ActivityIndicator size="large" color={colors.primary} />}
             {error ? <Text style={styles.error}>{error}</Text> : null}
             {result?.foods && <FoodDetails foods={result.foods} />}
-            <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
-                <Text style={styles.closeButtonText}>Regresar</Text>
-            </TouchableOpacity>
         </View>
     );
 }
