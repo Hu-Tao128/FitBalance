@@ -7,7 +7,6 @@ import {
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -16,8 +15,31 @@ import {
 } from 'react-native';
 import { useUser } from '../context/UserContext';
 
+// ---------- TYPES ----------
+type Nutrients = {
+    energy_kcal?: number;
+    protein_g?: number;
+    carbohydrates_g?: number;
+    fat_g?: number;
+    fiber_g?: number;
+    sugar_g?: number;
+};
+
+type Food = {
+    _id: any;
+    name: string;
+    nutrients?: Nutrients;
+    portion_size_g?: number;
+};
+
+type Ingredient = {
+    food_id: string;
+    food_data: Food;
+    amount_g: number;
+};
+
 // 👉  Ajusta IP o pasa a .env
-const API_BASE = 'https://fitbalance-backend-production.up.railway.app';
+const API_BASE = 'http://172.18.3.91:3000';
 
 // ---------- Utilidades ----------
 function getObjectIdFromMongoDoc(id: any) {
@@ -33,10 +55,10 @@ export default function CreateMealScreen() {
     const { user } = useUser();
 
     // --- state ---
-    const [foods, setFoods] = useState<any[]>([]);
+    const [foods, setFoods] = useState<Food[]>([]);
     const [searchFood, setSearchFood] = useState('');
-    const [ingredients, setIngredients] = useState<any[]>([]);
-    const [selectedFood, setSelectedFood] = useState<any | null>(null);
+    const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+    const [selectedFood, setSelectedFood] = useState<Food | null>(null);
     const [amount, setAmount] = useState('');
     const [mealName, setMealName] = useState('');
     const [instructions, setInstructions] = useState('');
@@ -76,7 +98,7 @@ export default function CreateMealScreen() {
         const t: any = { energy_kcal: 0, protein_g: 0, carbohydrates_g: 0, fat_g: 0, fiber_g: 0, sugar_g: 0 };
         ingredients.forEach(ing => {
             if (ing.food_data?.nutrients && ing.food_data?.portion_size_g) {
-                const f = ing.amount_g / ing.food_data.portion_size_g;
+                const f = ing.amount_g / (ing.food_data.portion_size_g || 1);
                 t.energy_kcal += (ing.food_data.nutrients.energy_kcal || 0) * f;
                 t.protein_g += (ing.food_data.nutrients.protein_g || 0) * f;
                 t.carbohydrates_g += (ing.food_data.nutrients.carbohydrates_g || 0) * f;
@@ -167,20 +189,15 @@ export default function CreateMealScreen() {
     };
 
     // ---------- renders ----------
-    const FoodItem = ({ item }: any) => (
-        <TouchableOpacity style={styles.foodItem} onPress={() => setSelectedFood(item)}>
-            <Text style={styles.foodName}>{item.name}</Text>
-            <Text style={styles.foodInfo}>
-                {item.nutrients?.energy_kcal || 0} kcal · {item.portion_size_g || 100} g
-            </Text>
-        </TouchableOpacity>
-    );
-
-    const IngredientItem = ({ item, index }: any) => (
+    const IngredientItem = ({ item, index }: { item: Ingredient; index: number }) => (
         <View style={styles.ingredientItem}>
-            <Text>{item.food_data.name}</Text>
-            <Text>{item.amount_g} g</Text>
-            <TouchableOpacity onPress={() => handleRemoveIngredient(index)}>
+            <View style={styles.ingredientNameBox}>
+                <Text style={styles.ingredientName} numberOfLines={2} ellipsizeMode="tail">
+                    {item.food_data.name}
+                </Text>
+            </View>
+            <Text style={styles.ingredientAmount}>{item.amount_g} g</Text>
+            <TouchableOpacity style={styles.removeBox} onPress={() => handleRemoveIngredient(index)}>
                 <Text style={styles.remove}>×</Text>
             </TouchableOpacity>
         </View>
@@ -193,96 +210,115 @@ export default function CreateMealScreen() {
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
-                <ScrollView contentContainerStyle={{ padding: 20 }}>
-                    <Text style={styles.title}>Crear Comida</Text>
+                <FlatList
+                    data={ingredients}
+                    keyExtractor={(_, i) => i.toString()}
+                    renderItem={({ item, index }) => <IngredientItem item={item} index={index} />}
+                    ListHeaderComponent={
+                        <View>
+                            <Text style={styles.title}>Crear Comida</Text>
 
-                    <Text style={styles.label}>Nombre *</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={mealName}
-                        onChangeText={setMealName}
-                        placeholder="Ej. Ensalada César"
-                    />
-
-                    <Text style={styles.label}>Buscar alimento *</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={searchFood}
-                        onChangeText={setSearchFood}
-                        placeholder="Mín. 2 caracteres"
-                    />
-
-                    {loadingFoods && <ActivityIndicator style={{ marginVertical: 8 }} />}
-
-                    {filteredFoods.length > 0 && !selectedFood && (
-                        <FlatList
-                            data={filteredFoods}
-                            keyExtractor={item => getObjectIdFromMongoDoc(item._id)}
-                            renderItem={FoodItem}
-                            style={styles.list}
-                            nestedScrollEnabled
-                        />
-                    )}
-
-                    {selectedFood && (
-                        <View style={styles.addBox}>
-                            <Text style={styles.bold}>{selectedFood.name}</Text>
+                            <Text style={styles.label}>Nombre *</Text>
                             <TextInput
-                                style={styles.amount}
-                                value={amount}
-                                onChangeText={setAmount}
-                                placeholder="Gramos"
-                                keyboardType="numeric"
+                                style={styles.input}
+                                value={mealName}
+                                onChangeText={setMealName}
+                                placeholder="Ej. Ensalada César"
                             />
-                            <TouchableOpacity style={styles.greenBtn} onPress={handleAddIngredient}>
-                                <Text style={styles.whiteTxt}>Añadir</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
 
-                    {ingredients.length > 0 && (
+                            <Text style={styles.label}>Buscar alimento *</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={searchFood}
+                                onChangeText={setSearchFood}
+                                placeholder="Mín. 2 caracteres"
+                            />
+
+                            {loadingFoods && <ActivityIndicator style={{ marginVertical: 8 }} />}
+
+                            {/* Lista de alimentos sugeridos, usando map y NO FlatList */}
+                            {filteredFoods.length > 0 && !selectedFood && (
+                                <View style={styles.list}>
+                                    {filteredFoods.map(item => (
+                                        <TouchableOpacity
+                                            key={getObjectIdFromMongoDoc(item._id)}
+                                            style={styles.foodItem}
+                                            onPress={() => setSelectedFood(item)}
+                                        >
+                                            <Text style={styles.foodName}>{item.name}</Text>
+                                            <Text style={styles.foodInfo}>
+                                                {item.nutrients?.energy_kcal || 0} kcal · {item.portion_size_g || 100} g
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+
+                            {selectedFood && (
+                                <View style={styles.addBox}>
+                                    <View style={styles.selectedFoodNameContainer}>
+                                        <Text
+                                            style={styles.bold}
+                                            numberOfLines={2}
+                                            ellipsizeMode="tail"
+                                        >
+                                            {selectedFood.name}
+                                        </Text>
+                                    </View>
+                                    <TextInput
+                                        style={styles.amount}
+                                        value={amount}
+                                        onChangeText={setAmount}
+                                        placeholder="Gramos"
+                                        keyboardType="numeric"
+                                    />
+                                    <TouchableOpacity style={styles.greenBtn} onPress={handleAddIngredient}>
+                                        <Text style={styles.whiteTxt}>Añadir</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
+                            {ingredients.length > 0 && (
+                                <Text style={styles.label}>Ingredientes</Text>
+                            )}
+                        </View>
+                    }
+                    ListFooterComponent={
                         <>
-                            <Text style={styles.label}>Ingredientes</Text>
-                            <FlatList
-                                data={ingredients}
-                                keyExtractor={(_, i) => i.toString()}
-                                renderItem={IngredientItem}
-                                style={styles.list}
-                                nestedScrollEnabled
+                            {ingredients.length > 0 && (
+                                <View style={styles.totals}>
+                                    <Text style={styles.bold}>Totales: {totals.energy_kcal} kcal</Text>
+                                    <Text>
+                                        Prot {totals.protein_g} g · Carb {totals.carbohydrates_g} g · Grasa {totals.fat_g} g
+                                    </Text>
+                                </View>
+                            )}
+
+                            <Text style={styles.label}>Instrucciones (opcional)</Text>
+                            <TextInput
+                                style={[styles.input, { height: 90 }]}
+                                value={instructions}
+                                onChangeText={setInstructions}
+                                placeholder="Paso a paso…"
+                                multiline
                             />
+
+                            <TouchableOpacity
+                                style={[styles.greenBtn, loading && { opacity: 0.5 }]}
+                                disabled={loading}
+                                onPress={handleCreateMeal}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text style={styles.whiteTxt}>Crear Comida</Text>
+                                )}
+                            </TouchableOpacity>
                         </>
-                    )}
-
-                    {ingredients.length > 0 && (
-                        <View style={styles.totals}>
-                            <Text style={styles.bold}>Totales: {totals.energy_kcal} kcal</Text>
-                            <Text>
-                                Prot {totals.protein_g} g · Carb {totals.carbohydrates_g} g · Grasa {totals.fat_g} g
-                            </Text>
-                        </View>
-                    )}
-
-                    <Text style={styles.label}>Instrucciones (opcional)</Text>
-                    <TextInput
-                        style={[styles.input, { height: 90 }]}
-                        value={instructions}
-                        onChangeText={setInstructions}
-                        placeholder="Paso a paso…"
-                        multiline
-                    />
-
-                    <TouchableOpacity
-                        style={[styles.greenBtn, loading && { opacity: 0.5 }]}
-                        disabled={loading}
-                        onPress={handleCreateMeal}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Text style={styles.whiteTxt}>Crear Comida</Text>
-                        )}
-                    </TouchableOpacity>
-                </ScrollView>
+                    }
+                    contentContainerStyle={{ padding: 20 }}
+                    ListEmptyComponent={null}
+                />
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
@@ -290,33 +326,155 @@ export default function CreateMealScreen() {
 
 // ---------- Estilos ----------
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f4f6f8' },
-    title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-    label: { fontWeight: 'bold', marginTop: 18, marginBottom: 6 },
-    input: { backgroundColor: '#fff', borderRadius: 8, padding: 12 },
-    list: { maxHeight: 200, marginVertical: 8 },
-    foodItem: { padding: 10, borderBottomWidth: 1, borderColor: '#eee' },
-    foodName: { fontWeight: '500' },
-    foodInfo: { fontSize: 12, color: '#777' },
-    addBox: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
-    amount: {
+    container: {
         flex: 1,
+        backgroundColor: '#EEEFE0', // fondo general
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 24,
+        textAlign: 'center',
+        color: '#000', // texto principal
+        letterSpacing: 1,
+    },
+    label: {
+        fontWeight: 'bold',
+        marginTop: 18,
+        marginBottom: 6,
+        color: '#819A91', // color principal para labels
+        fontSize: 16,
+        letterSpacing: 0.5,
+    },
+    input: {
         backgroundColor: '#fff',
-        borderRadius: 8,
+        borderRadius: 12,
+        padding: 14,
+        borderWidth: 1,
+        borderColor: '#A7C1A8',
+        marginBottom: 4,
+        fontSize: 16,
+        color: '#000',
+    },
+    list: {
+        maxHeight: 180,
+        marginVertical: 8,
+        borderRadius: 12,
+        backgroundColor: '#D1D8BE', // card
+        borderWidth: 1,
+        borderColor: '#A7C1A8',
+        padding: 2,
+    },
+    foodItem: {
+        padding: 13,
+        borderBottomWidth: 1,
+        borderColor: '#A7C1A8',
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        marginVertical: 3,
+        marginHorizontal: 4,
+    },
+    foodName: {
+        fontWeight: '600',
+        color: '#000',
+        fontSize: 16,
+    },
+    foodInfo: {
+        fontSize: 12,
+        color: '#819A91',
+        marginTop: 2,
+    },
+    addBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 10,
+        backgroundColor: '#D1D8BE', // card
+        borderRadius: 12,
         padding: 10,
-        marginHorizontal: 8,
+        borderWidth: 1,
+        borderColor: '#A7C1A8',
+    },
+    selectedFoodNameContainer: {
+        flex: 1,
+        marginRight: 8,
+        minWidth: 0,
+    },
+    amount: {
+        width: 80, // ancho fijo para input de gramos
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        borderWidth: 1,
+        borderColor: '#A7C1A8',
+        fontSize: 16,
+        color: '#000',
+        marginRight: 8,
     },
     ingredientItem: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        backgroundColor: '#fff',
-        padding: 10,
-        marginBottom: 4,
-        borderRadius: 8,
+        alignItems: 'center',
+        backgroundColor: '#D1D8BE', // card
+        padding: 12,
+        marginBottom: 6,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#A7C1A8',
+        minHeight: 44,
     },
-    remove: { color: '#f33', fontSize: 18, paddingHorizontal: 8 },
-    totals: { backgroundColor: '#fff', padding: 12, borderRadius: 8, marginVertical: 12 },
-    greenBtn: { backgroundColor: '#43a047', borderRadius: 8, padding: 14, alignItems: 'center' },
-    whiteTxt: { color: '#fff', fontWeight: 'bold' },
-    bold: { fontWeight: 'bold' },
+    ingredientNameBox: {
+        flex: 1,
+        minWidth: 0,
+        marginRight: 10,
+    },
+    ingredientName: {
+        fontSize: 15,
+        color: '#000',
+        fontWeight: '500',
+    },
+    ingredientAmount: {
+        fontSize: 15,
+        color: '#819A91',
+        fontWeight: '500',
+        marginRight: 10,
+    },
+    removeBox: {
+        paddingHorizontal: 4,
+        paddingVertical: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    remove: {
+        color: '#FA3E44',
+        fontSize: 22,
+        fontWeight: 'bold',
+        opacity: 0.85,
+    },
+    totals: {
+        backgroundColor: '#D1D8BE', // card
+        padding: 14,
+        borderRadius: 12,
+        marginVertical: 14,
+        borderWidth: 1,
+        borderColor: '#A7C1A8',
+        alignItems: 'center',
+    },
+    greenBtn: {
+        backgroundColor: '#819A91', // primary
+        borderRadius: 10,
+        padding: 16,
+        alignItems: 'center',
+        marginTop: 18,
+    },
+    whiteTxt: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 17,
+        letterSpacing: 0.5,
+    },
+    bold: {
+        fontWeight: 'bold',
+        color: '#000',
+        fontSize: 16,
+    },
 });
