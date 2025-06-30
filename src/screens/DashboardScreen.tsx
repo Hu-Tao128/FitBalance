@@ -13,7 +13,6 @@ import {
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useTheme } from '../context/ThemeContext';
 
-
 const Home = () => {
   const { colors } = useTheme();
   const caloriasObjetivo = 2380;
@@ -36,87 +35,119 @@ const Home = () => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 20,
+      marginBottom: 24,
     },
     title: {
       fontSize: 22,
       fontWeight: 'bold',
       color: colors.primary,
+      letterSpacing: 0.2,
     },
     caloriesWrapper: {
       alignItems: 'center',
       marginBottom: 30,
     },
     caloriesNumber: {
-      fontSize: 32,
+      fontSize: 36,
       fontWeight: 'bold',
       color: colors.primary,
+      marginTop: 10,
+      marginBottom: 5,
     },
     subtext: {
-      marginTop: 6,
-      fontSize: 16,
+      marginTop: 8,
+      fontSize: 15,
       color: colors.text,
+      opacity: 0.85,
     },
     section: {
       backgroundColor: colors.card,
-      padding: 20,
-      borderRadius: 12,
-      marginBottom: 12,
+      padding: 22,
+      borderRadius: 18,
+      marginBottom: 16,
+      shadowColor: colors.border,
+      shadowOpacity: 0.09,
+      shadowRadius: 7,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 3,
     },
     sectionRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: 10,
+      gap: 16,
       marginBottom: 12,
     },
     card: {
       flex: 1,
       backgroundColor: colors.card,
-      borderRadius: 12,
-      padding: 16,
+      borderRadius: 15,
+      padding: 18,
       alignItems: 'center',
+      marginHorizontal: 2,
+      shadowColor: colors.border,
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 1 },
+      elevation: 1,
     },
     sectionTitle: {
       fontSize: 18,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: 5,
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: 10,
       textAlign: 'center',
+      letterSpacing: 0.2,
     },
     sectionText: {
-      fontSize: 16,
+      fontSize: 15,
       color: colors.text,
+      opacity: 0.9,
+      textAlign: 'center',
     },
     cardTitle: {
       fontSize: 16,
-      fontWeight: '500',
-      color: colors.text,
-      marginBottom: 10,
+      fontWeight: '600',
+      color: colors.info,
+      marginBottom: 7,
+      letterSpacing: 0.1,
     },
     cardText: {
       fontSize: 14,
       color: colors.text,
       textAlign: 'center',
+      opacity: 0.85,
     },
     macroRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginTop: 15,
+      gap: 8,
     },
     macroItem: {
       alignItems: 'center',
       flex: 1,
     },
     macroLabel: {
-      fontSize: 14,
+      fontSize: 15,
       fontWeight: '600',
-      color: colors.text,
+      color: colors.primary,
+      letterSpacing: 0.1,
     },
     macroText: {
-      marginTop: 6,
+      marginTop: 7,
       fontSize: 14,
       color: colors.text,
+      opacity: 0.87,
     },
+    macroLegend: {
+      width: 12, height: 12, borderRadius: 6, marginRight: 5,
+    },
+    statusText: {
+      color: caloriasRestantes > 0 ? colors.success : colors.danger,
+      fontWeight: 'bold',
+      marginTop: 4,
+      fontSize: 15,
+    }
   });
 
   // Configuración del podómetro
@@ -185,7 +216,7 @@ const Home = () => {
           'Función no disponible',
           'El contador de pasos no está disponible en este dispositivo o requiere permisos adicionales'
         )}>
-          <Text style={[styles.cardText, { color: '#ff5555' }]}>No disponible</Text>
+          <Text style={[styles.cardText, { color: colors.danger }]}>No disponible</Text>
         </TouchableOpacity>
       );
     }
@@ -196,13 +227,13 @@ const Home = () => {
           size={60}
           width={6}
           fill={(steps / 10000) * 100}
-          tintColor="#34C759"
-          backgroundColor="#3a3a3c"
+          tintColor={colors.success}
+          backgroundColor={colors.progressBg}
           rotation={0}
           lineCap="round"
         >
           {() => (
-            <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>
+            <Text style={{ color: colors.text, fontSize: 15, fontWeight: 'bold' }}>
               {steps}
             </Text>
           )}
@@ -220,10 +251,10 @@ const Home = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="person-circle-outline" size={40} color={colors.text} />
+        <Ionicons name="person-circle-outline" size={40} color={colors.primary} />
         <Text style={styles.title}>FitBalance</Text>
         <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={28} color={colors.text} />
+          <Ionicons name="notifications-outline" size={28} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -233,8 +264,8 @@ const Home = () => {
             size={180}
             width={16}
             fill={(caloriasComidas / caloriasObjetivo) * 100}
-            tintColor="#34C759"
-            backgroundColor="#2c2c2e"
+            tintColor={colors.primary}
+            backgroundColor={colors.progressBg}
             rotation={0}
             lineCap="round"
           >
@@ -245,7 +276,7 @@ const Home = () => {
           <Text style={styles.subtext}>
             {caloriasObjetivo} cal objetivo | {caloriasComidas} consumidas
           </Text>
-          <Text style={[styles.subtext, { color: caloriasRestantes > 0 ? '#4caf50' : '#e53935' }]}>
+          <Text style={styles.statusText}>
             {Math.abs(caloriasRestantes)} cal {caloriasRestantes > 0 ? 'faltantes' : 'excedidas'}
           </Text>
         </View>
@@ -259,8 +290,8 @@ const Home = () => {
                 size={70}
                 width={6}
                 fill={60}
-                tintColor="#4e8ef7"
-                backgroundColor="#3a3a3c"
+                tintColor={colors.progressProtein}
+                backgroundColor={colors.progressBg}
                 rotation={0}
                 lineCap="round"
               >
@@ -274,8 +305,8 @@ const Home = () => {
                 size={70}
                 width={6}
                 fill={75}
-                tintColor="#34C759"
-                backgroundColor="#3a3a3c"
+                tintColor={colors.progressCarbs}
+                backgroundColor={colors.progressBg}
                 rotation={0}
                 lineCap="round"
               >
@@ -289,8 +320,8 @@ const Home = () => {
                 size={70}
                 width={6}
                 fill={45}
-                tintColor="#f5a623"
-                backgroundColor="#3a3a3c"
+                tintColor={colors.progressFat}
+                backgroundColor={colors.progressBg}
                 rotation={0}
                 lineCap="round"
               >

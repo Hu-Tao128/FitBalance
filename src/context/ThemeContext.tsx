@@ -11,25 +11,64 @@ type ThemeContextType = {
         card: string;
         border: string;
         primary: string;
+        progressBg?: string;
+        progressProtein?: string;
+        progressCarbs?: string;
+        progressFat?: string;
+        success?: string;
+        danger?: string;
+        warning?: string;
+        info?: string;
     };
 };
 
-const lightColors = {
-    background: '#EEEFE0', // fondo general
-    text: '#000000 ',       // textos principales y títulos
-    card: '#D1D8BE',       // fondos de tarjetas/secciones
-    border: '#A7C1A8',     // bordes y líneas suaves
-    primary: '#819A91',    // color principal, botones, FAB, iconos activos
+export const lightColors = {
+    background: '#E1EEBC',  // Fondo general: verde-amarillo suave, muy calmado y fresco
+    card: '#F8FCE6',  // Cards: un poco más claro para contraste visual
+    border: '#C7DFAB',  // Bordes: tono más oscuro del fondo
+    primary: '#328E6E',  // Verde intenso, acento y botones principales
+    accent: '#67AE6E',  // Verde intermedio, para detalles, iconos activos
+    text: '#233F30',  // Verde-oliva súper oscuro (legible, no negro puro)
+    textSecondary: '#4A6E5B',  // Secundario, verde suave
+    icon: '#328E6E',  // Verde fuerte, consistente con primary
+    divider: '#DAE8B8',  // Línea sutil para separadores
+
+    // Para barras de progreso de las macros
+    progressProtein: '#90C67C', // Proteínas: verde intenso
+    progressCarbs: '#FFC107', // Carbs: verde claro intermedio
+    progressFat: '#B22222', // Grasas: verde pastel suave
+    progressBg: '#E1EEBC', // Fondo de barras de progreso (igual que fondo)
+
+    success: '#67AE6E',     // Éxito: mismo verde intermedio
+    warning: '#F6DE65',     // Warning: amarillo pastel visible sobre fondo
+    error: '#EA6B6B',     // Error: rojo pastel moderno (por si acaso)
 };
 
 
-const darkColors = {
+
+
+
+export const darkColors = {
     background: '#0d0d0d',
     text: '#ffffff',
     card: '#1c1c1e',
     border: '#2c2c2e',
     primary: '#34C759',
+
+    // Nuevos colores para macros y barras de progreso
+    progressProtein: '#67AE6E',
+    progressCarbs: '#90C67C',
+    progressFat: '#E1EEBC',
+    progressBg: '#23331C',
+
+    // Opcionales, pero útiles para mensajes de estado
+    success: '#67AE6E',
+    danger: '#EA6B6B',
+    warning: '#F6DE65',
+    info: '#A1C8D8',
 };
+
+
 
 // Crea el contexto con un valor por defecto más completo
 const ThemeContext = createContext<ThemeContextType>({
