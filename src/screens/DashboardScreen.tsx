@@ -16,7 +16,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://192.168.0.17:3000'; // Reemplaza con tu URL
+const API_BASE_URL = 'https://fitbalance-backend-production.up.railway.app';
 
 const Home = () => {
   const { colors } = useTheme();
