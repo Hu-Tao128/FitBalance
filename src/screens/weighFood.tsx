@@ -187,7 +187,6 @@ export default function WeighFoodScreen() {
     }, [selectedMeal, selectedItem]);
 
     const handleManualRegister = useCallback(() => {
-        // Aquí iría la lógica para registro manual
         console.log('Registro manual para:', selectedItem);
         setModalVisible(false);
     }, [selectedItem]);
@@ -208,20 +207,29 @@ export default function WeighFoodScreen() {
     const todayMeals = weeklyPlan?.meals.filter(meal => meal.day === today) ?? [];
 
     if (!weeklyPlan || todayMeals.length === 0) {
-        return (
-            <View style={styles.container}>
-                <View style={[styles.mealSection, { 
-                    backgroundColor: colors.card,
-                    marginTop: 20,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingVertical: 30
-                }]}>
-                    <Ionicons name="calendar-outline" size={40} color={colors.text} style={{ marginBottom: 15 }} />
+    return (
+        <View style={[styles.container, { 
+            justifyContent: 'center',
+            alignItems: 'center',    
+            paddingHorizontal: 20    
+        }]}>
+            <View style={[styles.mealSection, { 
+                backgroundColor: colors.card,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 30,
+                width: '100%'       
+            }]}>
+                <Ionicons name="calendar-outline" size={40} color={colors.text} style={{ marginBottom: 15 }} />
                     <Text style={[styles.mealTitle, { textAlign: 'center' }]}>
                         No tienes planes para esta semana
                     </Text>
-                    <Text style={{ color: colors.text, textAlign: 'center', marginTop: 10 }}>
+                    <Text style={{ 
+                        color: colors.text, 
+                        textAlign: 'center', 
+                        marginTop: 10,
+                        maxWidth: '80%'
+                    }}>
                         Contacta a tu nutricionista para obtener tu plan alimenticio
                     </Text>
                 </View>

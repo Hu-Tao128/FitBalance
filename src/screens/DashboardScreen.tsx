@@ -8,21 +8,124 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  ActivityIndicator
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://192.168.0.17:3000'; // Reemplaza con tu URL
 
 const Home = () => {
   const { colors } = useTheme();
-  const caloriasObjetivo = 2380;
-  const caloriasComidas = 2000;
-  const caloriasRestantes = caloriasObjetivo - caloriasComidas;
-
+  const { user } = useUser();
+  
+  const [nutritionData, setNutritionData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   // Estados para el podómetro
   const [steps, setSteps] = useState<number>(0);
   const [pastStepCount, setPastStepCount] = useState<number>(0);
   const [isPedometerAvailable, setIsPedometerAvailable] = useState<'checking' | 'available' | 'unavailable'>('checking');
+
+  // Función para obtener datos nutricionales
+  const fetchNutritionData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const today = new Date().toISOString().split('T')[0];
+      const response = await axios.get(`${API_BASE_URL}/daily-nutrition`, {
+        params: {
+          patient_id: user?.id,
+          date: today
+        }
+      });
+      
+      setNutritionData(response.data);
+    } catch (err) {
+      console.error('Error fetching nutrition data:', err);
+      setError('No se pudieron cargar los datos nutricionales');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Obtener datos nutricionales al cargar el componente
+  useEffect(() => {
+    fetchNutritionData();
+  }, [user?.id]);
+
+  // Configuración del podómetro
+  useEffect(() => {
+    const subscribe = async () => {
+      try {
+        if (Platform.OS === 'android') {
+          const response = await Pedometer.requestPermissionsAsync();
+          if (!response.granted) {
+            setIsPedometerAvailable('unavailable');
+            Alert.alert(
+              'Permisos requeridos',
+              'Necesitamos acceso a los sensores de actividad para contar tus pasos',
+              [{ text: 'OK' }]
+            );
+            return;
+          }
+        }
+
+        const isAvailable = await Pedometer.isAvailableAsync();
+        setIsPedometerAvailable(isAvailable ? 'available' : 'unavailable');
+
+        if (isAvailable) {
+          const end = new Date();
+          const start = new Date();
+          start.setDate(end.getDate() - 1);
+
+          const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
+          if (pastStepCountResult) {
+            setPastStepCount(pastStepCountResult.steps);
+          }
+
+          return Pedometer.watchStepCount(result => {
+            setSteps(result.steps);
+          });
+        }
+      } catch (error) {
+        console.error('Error al configurar podómetro:', error);
+        setIsPedometerAvailable('unavailable');
+      }
+    };
+
+    const subscriptionPromise = subscribe();
+
+    return () => {
+      subscriptionPromise.then(subscription => {
+        if (subscription && subscription.remove) {
+          subscription.remove();
+        }
+      });
+    };
+  }, []);
+
+  // Calcular valores
+  const caloriasObjetivo = nutritionData?.goals.calories || 2000;
+  const caloriasComidas = nutritionData?.consumed.calories || 100;
+  const caloriasRestantes = caloriasObjetivo - caloriasComidas;
+  
+  const proteinasObjetivo = nutritionData?.goals.protein || 150;
+  const proteinasConsumidas = nutritionData?.consumed.protein || 0;
+  const proteinasPorcentaje = Math.min(100, Math.round((proteinasConsumidas / proteinasObjetivo) * 100));
+  
+  const carbohidratosObjetivo = nutritionData?.goals.carbs || 250;
+  const carbohidratosConsumidos = nutritionData?.consumed.carbs || 0;
+  const carbohidratosPorcentaje = Math.min(100, Math.round((carbohidratosConsumidos / carbohidratosObjetivo) * 100));
+  
+  const grasasObjetivo = nutritionData?.goals.fat || 70;
+  const grasasConsumidas = nutritionData?.consumed.fat || 0;
+  const grasasPorcentaje = Math.min(100, Math.round((grasasConsumidas / grasasObjetivo) * 100));
 
   const styles = StyleSheet.create({
     container: {
@@ -147,63 +250,18 @@ const Home = () => {
       fontWeight: 'bold',
       marginTop: 4,
       fontSize: 15,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    errorText: {
+      color: colors.danger,
+      textAlign: 'center',
+      marginTop: 20,
     }
   });
-
-  // Configuración del podómetro
-  useEffect(() => {
-    const subscribe = async () => {
-      try {
-        // Solicitar permisos en Android
-        if (Platform.OS === 'android') {
-          const response = await Pedometer.requestPermissionsAsync();
-          if (!response.granted) {
-            setIsPedometerAvailable('unavailable');
-            Alert.alert(
-              'Permisos requeridos',
-              'Necesitamos acceso a los sensores de actividad para contar tus pasos',
-              [{ text: 'OK' }]
-            );
-            return;
-          }
-        }
-
-        // Verificar disponibilidad
-        const isAvailable = await Pedometer.isAvailableAsync();
-        setIsPedometerAvailable(isAvailable ? 'available' : 'unavailable');
-
-        if (isAvailable) {
-          // Obtener pasos de las últimas 24 horas
-          const end = new Date();
-          const start = new Date();
-          start.setDate(end.getDate() - 1);
-
-          const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
-          if (pastStepCountResult) {
-            setPastStepCount(pastStepCountResult.steps);
-          }
-
-          // Suscribirse a actualizaciones en tiempo real
-          return Pedometer.watchStepCount(result => {
-            setSteps(result.steps);
-          });
-        }
-      } catch (error) {
-        console.error('Error al configurar podómetro:', error);
-        setIsPedometerAvailable('unavailable');
-      }
-    };
-
-    const subscriptionPromise = subscribe();
-
-    return () => {
-      subscriptionPromise.then(subscription => {
-        if (subscription && subscription.remove) {
-          subscription.remove();
-        }
-      });
-    };
-  }, []);
 
   const renderStepsCard = () => {
     if (isPedometerAvailable === 'checking') {
@@ -248,6 +306,46 @@ const Home = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ color: colors.text, marginTop: 10 }}>Cargando datos nutricionales...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Ionicons name="person-circle-outline" size={40} color={colors.primary} />
+          <Text style={styles.title}>FitBalance</Text>
+          <TouchableOpacity>
+            <Ionicons name="notifications-outline" size={28} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity 
+          style={{ 
+            backgroundColor: colors.primary, 
+            padding: 15, 
+            borderRadius: 10, 
+            marginTop: 20,
+            alignSelf: 'center'
+          }}
+          onPress={() => {
+            setLoading(true);
+            setError(null);
+            fetchNutritionData();
+          }}
+        >
+          <Text style={{ color: 'white', fontWeight: 'bold' }}>Reintentar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -289,45 +387,51 @@ const Home = () => {
               <AnimatedCircularProgress
                 size={70}
                 width={6}
-                fill={60}
+                fill={proteinasPorcentaje}
                 tintColor={colors.progressProtein}
                 backgroundColor={colors.progressBg}
                 rotation={0}
                 lineCap="round"
               >
-                {() => <Text style={styles.macroLabel}>60%</Text>}
+                {() => <Text style={styles.macroLabel}>{proteinasPorcentaje}%</Text>}
               </AnimatedCircularProgress>
-              <Text style={styles.macroText}>Proteínas</Text>
+              <Text style={styles.macroText}>
+                {proteinasConsumidas}g / {proteinasObjetivo}g
+              </Text>
             </View>
 
             <View style={styles.macroItem}>
               <AnimatedCircularProgress
                 size={70}
                 width={6}
-                fill={75}
+                fill={carbohidratosPorcentaje}
                 tintColor={colors.progressCarbs}
                 backgroundColor={colors.progressBg}
                 rotation={0}
                 lineCap="round"
               >
-                {() => <Text style={styles.macroLabel}>75%</Text>}
+                {() => <Text style={styles.macroLabel}>{carbohidratosPorcentaje}%</Text>}
               </AnimatedCircularProgress>
-              <Text style={styles.macroText}>Carbs</Text>
+              <Text style={styles.macroText}>
+                {carbohidratosConsumidos}g / {carbohidratosObjetivo}g
+              </Text>
             </View>
 
             <View style={styles.macroItem}>
               <AnimatedCircularProgress
                 size={70}
                 width={6}
-                fill={45}
+                fill={grasasPorcentaje}
                 tintColor={colors.progressFat}
                 backgroundColor={colors.progressBg}
                 rotation={0}
                 lineCap="round"
               >
-                {() => <Text style={styles.macroLabel}>45%</Text>}
+                {() => <Text style={styles.macroLabel}>{grasasPorcentaje}%</Text>}
               </AnimatedCircularProgress>
-              <Text style={styles.macroText}>Grasas</Text>
+              <Text style={styles.macroText}>
+                {grasasConsumidas}g / {grasasObjetivo}g
+              </Text>
             </View>
           </View>
         </View>
