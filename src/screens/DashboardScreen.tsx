@@ -1,31 +1,32 @@
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 import { Pedometer } from 'expo-sensors';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
+  Animated,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  ActivityIndicator
+  View
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
-import axios from 'axios';
 
 const API_BASE_URL = 'https://fitbalance-backend-production.up.railway.app';
 
 const Home = () => {
   const { colors } = useTheme();
   const { user } = useUser();
-  
+
   const [nutritionData, setNutritionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Estados para el podómetro
   const [steps, setSteps] = useState<number>(0);
   const [pastStepCount, setPastStepCount] = useState<number>(0);
@@ -36,7 +37,7 @@ const Home = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const today = new Date().toISOString().split('T')[0];
       const response = await axios.get(`${API_BASE_URL}/daily-nutrition`, {
         params: {
@@ -44,7 +45,7 @@ const Home = () => {
           date: today
         }
       });
-      
+
       setNutritionData(response.data);
     } catch (err) {
       console.error('Error fetching nutrition data:', err);
@@ -114,142 +115,230 @@ const Home = () => {
   const caloriasObjetivo = nutritionData?.goals.calories || 2000;
   const caloriasComidas = nutritionData?.consumed.calories || 100;
   const caloriasRestantes = caloriasObjetivo - caloriasComidas;
-  
+
   const proteinasObjetivo = nutritionData?.goals.protein || 150;
   const proteinasConsumidas = nutritionData?.consumed.protein || 0;
-  const proteinasPorcentaje = Math.min(100, Math.round((proteinasConsumidas / proteinasObjetivo) * 100));
-  
+
   const carbohidratosObjetivo = nutritionData?.goals.carbs || 250;
   const carbohidratosConsumidos = nutritionData?.consumed.carbs || 0;
-  const carbohidratosPorcentaje = Math.min(100, Math.round((carbohidratosConsumidos / carbohidratosObjetivo) * 100));
-  
+
   const grasasObjetivo = nutritionData?.goals.fat || 70;
   const grasasConsumidas = nutritionData?.consumed.fat || 0;
-  const grasasPorcentaje = Math.min(100, Math.round((grasasConsumidas / grasasObjetivo) * 100));
+
+  // Colores para las barras (usa tu paleta pro)
+  const proteinColor = colors.progressProtein || '#6DD6B1';
+  const carbsColor = colors.progressCarbs || '#FED36A';
+  const fatColor = colors.progressFat || '#FF6B81';
+  const barBg = colors.progressBg || '#EAF3ED';
+
+  // --- MacroBar ahora está aquí dentro ---
+  const MacroBar = ({ label, icon, value, goal, color, barBg, unit }) => {
+    const percent = Math.min(100, Math.round((value / goal) * 100));
+    const widthAnim = React.useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+      Animated.timing(widthAnim, {
+        toValue: percent,
+        duration: 800,
+        useNativeDriver: false,
+      }).start();
+    }, [percent]);
+
+    return (
+      <View style={styles.macroBarContainer}>
+        <View style={styles.macroBarTop}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Ionicons name={icon} size={20} color={color} style={{ marginRight: 3 }} />
+            <Text style={[styles.macroBarLabel, { color }]}>{label}</Text>
+          </View>
+          <Text style={styles.macroBarValue}>
+            {value} / {goal} {unit}
+          </Text>
+        </View>
+        <View style={[styles.macroBarBg, { backgroundColor: barBg }]}>
+          <Animated.View
+            style={[
+              styles.macroBarFill,
+              {
+                width: widthAnim.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: ['0%', '100%'],
+                }),
+                backgroundColor: color,
+              },
+            ]}
+          />
+        </View>
+        <Text style={[styles.macroBarPercent, { color }]}>{percent}%</Text>
+      </View>
+    );
+  };
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
       paddingTop: 50,
-      paddingHorizontal: 20,
+      paddingHorizontal: 16,
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 24,
+      marginBottom: 28,
+      paddingHorizontal: 6,
     },
     title: {
-      fontSize: 22,
+      fontSize: 26,
       fontWeight: 'bold',
       color: colors.primary,
-      letterSpacing: 0.2,
+      letterSpacing: 0.5,
     },
     caloriesWrapper: {
       alignItems: 'center',
       marginBottom: 30,
+      padding: 12,
+      borderRadius: 28,
+      backgroundColor: colors.card + 'DD',
+      shadowColor: colors.primary,
+      shadowOpacity: 0.09,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 4,
+      borderWidth: 0.5,
+      borderColor: colors.border + '55',
     },
     caloriesNumber: {
-      fontSize: 36,
+      fontSize: 46,
       fontWeight: 'bold',
       color: colors.primary,
-      marginTop: 10,
-      marginBottom: 5,
+      marginTop: 8,
+      marginBottom: 2,
+      letterSpacing: 1.1,
+      textShadowColor: colors.border,
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 2,
     },
     subtext: {
-      marginTop: 8,
+      marginTop: 6,
       fontSize: 15,
       color: colors.text,
-      opacity: 0.85,
+      opacity: 0.8,
+      fontWeight: '500',
     },
     section: {
-      backgroundColor: colors.card,
-      padding: 22,
-      borderRadius: 18,
-      marginBottom: 16,
+      backgroundColor: colors.card + 'F2',
+      padding: 26,
+      borderRadius: 24,
+      marginBottom: 18,
       shadowColor: colors.border,
-      shadowOpacity: 0.09,
-      shadowRadius: 7,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 3,
+      shadowOpacity: 0.10,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 3 },
+      elevation: 4,
+      borderWidth: 0.5,
+      borderColor: colors.border + '44',
     },
     sectionRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: 16,
-      marginBottom: 12,
+      gap: 18,
+      marginBottom: 14,
     },
     card: {
       flex: 1,
-      backgroundColor: colors.card,
-      borderRadius: 15,
-      padding: 18,
+      backgroundColor: colors.card + 'F7',
+      borderRadius: 18,
+      padding: 20,
       alignItems: 'center',
-      marginHorizontal: 2,
+      marginHorizontal: 3,
       shadowColor: colors.border,
-      shadowOpacity: 0.08,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 1 },
-      elevation: 1,
+      shadowOpacity: 0.10,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2,
+      borderWidth: 0.5,
+      borderColor: colors.border + '33',
     },
     sectionTitle: {
-      fontSize: 18,
+      fontSize: 20,
       fontWeight: 'bold',
       color: colors.primary,
-      marginBottom: 10,
-      textAlign: 'center',
-      letterSpacing: 0.2,
+      marginBottom: 12,
+      textAlign: 'left',
+      letterSpacing: 0.5,
     },
     sectionText: {
       fontSize: 15,
       color: colors.text,
-      opacity: 0.9,
-      textAlign: 'center',
+      opacity: 0.92,
+      textAlign: 'left',
+      fontWeight: '500',
     },
     cardTitle: {
-      fontSize: 16,
-      fontWeight: '600',
+      fontSize: 17,
+      fontWeight: '700',
       color: colors.info,
-      marginBottom: 7,
-      letterSpacing: 0.1,
+      marginBottom: 9,
+      letterSpacing: 0.2,
     },
     cardText: {
-      fontSize: 14,
+      fontSize: 15,
       color: colors.text,
       textAlign: 'center',
-      opacity: 0.85,
+      opacity: 0.90,
+      fontWeight: '600',
     },
-    macroRow: {
+
+    // --- MACRO BARS ---
+    macroBarContainer: {
+      marginBottom: 18,
+    },
+    macroBarTop: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: 15,
-      gap: 8,
-    },
-    macroItem: {
       alignItems: 'center',
-      flex: 1,
+      marginBottom: 7,
+      paddingHorizontal: 2,
     },
-    macroLabel: {
+    macroBarLabel: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      letterSpacing: 0.3,
+    },
+    macroBarValue: {
       fontSize: 15,
+      color: colors.textSecondary,
       fontWeight: '600',
-      color: colors.primary,
-      letterSpacing: 0.1,
     },
-    macroText: {
-      marginTop: 7,
-      fontSize: 14,
-      color: colors.text,
-      opacity: 0.87,
+    macroBarBg: {
+      height: 13,
+      borderRadius: 7,
+      width: '100%',
+      overflow: 'hidden',
+      backgroundColor: barBg,
     },
-    macroLegend: {
-      width: 12, height: 12, borderRadius: 6, marginRight: 5,
+    macroBarFill: {
+      height: '100%',
+      borderRadius: 7,
     },
+    macroBarPercent: {
+      marginTop: 3,
+      fontSize: 13,
+      fontWeight: 'bold',
+      opacity: 0.82,
+      alignSelf: 'flex-end',
+      paddingRight: 2,
+    },
+
     statusText: {
       color: caloriasRestantes > 0 ? colors.success : colors.danger,
       fontWeight: 'bold',
-      marginTop: 4,
-      fontSize: 15,
+      marginTop: 8,
+      fontSize: 16,
+      textShadowColor: colors.background,
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 1,
     },
     loadingContainer: {
       flex: 1,
@@ -259,8 +348,11 @@ const Home = () => {
     errorText: {
       color: colors.danger,
       textAlign: 'center',
-      marginTop: 20,
-    }
+      marginTop: 22,
+      fontWeight: 'bold',
+      fontSize: 16,
+      opacity: 0.90,
+    },
   });
 
   const renderStepsCard = () => {
@@ -326,11 +418,11 @@ const Home = () => {
           </TouchableOpacity>
         </View>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity 
-          style={{ 
-            backgroundColor: colors.primary, 
-            padding: 15, 
-            borderRadius: 10, 
+        <TouchableOpacity
+          style={{
+            backgroundColor: colors.primary,
+            padding: 15,
+            borderRadius: 10,
             marginTop: 20,
             alignSelf: 'center'
           }}
@@ -381,59 +473,34 @@ const Home = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Macros</Text>
-
-          <View style={styles.macroRow}>
-            <View style={styles.macroItem}>
-              <AnimatedCircularProgress
-                size={70}
-                width={6}
-                fill={proteinasPorcentaje}
-                tintColor={colors.progressProtein}
-                backgroundColor={colors.progressBg}
-                rotation={0}
-                lineCap="round"
-              >
-                {() => <Text style={styles.macroLabel}>{proteinasPorcentaje}%</Text>}
-              </AnimatedCircularProgress>
-              <Text style={styles.macroText}>
-                {proteinasConsumidas}g / {proteinasObjetivo}g
-              </Text>
-            </View>
-
-            <View style={styles.macroItem}>
-              <AnimatedCircularProgress
-                size={70}
-                width={6}
-                fill={carbohidratosPorcentaje}
-                tintColor={colors.progressCarbs}
-                backgroundColor={colors.progressBg}
-                rotation={0}
-                lineCap="round"
-              >
-                {() => <Text style={styles.macroLabel}>{carbohidratosPorcentaje}%</Text>}
-              </AnimatedCircularProgress>
-              <Text style={styles.macroText}>
-                {carbohidratosConsumidos}g / {carbohidratosObjetivo}g
-              </Text>
-            </View>
-
-            <View style={styles.macroItem}>
-              <AnimatedCircularProgress
-                size={70}
-                width={6}
-                fill={grasasPorcentaje}
-                tintColor={colors.progressFat}
-                backgroundColor={colors.progressBg}
-                rotation={0}
-                lineCap="round"
-              >
-                {() => <Text style={styles.macroLabel}>{grasasPorcentaje}%</Text>}
-              </AnimatedCircularProgress>
-              <Text style={styles.macroText}>
-                {grasasConsumidas}g / {grasasObjetivo}g
-              </Text>
-            </View>
-          </View>
+          {/* NUEVO DISEÑO: PROGRESS BARS */}
+          <MacroBar
+            label="Proteínas"
+            icon="restaurant"
+            value={proteinasConsumidas}
+            goal={proteinasObjetivo}
+            color={proteinColor}
+            barBg={barBg}
+            unit="g"
+          />
+          <MacroBar
+            label="Carbohidratos"
+            icon="pizza"
+            value={carbohidratosConsumidos}
+            goal={carbohidratosObjetivo}
+            color={carbsColor}
+            barBg={barBg}
+            unit="g"
+          />
+          <MacroBar
+            label="Grasas"
+            icon="egg"
+            value={grasasConsumidas}
+            goal={grasasObjetivo}
+            color={fatColor}
+            barBg={barBg}
+            unit="g"
+          />
         </View>
 
         <View style={styles.sectionRow}>

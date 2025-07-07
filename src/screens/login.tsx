@@ -14,7 +14,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { RootStackParamList } from '../../App';
+import { RootStackParamList } from '../../App'; // Asegúrate de exportar esto en App.ts o types.ts
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from "../context/UserContext";
 
@@ -23,7 +23,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 export default function LoginScreen() {
     const { login } = useUser();
     const navigation = useNavigation<NavigationProp>();
-    const { darkMode, toggleTheme, colors } = useTheme();
+    const { colors } = useTheme();
 
     const styles = StyleSheet.create({
         container: {
@@ -120,58 +120,69 @@ export default function LoginScreen() {
             height: '130%',
         }
     });
-    
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
-    const SERVER_IP = 'fitbalance-backend-production.up.railway.app';
+    const SERVER_URL = 'https://fitbalance-backend-production.up.railway.app';
 
     const handleLogin = async () => {
+        if (!username || !password) {
+            setMessage('Por favor completa usuario y contraseña.');
+            return;
+        }
+
         try {
-            const SERVER_URL = 'https://fitbalance-backend-production.up.railway.app';
-            
-            // 1. Hacer login
+            // Opcional: limpia mensaje previo
+            setMessage('');
+
+            // Enviar login
             const res = await axios.post(`${SERVER_URL}/login`, {
-            username,
-            password
+                username: username.trim(),
+                password: password // Si quieres puedes trim aquí también
             }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
 
-            console.log('Server response:', res.data);
-
-            // Verificar respuesta correctamente
+            // Verifica respuesta (según estructura del backend)
             if (!res.data.patient || !res.data.patient.username) {
-            throw new Error('Invalid credentials');
+                throw new Error('Credenciales inválidas');
             }
 
-            // 2. Actualizar contexto de usuario con los datos del login
+            // Login OK: actualiza contexto y navega
             await login({
-            id: res.data.patient._id,
-            name: res.data.patient.name,
-            username: res.data.patient.username,
-            email: res.data.patient.email,
-            phone: res.data.patient.phone,
-            age: res.data.patient.age,
-            gender: res.data.patient.gender,
-            height_cm: res.data.patient.height_cm,
-            weight_kg: res.data.patient.weight_kg,
-            objective: res.data.patient.objective,
-            allergies: res.data.patient.allergies || [],
-            dietary_restrictions: res.data.patient.dietary_restrictions || [],
-            last_consultation: res.data.patient.last_consultation,
-            nutritionist_id: res.data.patient.nutritionist_id,
-            isActive: res.data.patient.isActive
+                id: res.data.patient._id,
+                name: res.data.patient.name,
+                username: res.data.patient.username,
+                email: res.data.patient.email,
+                phone: res.data.patient.phone,
+                age: res.data.patient.age,
+                gender: res.data.patient.gender,
+                height_cm: res.data.patient.height_cm,
+                weight_kg: res.data.patient.weight_kg,
+                objective: res.data.patient.objective,
+                allergies: res.data.patient.allergies || [],
+                dietary_restrictions: res.data.patient.dietary_restrictions || [],
+                last_consultation: res.data.patient.last_consultation,
+                nutritionist_id: res.data.patient.nutritionist_id,
+                isActive: res.data.patient.isActive
             });
 
-            setMessage(`✅ Welcome, ${res.data.patient.name}`);
+            setMessage(`✅ Bienvenido/a, ${res.data.patient.name}`);
             navigation.navigate('Root');
         } catch (error: any) {
+            // Mostrar mensaje específico si lo hay en la respuesta
+            if (error.response && error.response.data && error.response.data.message) {
+                setMessage('❌ ' + error.response.data.message);
+            } else if (error.response && error.response.status === 401) {
+                setMessage('❌ Usuario o contraseña incorrectos');
+            } else {
+                setMessage('❌ Error de red o del servidor');
+            }
             console.error('Login error:', error);
-            setMessage('❌ Invalid username or password');
         }
     };
 

@@ -39,7 +39,7 @@ type Ingredient = {
 };
 
 // 👉  Ajusta IP o pasa a .env
-const API_BASE = 'http://172.18.3.91:3000';
+const API_BASE = 'https://fitbalance-backend-production.up.railway.app';
 
 // ---------- Utilidades ----------
 function getObjectIdFromMongoDoc(id: any) {
