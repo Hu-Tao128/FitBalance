@@ -18,7 +18,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function App() {
   useEffect(() => {
-    setupNotifications();
+    setupNotifications().then(granted => {
+      if (granted) {
+        console.log('🔔 Permisos de notificaciones concedidos.');
+      } else {
+        console.warn('❌ Permisos de notificaciones denegados.');
+      }
+    });
   }, []);
 
   return(
