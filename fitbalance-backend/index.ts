@@ -1,12 +1,12 @@
 import axios from "axios";
+import bcrypt from 'bcryptjs';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import mongoose, { Document, Schema, Types } from 'mongoose';
-import bcrypt from 'bcryptjs';
 
-import nodemailer from 'nodemailer';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const SALT_ROUNDS = 10;
 
@@ -372,12 +372,12 @@ async function calculateDailyTotals(dailyLog: IDailyMealLog) {
   let totalCarbs = 0;
 
   // Obtener detalles de todos los alimentos
-  const foodIds = dailyLog.meals.flatMap(meal => 
+  const foodIds = dailyLog.meals.flatMap(meal =>
     meal.foods.map(food => food.food_id)
   );
 
-  const foods = await Food.find({ 
-    _id: { $in: foodIds } 
+  const foods = await Food.find({
+    _id: { $in: foodIds }
   }).lean();
 
   // Calcular nutrientes para cada comida
@@ -386,7 +386,7 @@ async function calculateDailyTotals(dailyLog: IDailyMealLog) {
       const food = foods.find(f => f._id.equals(foodItem.food_id));
       if (food) {
         const ratio = foodItem.grams / food.portion_size_g;
-        
+
         // Usar nutrientes calculados si están disponibles, si no, calcularlos
         if (foodItem.nutrients?.calories) {
           totalCalories += foodItem.nutrients.calories;
@@ -507,7 +507,7 @@ app.get('/weeklyplan/latest/:patient_id', async (req: Request, res: Response) =>
       .lean();
 
     if (!latestPlan) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         message: 'No se encontró ningún plan semanal.',
         defaultValues: {
           dailyCalories: 2000,
@@ -570,19 +570,19 @@ app.post('/login', async (req, res) => {
 
   try {
     const patient = await Patient.findOne({ username }).select('+password');
-    
+
     if (!patient) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
     const isMatch = await bcrypt.compare(password, patient.password);
-    
+
     if (!isMatch) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
     const { password: _, ...patientData } = patient.toObject();
-    
+
     res.json({
       message: 'Login exitoso',
       patient: patientData
@@ -663,7 +663,251 @@ app.post('/send-reset-code', async (req: Request, res: Response) => {
   }
 });
 
+// ---------------------------------------------------------------
+
+//  NUEVO ------------------------- 08/07
+
+// ... tus otros imports y setup de express ...
+
+// --- Nuevas interfaces y modelos ---
+
+interface IPatientMeal extends Document {
+  patient_id: Types.ObjectId;
+  name: string;
+  ingredients: {
+    food_id: Types.ObjectId; // Referencia al _id del alimento en la colección Food
+    amount_g: number;
+  }[];
+  nutrients: {
+    energy_kcal: number;
+    protein_g: number;
+    carbohydrates_g: number;
+    fat_g: number;
+    fiber_g: number;
+    sugar_g: number;
+  };
+  instructions?: string;
+  created_at: Date; // Usamos created_at para coincidir con tu esquema
+  updated_at: Date; // Usamos updated_at para coincidir con tu esquema
+}
+
+const PatientMealSchema = new Schema<IPatientMeal>({
+  patient_id: { type: Schema.Types.ObjectId, required: true, ref: 'Patient' },
+  name: { type: String, required: true },
+  ingredients: [{
+    food_id: { type: Schema.Types.ObjectId, required: true, ref: 'Food' },
+    amount_g: { type: Number, required: true, min: 1 },
+  }],
+  nutrients: {
+    energy_kcal: { type: Number, required: true, min: 0 },
+    protein_g: { type: Number, required: true, min: 0 },
+    carbohydrates_g: { type: Number, required: true, min: 0 },
+    fat_g: { type: Number, required: true, min: 0 },
+    fiber_g: { type: Number, required: true, min: 0 },
+    sugar_g: { type: Number, required: true, min: 0 },
+  },
+  instructions: { type: String },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now },
+}, {
+  collection: 'PatientMeals', // Coincide con el nombre de tu colección
+  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } // Mongoose maneja estos campos automáticamente
+});
+
+const PatientMeal = mongoose.model<IPatientMeal>('PatientMeal', PatientMealSchema);
+
+// ... el resto de tus modelos y la conexión a MongoDB ...
+
+// ... tus endpoints existentes ...
+
+// 👉 Endpoint para crear una comida personalizada (POST /PatientMeals)
+// Tu `CreateMealScreen` ya envía a esta ruta. Asegúrate de que el body coincida.
+app.post('/PatientMeals', async (req: Request, res: Response) => {
+  const { patient_id, name, ingredients, nutrients, instructions } = req.body;
+
+  if (!patient_id || !name || !ingredients || ingredients.length === 0 || !nutrients) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios o la lista de ingredientes está vacía.' });
+  }
+  if (!mongoose.Types.ObjectId.isValid(patient_id)) {
+    return res.status(400).json({ error: 'ID de paciente no válido.' });
+  }
+
+  try {
+    const newMeal = new PatientMeal({
+      patient_id: new mongoose.Types.ObjectId(patient_id),
+      name,
+      ingredients: ingredients.map((ing: any) => ({
+        food_id: new mongoose.Types.ObjectId(ing.food_id),
+        amount_g: ing.amount_g,
+      })),
+      nutrients,
+      instructions,
+    });
+
+    await newMeal.save();
+    res.status(201).json({ message: 'Comida personalizada creada con éxito', meal: newMeal });
+  } catch (error) {
+    console.error('❌ Error al crear comida personalizada:', error);
+    res.status(500).json({ error: 'Error interno del servidor al crear comida.' });
+  }
+});
+
+
+// 👉 Endpoint para obtener todas las comidas personalizadas de un paciente (GET /PatientMeals/:patient_id)
+app.get('/PatientMeals/:patient_id', async (req: Request, res: Response) => {
+  const { patient_id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(patient_id)) {
+    return res.status(400).json({ error: 'ID de paciente no válido.' });
+  }
+
+  try {
+    const meals = await PatientMeal.find({ patient_id: new mongoose.Types.ObjectId(patient_id) })
+      .populate('ingredients.food_id', 'name portion_size_g nutrients'); // Popula para obtener detalles del alimento
+
+    res.json(meals);
+  } catch (error) {
+    console.error('❌ Error al obtener comidas personalizadas:', error);
+    res.status(500).json({ error: 'Error interno del servidor al obtener comidas.' });
+  }
+});
+
+// 👉 Endpoint para actualizar una comida personalizada (PUT /PatientMeals/:meal_id)
+app.put('/PatientMeals/:meal_id', async (req: Request, res: Response) => {
+  const { meal_id } = req.params;
+  const { name, ingredients, nutrients, instructions } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(meal_id)) {
+    return res.status(400).json({ error: 'ID de comida no válido.' });
+  }
+  if (!name || !ingredients || ingredients.length === 0 || !nutrients) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios o la lista de ingredientes está vacía.' });
+  }
+
+  try {
+    const updatedMeal = await PatientMeal.findByIdAndUpdate(
+      meal_id,
+      {
+        name,
+        ingredients: ingredients.map((ing: any) => ({
+          food_id: new mongoose.Types.ObjectId(ing.food_id),
+          amount_g: ing.amount_g,
+        })),
+        nutrients,
+        instructions,
+        updated_at: new Date() // Actualiza la fecha de modificación
+      },
+      { new: true } // Retorna el documento actualizado
+    );
+
+    if (!updatedMeal) {
+      return res.status(404).json({ message: 'Comida personalizada no encontrada.' });
+    }
+    res.json({ message: 'Comida personalizada actualizada con éxito', meal: updatedMeal });
+  } catch (error) {
+    console.error('❌ Error al actualizar comida personalizada:', error);
+    res.status(500).json({ error: 'Error interno del servidor al actualizar comida.' });
+  }
+});
+
+// 👉 Endpoint para eliminar una comida personalizada (DELETE /PatientMeals/:meal_id)
+app.delete('/PatientMeals/:meal_id', async (req: Request, res: Response) => {
+  const { meal_id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(meal_id)) {
+    return res.status(400).json({ error: 'ID de comida no válido.' });
+  }
+
+  try {
+    const deletedMeal = await PatientMeal.findByIdAndDelete(meal_id);
+    if (!deletedMeal) {
+      return res.status(404).json({ message: 'Comida personalizada no encontrada.' });
+    }
+    res.json({ message: 'Comida personalizada eliminada con éxito.' });
+  } catch (error) {
+    console.error('❌ Error al eliminar comida personalizada:', error);
+    res.status(500).json({ error: 'Error interno del servidor al eliminar comida.' });
+  }
+});
+
+// 👉 Endpoint para añadir una comida personalizada al DailyMealLog (POST /DailyMealLogs/add-custom-meal)
+app.post('/DailyMealLogs/add-custom-meal', async (req: Request, res: Response) => {
+  const { patient_id, meal_id, type, time } = req.body;
+
+  if (!patient_id || !meal_id || !type || !time) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios: patient_id, meal_id, type, time.' });
+  }
+  if (!mongoose.Types.ObjectId.isValid(patient_id) || !mongoose.Types.ObjectId.isValid(meal_id)) {
+    return res.status(400).json({ error: 'IDs de paciente o comida no válidos.' });
+  }
+
+  try {
+    const patientMeal = await PatientMeal.findById(meal_id).populate('ingredients.food_id', 'name nutrients portion_size_g');
+
+    if (!patientMeal) {
+      return res.status(404).json({ message: 'Comida personalizada no encontrada.' });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Establecer la fecha al inicio del día
+
+    let dailyLog = await DailyMealLog.findOne({
+      patient_id: new mongoose.Types.ObjectId(patient_id),
+      date: today,
+    });
+
+    if (!dailyLog) {
+      dailyLog = new DailyMealLog({
+        patient_id: new mongoose.Types.ObjectId(patient_id),
+        date: today,
+        meals: [],
+        totalCalories: 0,
+        totalProtein: 0,
+        totalFat: 0,
+        totalCarbs: 0,
+      });
+    }
+
+    // Asegurarse de que los nutrientes estén definidos en patientMeal.nutrients
+    const { energy_kcal, protein_g, carbohydrates_g, fat_g } = patientMeal.nutrients;
+
+    // Actualizar totales en el DailyMealLog
+    dailyLog.totalCalories = (dailyLog.totalCalories || 0) + energy_kcal;
+    dailyLog.totalProtein = (dailyLog.totalProtein || 0) + protein_g;
+    dailyLog.totalFat = (dailyLog.totalFat || 0) + fat_g;
+    dailyLog.totalCarbs = (dailyLog.totalCarbs || 0) + carbohydrates_g;
+
+    // Añadir la comida personalizada como una "comida" en el log diario
+    dailyLog.meals.push({
+      type,
+      time,
+      foods: patientMeal.ingredients.map(ing => ({
+        food_id: ing.food_id._id, // Usar el _id del alimento populado
+        grams: ing.amount_g,
+        // Opcional: podrías calcular y añadir los nutrientes de este ingrediente aquí si los necesitas a nivel de `foods` en `DailyMealLog`
+        // Por ahora, el esquema `DailyMealLog` los tiene opcionales y los totales se manejan arriba.
+      })),
+      notes: `Comida personalizada: ${patientMeal.name}`,
+      consumed: true, // Asumimos que si la añades, la has consumido
+    });
+
+    await dailyLog.save();
+
+    res.status(200).json({ message: 'Comida personalizada añadida al registro diario.', dailyLog });
+  } catch (error) {
+    console.error('❌ Error al añadir comida personalizada al DailyMealLog:', error);
+    res.status(500).json({ error: 'Error interno del servidor al añadir comida personalizada.' });
+  }
+});
+
+// ... el resto de tus rutas y el arranque del servidor ...
+
+// NUEVO--------------------------
+
+
+
 // 🚀 Arranque del servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
+

@@ -1,3 +1,14 @@
+// App.tsx
+import React, { useEffect } from 'react';
+import 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ThemeProvider } from "./src/context/ThemeContext";
+import { UserProvider } from "./src/context/UserContext";
+import AppNavigator from './src/navigation/AppNavigator';
+import { setupNotifications } from './src/services/NotificationsServices';
+
+import { PatientMeal } from './src/types'; // O la ruta correcta a tu archivo de tipos
+
 export type RootStackParamList = {
   Login: undefined;
   Root: undefined;
@@ -5,16 +16,10 @@ export type RootStackParamList = {
   RecipeSearch: undefined;
   Settings: undefined;
   UserProfile: undefined;
-  Test: undefined;
+  optionsFood: undefined;
+  ManageMeals: undefined;
+  CreateMealScreen: { mealToEdit: PatientMeal } | undefined;
 };
-
-import React, {useEffect}  from 'react';
-import 'react-native-gesture-handler';
-import AppNavigator from './src/navigation/AppNavigator'; 
-import { UserProvider } from "./src/context/UserContext";
-import { ThemeProvider } from "./src/context/ThemeContext";
-import { setupNotifications } from './src/services/NotificationsServices';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function App() {
   useEffect(() => {
@@ -27,7 +32,7 @@ export default function App() {
     });
   }, []);
 
-  return(
+  return (
     <SafeAreaProvider>
       <ThemeProvider>
         <UserProvider>

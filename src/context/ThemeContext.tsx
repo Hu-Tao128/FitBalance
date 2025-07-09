@@ -19,19 +19,21 @@ type ThemeContextType = {
         danger?: string;
         warning?: string;
         info?: string;
+        textSecondary?: string; // Mantén esto opcional si no siempre lo usas,
+        // o hazlo requerido si siempre estará en ambos temas
     };
 };
 
 export const lightColors = {
-    background: '#E1EEBC',  // Fondo general: verde-amarillo suave, muy calmado y fresco
-    card: '#F8FCE6',  // Cards: un poco más claro para contraste visual
-    border: '#C7DFAB',  // Bordes: tono más oscuro del fondo
-    primary: '#328E6E',  // Verde intenso, acento y botones principales
-    accent: '#67AE6E',  // Verde intermedio, para detalles, iconos activos
-    text: '#233F30',  // Verde-oliva súper oscuro (legible, no negro puro)
-    textSecondary: '#4A6E5B',  // Secundario, verde suave
-    icon: '#328E6E',  // Verde fuerte, consistente con primary
-    divider: '#DAE8B8',  // Línea sutil para separadores
+    background: '#E1EEBC',  // Fondo general: verde-amarillo suave, muy calmado y fresco
+    card: '#F8FCE6',  // Cards: un poco más claro para contraste visual
+    border: '#C7DFAB',  // Bordes: tono más oscuro del fondo
+    primary: '#328E6E',  // Verde intenso, acento y botones principales
+    accent: '#67AE6E',  // Verde intermedio, para detalles, iconos activos
+    text: '#233F30',  // Verde-oliva súper oscuro (legible, no negro puro)
+    textSecondary: '#4A6E5B',  // Secundario, verde suave
+    icon: '#328E6E',  // Verde fuerte, consistente con primary
+    divider: '#DAE8B8',  // Línea sutil para separadores
 
     // Para barras de progreso de las macros
     progressProtein: '#90C67C', // Proteínas: verde intenso
@@ -39,14 +41,10 @@ export const lightColors = {
     progressFat: '#B22222', // Grasas: verde pastel suave
     progressBg: '#E1EEBC', // Fondo de barras de progreso (igual que fondo)
 
-    success: '#67AE6E',     // Éxito: mismo verde intermedio
-    warning: '#F6DE65',     // Warning: amarillo pastel visible sobre fondo
-    error: '#EA6B6B',     // Error: rojo pastel moderno (por si acaso)
+    success: '#67AE6E',     // Éxito: mismo verde intermedio
+    warning: '#F6DE65',     // Warning: amarillo pastel visible sobre fondo
+    error: '#EA6B6B',     // Error: rojo pastel moderno (por si acaso)
 };
-
-
-
-
 
 export const darkColors = {
     background: '#0d0d0d',
@@ -66,9 +64,8 @@ export const darkColors = {
     danger: '#EA6B6B',
     warning: '#F6DE65',
     info: '#A1C8D8',
+    textSecondary: '#999999', // <--- ¡Añade esta línea! Escoge el color que mejor te parezca para el texto secundario en modo oscuro.
 };
-
-
 
 // Crea el contexto con un valor por defecto más completo
 const ThemeContext = createContext<ThemeContextType>({
@@ -126,7 +123,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 export const useTheme = () => {
     const context = useContext(ThemeContext);
     if (context === undefined) {
-        throw new Error('useTheme must be used within a ThemeProvider');
+        throw new Error('useTheme must be used a ThemeProvider');
     }
     return context;
 };

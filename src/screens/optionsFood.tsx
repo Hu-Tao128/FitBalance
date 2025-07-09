@@ -1,57 +1,53 @@
-// FoodSearchOptions.tsx
-import { FontAwesome5, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+// src/screens/optionsFood.tsx
+import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RootStackParamList } from '../../App'; // Asegúrate que la ruta sea correcta
 import { useTheme } from '../context/ThemeContext';
 
-const iconConfig = [
+type OptionsFoodScreenNavigationProp = StackNavigationProp<RootStackParamList, 'optionsFood'>;
+
+const buttonsConfig = [
     {
-        name: 'barcode-scan',
-        lib: MaterialCommunityIcons,
-        label: 'Buscar con código de barras',
-        sub: 'Escanea el empaque del alimento',
-        color: '#7CB342',
-        bg: '#ECF9E4',
-        screen: 'FoodScanner',
-        size: 38,
-    },
-    {
-        name: 'search',
-        lib: MaterialIcons,
-        label: 'Buscar por nombre o descripción',
-        sub: 'Encuentra alimentos con texto',
-        color: '#1976D2',
-        bg: '#E7F0FB',
-        screen: 'FoodClassicSearch',
-        size: 38,
-    },
-    {
-        name: 'utensils',
-        lib: FontAwesome5,
-        label: 'Crear tu propio platillo',
-        sub: 'Arma recetas y guarda combinaciones',
-        color: '#FA3E44',   // Guinda
-        bg: '#FDE5E7',      // Fondo suave rosado
-        screen: 'optionsFood', // <--- ¡CAMBIA ESTA LÍNEA!
+        name: 'plus-circle', // Icono para "Nueva comida"
+        lib: FontAwesome5, // O puedes usar MaterialIcons si prefieres
+        label: 'Nueva comida',
+        sub: 'Crea un nuevo platillo desde cero',
+        color: '#34C759', // Verde vibrante
+        bg: '#EAF7EB', // Fondo suave para el botón
+        screen: 'CreateMealScreen',
         size: 33,
+    },
+    {
+        name: 'food-fork-drink', // Icono para "Gestionar comidas"
+        lib: MaterialCommunityIcons, // O puedes usar FontAwesome5 si prefieres
+        label: 'Gestionar comidas',
+        sub: 'Edita o elimina tus platillos guardados',
+        color: '#FF9500', // Naranja
+        bg: '#FFF3E0', // Fondo suave para el botón
+        screen: 'ManageMeals',
+        size: 38,
     },
 ];
 
-export default function FoodSearchOptions({ navigation }: any) {
+export default function OptionsFood() {
     const { colors } = useTheme();
+    const navigation = useNavigation<OptionsFoodScreenNavigationProp>(); // Hook de navegación
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <Text style={styles.title}>¿Cómo quieres buscar o crear alimentos?</Text>
+            <Text style={[styles.title, { color: colors.text }]}>¿Qué quieres hacer con tus comidas?</Text>
             <View style={styles.cards}>
-                {iconConfig.map((btn, idx) => {
+                {buttonsConfig.map((btn) => {
                     const IconLib = btn.lib;
                     return (
                         <TouchableOpacity
                             key={btn.label}
                             style={[styles.cardShadow, { backgroundColor: btn.bg }]}
                             activeOpacity={0.88}
-                            onPress={() => navigation.navigate(btn.screen)}
+                            onPress={() => navigation.navigate(btn.screen as keyof RootStackParamList)}
                         >
                             <View style={styles.row}>
                                 <View style={[styles.iconCircle, { backgroundColor: btn.bg }]}>
@@ -59,7 +55,7 @@ export default function FoodSearchOptions({ navigation }: any) {
                                 </View>
                                 <View style={styles.textContainer}>
                                     <Text style={[styles.cardLabel, { color: btn.color }]}>{btn.label}</Text>
-                                    <Text style={styles.cardSub}>{btn.sub}</Text>
+                                    <Text style={[styles.cardSub, { color: colors.textSecondary }]}>{btn.sub}</Text>
                                 </View>
                             </View>
                         </TouchableOpacity>
@@ -69,7 +65,6 @@ export default function FoodSearchOptions({ navigation }: any) {
         </View>
     );
 }
-
 
 const styles = StyleSheet.create({
     container: {
@@ -83,7 +78,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 23,
         fontWeight: 'bold',
-        color: '#28313b',
         marginBottom: 35,
         letterSpacing: 0.2,
         textAlign: 'center',
@@ -141,7 +135,6 @@ const styles = StyleSheet.create({
     },
     cardSub: {
         fontSize: 14,
-        color: '#444',
         opacity: 0.80,
         flexWrap: 'wrap',
     },
