@@ -17,7 +17,7 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
-const API_BASE_URL = 'http://172.10.108.83:3000';
+const API_BASE_URL = 'https://fitbalance-backend-production.up.railway.app';
 
 const Home = () => {
   const { colors } = useTheme();

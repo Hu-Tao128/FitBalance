@@ -722,12 +722,6 @@ const PatientMealSchema = new Schema<IPatientMeal>({
 
 const PatientMeal = mongoose.model<IPatientMeal>('PatientMeal', PatientMealSchema);
 
-// ... el resto de tus modelos y la conexión a MongoDB ...
-
-// ... tus endpoints existentes ...
-
-// 👉 Endpoint para crear una comida personalizada (POST /PatientMeals)
-// Tu `CreateMealScreen` ya envía a esta ruta. Asegúrate de que el body coincida.
 app.post('/PatientMeals', async (req: Request, res: Response) => {
   const { patient_id, name, ingredients, nutrients, instructions } = req.body;
 
