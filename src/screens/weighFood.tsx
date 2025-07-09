@@ -8,7 +8,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
-const SERVER_URL = 'https://fitbalance-backend-production.up.railway.app';
+const SERVER_URL = 'http://172.10.108.83:3000';
 
 type MealType = 'Desayuno' | 'Almuerzo' | 'Cena' | 'Snack';
 type RawMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -21,6 +21,7 @@ const mealLabels: Record<RawMealType, MealType> = {
 };
 
 interface FoodItem {
+    name: string;
     food_id: string;
     grams: number;
 }
@@ -270,7 +271,7 @@ export default function WeighFoodScreen() {
                                         accessibilityLabel={`Registrar ${item.food_id}`}
                                     >
                                         <Text style={styles.foodItemText}>
-                                            {item.food_id} - {item.grams}g
+                                            {item.name} - {item.grams}g
                                             {isItemRegistered && (
                                                 <Ionicons name="checkmark-circle" size={16} color="#34C759" style={{ marginLeft: 6 }} />
                                             )}

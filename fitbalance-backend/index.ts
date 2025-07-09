@@ -114,6 +114,12 @@ const Patient = mongoose.model<IPatient>(
   }, { collection: 'Patients' })
 );
 
+interface FoodItem {
+  food_id: mongoose.Schema.Types.ObjectId;
+  grams: number;
+}
+
+
 interface IFood {
   name: string;
   portion_size_g: number;
@@ -530,36 +536,41 @@ app.get('/weeklyplan/latest/:patient_id', async (req: Request, res: Response) =>
 });
 
 // 📅 Obtener comidas del día actual para un paciente
-app.get('/weeklyplan/daily/:patient_id', async (req: Request, res: Response) => {
-  const { patient_id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(patient_id)) {
-    return res.status(400).json({ error: 'ID de paciente no válido' });
-  }
-
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-
+app.get('/weeklyplan/daily/:patient_id', async (req, res) => {
   try {
-    const latestPlan = await WeeklyPlan.findOne({
-      patient_id: new mongoose.Types.ObjectId(patient_id)
-    }).sort({ week_start: -1 }).lean();
+    const patientId = req.params.patient_id;
 
-    if (!latestPlan) {
-      return res.status(404).json({ message: 'No se encontró ningún plan semanal.' });
+    const plan = await WeeklyPlan.findOne({
+      patient_id: patientId,
+      'meals.day': new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+    }).lean();
+
+    if (!plan) {
+      return res.status(404).json({ message: 'Plan no encontrado' });
     }
 
-    const todayMeals = latestPlan.meals.filter(meal => meal.day === today);
+    // Reemplazar food_id con información del alimento
+    const enrichedMeals = await Promise.all(plan.meals.map(async (meal) => {
+      const enrichedFoods = await Promise.all(meal.foods.map(async (item) => {
+        const food = await Food.findById(item.food_id).lean();
+        return {
+          ...item,
+          name: food?.name || 'Desconocido'
+        };
+      }));
 
-    return res.json({
-      dailyCalories: latestPlan.dailyCalories,
-      protein: latestPlan.protein,
-      fat: latestPlan.fat,
-      carbs: latestPlan.carbs,
-      meals: todayMeals
-    });
-  } catch (error) {
-    console.error('❌ Error en /weeklyplan/daily:', error);
-    return res.status(500).json({ error: 'Error al obtener las comidas del día.' });
+      return {
+        ...meal,
+        foods: enrichedFoods
+      };
+    }));
+
+    plan.meals = enrichedMeals;
+
+    res.json(plan);
+  } catch (err) {
+    console.error('Error al obtener el plan diario:', err);
+    res.status(500).json({ error: 'Error al obtener el plan diario' });
   }
 });
 
@@ -665,14 +676,6 @@ app.post('/send-reset-code', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error al enviar el correo de recuperación.' });
   }
 });
-
-// ---------------------------------------------------------------
-
-//  NUEVO ------------------------- 08/07
-
-// ... tus otros imports y setup de express ...
-
-// --- Nuevas interfaces y modelos ---
 
 interface IPatientMeal extends Document {
   patient_id: Types.ObjectId;
