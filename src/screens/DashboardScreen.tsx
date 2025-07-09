@@ -17,7 +17,7 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
-const API_BASE_URL = 'https://fitbalance-backend-production.up.railway.app';
+const API_BASE_URL = 'http://172.10.108.83:3000';
 
 const Home = () => {
   const { colors } = useTheme();
@@ -39,14 +39,29 @@ const Home = () => {
       setError(null);
 
       const today = new Date().toISOString().split('T')[0];
-      const response = await axios.get(`${API_BASE_URL}/daily-nutrition`, {
-        params: {
-          patient_id: user?.id,
-          date: today
+      
+      if (!user?.id) return;
+
+      const [consumedRes, goalsRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/daily-nutrition`, {
+          params: {
+            patient_id: user.id,
+            date: today
+          }
+        }),
+        axios.get(`${API_BASE_URL}/weeklyplan/latest/${user.id}`)
+      ]);
+
+      setNutritionData({
+        consumed: consumedRes.data,
+        goals: {
+          calories: goalsRes.data?.dailyCalories || 2000,
+          protein: goalsRes.data?.protein || 150,
+          fat: goalsRes.data?.fat || 70,
+          carbs: goalsRes.data?.carbs || 250,
         }
       });
 
-      setNutritionData(response.data);
     } catch (err) {
       console.error('Error fetching nutrition data:', err);
       setError('No se pudieron cargar los datos nutricionales');
@@ -54,6 +69,7 @@ const Home = () => {
       setLoading(false);
     }
   };
+
 
   // Obtener datos nutricionales al cargar el componente
   useEffect(() => {
