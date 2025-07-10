@@ -14,7 +14,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { RootStackParamList } from '../../App'; // Asegúrate de exportar esto en App.ts o types.ts
+import { RootStackParamList } from '../../App';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from "../context/UserContext";
 

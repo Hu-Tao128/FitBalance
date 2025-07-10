@@ -264,7 +264,7 @@ export default function WeighFoodScreen() {
                                         key={`food-${idx}`}
                                         onPress={() => {
                                             setSelectedMeal(label);
-                                            setSelectedItem(item.food_id);
+                                            setSelectedItem(item.name);
                                             setModalVisible(true);
                                         }}
                                         style={styles.foodItemTouchable}
