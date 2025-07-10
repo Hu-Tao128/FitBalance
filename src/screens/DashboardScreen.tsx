@@ -17,7 +17,11 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
+import GoogleFit, { Scopes } from 'react-native-google-fit';
+
 const API_BASE_URL = 'https://fitbalance-backend-production.up.railway.app';
+
+type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
 const Home = () => {
   const { colors } = useTheme();
@@ -31,6 +35,19 @@ const Home = () => {
   const [steps, setSteps] = useState<number>(0);
   const [pastStepCount, setPastStepCount] = useState<number>(0);
   const [isPedometerAvailable, setIsPedometerAvailable] = useState<'checking' | 'available' | 'unavailable'>('checking');
+
+  const estimateCaloriesFromSteps = (steps: number, weightKg: number, heightCm: number) => {
+    const MET = 3.5; // caminata moderada
+    const strideLengthKm = (heightCm * 0.415) / 100000; // cm a km
+    const distanceKm = steps * strideLengthKm;
+    const calories = MET * weightKg * (distanceKm / 5); // asume ritmo de 5km/h
+    return Math.round(calories);
+  };
+
+  const weightKg = user?.weight_kg || 70;
+  const heightCm = user?.height_cm || 170;
+  const caloriesFromSteps = estimateCaloriesFromSteps(steps, weightKg, heightCm);
+
 
   // Función para obtener datos nutricionales
   const fetchNutritionData = async () => {
@@ -93,6 +110,49 @@ const Home = () => {
           }
         }
 
+        if (Platform.OS === 'android') {
+          const options = {
+            scopes: [
+              Scopes.FITNESS_ACTIVITY_READ,
+              Scopes.FITNESS_ACTIVITY_WRITE,
+              Scopes.FITNESS_LOCATION_READ,
+            ],
+          };
+
+          GoogleFit.authorize(options)
+            .then(authResult => {
+              if (authResult.success) {
+                console.log("Google Fit autorizado");
+                // Ya puedes leer pasos
+                GoogleFit.getDailyStepCountSamples({
+                  startDate: new Date().toISOString().split('T')[0] + "T00:00:00.000Z",
+                  endDate: new Date().toISOString(),
+                }).then(res => {
+                  console.log("Respuesta de Google Fit:", JSON.stringify(res, null, 2));
+
+                  const today = new Date().toISOString().split('T')[0];
+
+                  const estimatedSource = res.find(
+                    entry => entry.source === "com.google.android.gms:estimated_steps"
+                  );
+
+                  if (!estimatedSource) {
+                    console.warn("No se encontró la fuente com.google.android.gms:estimated_steps");
+                    return;
+                  }
+
+                  const stepsToday = estimatedSource.steps
+                    .filter(step => step.date === today)
+                    .reduce((total, step) => total + step.value, 0);
+
+                  setSteps(stepsToday);
+                });
+              } else {
+                console.warn("Autorización fallida", authResult.message);
+              }
+            });
+        }
+
         const isAvailable = await Pedometer.isAvailableAsync();
         setIsPedometerAvailable(isAvailable ? 'available' : 'unavailable');
 
@@ -147,8 +207,18 @@ const Home = () => {
   const fatColor = colors.progressFat || '#FF6B81';
   const barBg = colors.progressBg || '#EAF3ED';
 
+  type MacroBarProps = {
+    label: string;
+    icon: IconName;
+    value: number;
+    goal: number;
+    color: string;
+    barBg: string;
+    unit: string;
+  };
+
   // --- MacroBar ahora está aquí dentro ---
-  const MacroBar = ({ label, icon, value, goal, color, barBg, unit }) => {
+  const MacroBar: React.FC<MacroBarProps> = ({ label, icon, value, goal, color, barBg, unit }) => {
     const percent = Math.min(100, Math.round((value / goal) * 100));
     const widthAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -526,7 +596,10 @@ const Home = () => {
           </View>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Ejercicio</Text>
-            <Text style={styles.cardText}>0 cal</Text>
+            <Text style={styles.cardText}>{caloriesFromSteps} cal</Text>
+            <Text style={[styles.cardText, { fontSize: 12 }]}>
+              Estimado por {steps} pasos
+            </Text>
           </View>
         </View>
 
