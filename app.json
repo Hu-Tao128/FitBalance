@@ -16,7 +16,8 @@
       "supportsTablet": true,
       "runtimeVersion": {
         "policy": "appVersion"
-      }
+      },
+      "bundleIdentifier": "com.ayasc.nutifrut"
     },
     "android": {
       "adaptiveIcon": {
@@ -32,8 +33,6 @@
       "edgeToEdgeEnabled": true,
       "package": "com.ayasc.nutifrut",
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
