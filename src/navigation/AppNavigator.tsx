@@ -9,13 +9,17 @@ import UserProfileScreen from '../screens/userProfileScreen';
 import weighFood from '../screens/weighFood';
 import { BottomNavigation } from './bottom-navigation';
 
-// NUEVAS IMPORTACIONES
+// NUEVAS IMPORTACIONES DE PANTALLAS
 import CreateMealScreen from '../screens/CreateMealScreen';
+import EditMealScreen from '../screens/EditMealScreen'; // <--- ¡Importa la nueva pantalla de edición!
 import FoodClassicSearch from '../screens/FoodClassicSearch';
 import FoodScanner from '../screens/FoodScanner';
 import FoodSearchOptions from '../screens/FoodSearchOptions';
-import ManageMealsScreen from '../screens/ManageMeals'; // <--- ¡Importa tu nueva pantalla aquí!
+import ManageMealsScreen from '../screens/ManageMeals';
 import optionsFood from '../screens/optionsFood';
+
+// Importa PatientMeal desde tu archivo de tipos compartido
+import { PatientMeal } from '../types'; // O la ruta correcta a tu archivo de tipos
 
 export type RootStackParamList = {
   Login: undefined;
@@ -26,9 +30,10 @@ export type RootStackParamList = {
   FoodSearchOptions: undefined;
   FoodScanner: undefined;
   FoodClassicSearch: undefined;
-  CreateMealScreen: undefined;
+  CreateMealScreen: undefined; // <--- Ahora sin parámetros para crear
   optionsFood: undefined;
-  ManageMeals: undefined; // <--- ¡Añade esta línea!
+  ManageMeals: undefined;
+  EditMeal: { mealToEdit: PatientMeal }; // <--- ¡Define la ruta de edición!
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -114,7 +119,7 @@ export default function AppNavigator() {
               name="CreateMealScreen"
               component={CreateMealScreen}
               options={{
-                title: 'Crear Comida Personalizada',
+                title: 'Crear Comida Personalizada', // Ahora solo para crear
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}
@@ -123,17 +128,26 @@ export default function AppNavigator() {
               name="optionsFood"
               component={optionsFood}
               options={{
-                title: 'Opciones de Comida', // Personaliza el título aquí
+                title: 'Opciones de Comida',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}
             />
-            {/* ¡Añade tu nueva pantalla de gestionar comidas aquí! */}
             <Stack.Screen
               name="ManageMeals"
               component={ManageMealsScreen}
               options={{
-                title: 'Gestionar Comidas', // Personaliza el título aquí
+                title: 'Gestionar Comidas',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff',
+              }}
+            />
+            {/* ✅ NUEVA PANTALLA DE EDICIÓN */}
+            <Stack.Screen
+              name="EditMeal"
+              component={EditMealScreen}
+              options={{
+                title: 'Editar Comida', // Título para la pantalla de edición
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type User = {
   id: string;
@@ -29,10 +29,10 @@ type UserContextType = {
 
 const UserContext = createContext<UserContextType>({
   user: null,
-  login: async () => {},
-  logout: async () => {},
+  login: async () => { },
+  logout: async () => { },
   isLoading: true,
-  updateUser: async () => {},
+  updateUser: async () => { },
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {

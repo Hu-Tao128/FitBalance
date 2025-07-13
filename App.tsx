@@ -7,7 +7,7 @@ import { UserProvider } from "./src/context/UserContext";
 import AppNavigator from './src/navigation/AppNavigator';
 import { setupNotifications } from './src/services/NotificationsServices';
 
-import { PatientMeal } from './src/types'; // O la ruta correcta a tu archivo de tipos
+import { PatientMeal } from './src/types';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -18,7 +18,8 @@ export type RootStackParamList = {
   UserProfile: undefined;
   optionsFood: undefined;
   ManageMeals: undefined;
-  CreateMealScreen: { mealToEdit: PatientMeal } | undefined;
+  CreateMealScreen: undefined;
+  EditMeal: { mealToEdit: PatientMeal };
 };
 
 export default function App() {

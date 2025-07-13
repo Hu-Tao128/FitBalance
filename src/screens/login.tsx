@@ -125,7 +125,7 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
-    const SERVER_URL = 'https://fitbalance-backend-production.up.railway.app';
+    const SERVER_URL = 'http://192.168.1.70:3000';
 
     const handleLogin = async () => {
         if (!username || !password) {

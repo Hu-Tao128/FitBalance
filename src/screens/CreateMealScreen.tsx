@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useUser } from '../context/UserContext';
 
-// ---------- TYPES ----------
+// ---------- TIPOS (Comunes para Create y Edit, podrías moverlos a un archivo types/index.ts) ----------
 type Nutrients = {
     energy_kcal?: number;
     protein_g?: number;
@@ -38,10 +38,10 @@ type Ingredient = {
     amount_g: number;
 };
 
-// 👉  Ajusta IP o pasa a .env
-const API_BASE = 'https://fitbalance-backend-production.up.railway.app';
+// 👉 BASE DE LA API (Asegúrate que esta URL sea correcta para tu backend)
+const API_BASE = 'http://192.168.1.70:3000';
 
-// ---------- Utilidades ----------
+// ---------- UTILIDADES (Comunes para Create y Edit) ----------
 function getObjectIdFromMongoDoc(id: any) {
     if (typeof id === 'object' && id?.$oid) return id.$oid;
     return String(id);
@@ -50,21 +50,21 @@ function isValidObjectId(id: any) {
     return typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id);
 }
 
-// ---------- Componente ----------
+// ---------- COMPONENTE CreateMealScreen ----------
 export default function CreateMealScreen() {
     const { user } = useUser();
 
-    // --- state ---
-    const [foods, setFoods] = useState<Food[]>([]);
-    const [searchFood, setSearchFood] = useState('');
-    const [ingredients, setIngredients] = useState<Ingredient[]>([]);
-    const [selectedFood, setSelectedFood] = useState<Food | null>(null);
-    const [amount, setAmount] = useState('');
-    const [mealName, setMealName] = useState('');
-    const [instructions, setInstructions] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [loadingFoods, setLoadingFoods] = useState(false);
-    const [totals, setTotals] = useState({
+    // --- ESTADO LOCAL ---
+    const [foods, setFoods] = useState<Food[]>([]); // Alimentos disponibles para buscar
+    const [searchFood, setSearchFood] = useState(''); // Texto de búsqueda de alimentos
+    const [ingredients, setIngredients] = useState<Ingredient[]>([]); // Ingredientes de la comida actual
+    const [selectedFood, setSelectedFood] = useState<Food | null>(null); // Alimento seleccionado para añadir
+    const [amount, setAmount] = useState(''); // Cantidad en gramos del alimento seleccionado
+    const [mealName, setMealName] = useState(''); // Nombre de la comida
+    const [instructions, setInstructions] = useState(''); // Instrucciones de la comida
+    const [loading, setLoading] = useState(false); // Estado de carga al guardar la comida
+    const [loadingFoods, setLoadingFoods] = useState(false); // Estado de carga al buscar alimentos
+    const [totals, setTotals] = useState({ // Totales nutricionales de la comida
         energy_kcal: 0,
         protein_g: 0,
         carbohydrates_g: 0,
@@ -73,7 +73,7 @@ export default function CreateMealScreen() {
         sugar_g: 0,
     });
 
-    // ---------- cargar alimentos ----------
+    // --- EFECTO: CARGAR ALIMENTOS AL INICIAR ---
     useEffect(() => {
         let mounted = true;
         (async () => {
@@ -82,7 +82,7 @@ export default function CreateMealScreen() {
                 const res = await axios.get(`${API_BASE}/api/food`);
                 if (mounted) setFoods(res.data || []);
             } catch (err) {
-                console.error('GET /api/food', err);
+                console.error('ERROR al obtener alimentos:', err);
                 Alert.alert('Error', 'No se pudieron cargar los alimentos.');
             } finally {
                 if (mounted) setLoadingFoods(false);
@@ -93,7 +93,7 @@ export default function CreateMealScreen() {
         };
     }, []);
 
-    // ---------- recalcular totales ----------
+    // --- EFECTO: RECALCULAR TOTALES CUANDO CAMBIAN LOS INGREDIENTES ---
     useEffect(() => {
         const t: any = { energy_kcal: 0, protein_g: 0, carbohydrates_g: 0, fat_g: 0, fiber_g: 0, sugar_g: 0 };
         ingredients.forEach(ing => {
@@ -117,7 +117,7 @@ export default function CreateMealScreen() {
         });
     }, [ingredients]);
 
-    // ---------- filtros ----------
+    // --- LÓGICA DE FILTRADO DE ALIMENTOS ---
     const filteredFoods =
         searchFood.trim().length < 2
             ? []
@@ -125,38 +125,41 @@ export default function CreateMealScreen() {
                 .filter(f => (f.name || '').toLowerCase().includes(searchFood.trim().toLowerCase()))
                 .slice(0, 10);
 
-    // ---------- acciones ----------
+    // --- MANEJADORES DE EVENTOS ---
     const handleAddIngredient = () => {
         const grams = Number(amount);
-        if (!selectedFood) return Alert.alert('Error', 'Selecciona un alimento válido');
-        if (!grams || grams <= 0) return Alert.alert('Error', 'Ingresa una cantidad válida (>0 g)');
+        if (!selectedFood) return Alert.alert('Error', 'Selecciona un alimento válido.');
+        if (!grams || grams <= 0) return Alert.alert('Error', 'Ingresa una cantidad válida (>0 g).');
 
         const _id = getObjectIdFromMongoDoc(selectedFood._id);
         if (ingredients.some(i => i.food_id === _id))
-            return Alert.alert('Error', 'Este alimento ya está agregado');
+            return Alert.alert('Error', 'Este alimento ya está agregado a la lista.');
 
         setIngredients(prev => [...prev, { food_id: _id, food_data: selectedFood, amount_g: grams }]);
-        setSelectedFood(null);
-        setSearchFood('');
-        setAmount('');
+        setSelectedFood(null); // Limpiar selección
+        setSearchFood(''); // Limpiar búsqueda
+        setAmount(''); // Limpiar cantidad
     };
 
-    const handleRemoveIngredient = (i: number) =>
-        Alert.alert('¿Eliminar?', '', [
+    const handleRemoveIngredient = (indexToRemove: number) =>
+        Alert.alert('Eliminar Ingrediente', '¿Estás seguro de que quieres eliminar este ingrediente?', [
             { text: 'Cancelar', style: 'cancel' },
             {
                 text: 'Eliminar',
                 style: 'destructive',
-                onPress: () => setIngredients(arr => arr.filter((_, idx) => idx !== i)),
+                onPress: () => setIngredients(arr => arr.filter((_, idx) => idx !== indexToRemove)),
             },
         ]);
 
-    const handleCreateMeal = async () => {
-        if (!mealName.trim()) return Alert.alert('Error', 'Ponle un nombre a la comida');
-        if (ingredients.length === 0) return Alert.alert('Error', 'Agrega al menos un ingrediente');
+    const handleCreateNewMeal = async () => {
+        if (!mealName.trim()) return Alert.alert('Error', 'Debes ponerle un nombre a la comida.');
+        if (ingredients.length === 0) return Alert.alert('Error', 'Agrega al menos un ingrediente para crear la comida.');
 
         const patientId = getObjectIdFromMongoDoc(user.id);
-        if (!isValidObjectId(patientId)) return Alert.alert('Error', 'patient_id inválido');
+        if (!isValidObjectId(patientId)) {
+            console.error('ID de paciente no válido:', patientId);
+            return Alert.alert('Error', 'No se pudo obtener la información de tu usuario. Intenta reiniciar la app.');
+        }
 
         setLoading(true);
 
@@ -172,23 +175,28 @@ export default function CreateMealScreen() {
                 instructions: instructions.trim(),
             };
 
+            // ✅ Siempre POST para crear una nueva comida
             await axios.post(`${API_BASE}/PatientMeals`, mealData, {
                 headers: { 'Content-Type': 'application/json' },
             });
 
-            Alert.alert('¡Éxito!', 'Comida creada');
+            Alert.alert('¡Éxito!', 'Comida creada correctamente.');
+            // Limpiar el formulario después de crear
             setMealName('');
             setIngredients([]);
             setInstructions('');
+            setSelectedFood(null);
+            setSearchFood('');
+            setAmount('');
         } catch (err: any) {
-            console.error('POST /PatientMeals', err.response?.status, err.response?.data || err.message);
-            Alert.alert('Error', err.response?.data?.error || 'No se pudo crear la comida');
+            console.error('ERROR al crear comida:', err.response?.status, err.response?.data || err.message);
+            Alert.alert('Error', err.response?.data?.error || 'No se pudo crear la comida. Inténtalo de nuevo.');
         } finally {
             setLoading(false);
         }
     };
 
-    // ---------- renders ----------
+    // --- RENDERIZADO DE UN ELEMENTO DE INGREDIENTE ---
     const IngredientItem = ({ item, index }: { item: Ingredient; index: number }) => (
         <View style={styles.ingredientItem}>
             <View style={styles.ingredientNameBox}>
@@ -203,7 +211,7 @@ export default function CreateMealScreen() {
         </View>
     );
 
-    // ---------- JSX ----------
+    // ---------- JSX (Interfaz de Usuario) ----------
     return (
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView
@@ -215,29 +223,31 @@ export default function CreateMealScreen() {
                     keyExtractor={(_, i) => i.toString()}
                     renderItem={({ item, index }) => <IngredientItem item={item} index={index} />}
                     ListHeaderComponent={
-                        <View>
-                            <Text style={styles.title}>Crear Comida</Text>
+                        <View style={styles.contentPadding}>
+                            <Text style={styles.title}>Crear Comida Personalizada</Text>
 
-                            <Text style={styles.label}>Nombre *</Text>
+                            <Text style={styles.label}>Nombre de la comida *</Text>
                             <TextInput
                                 style={styles.input}
                                 value={mealName}
                                 onChangeText={setMealName}
-                                placeholder="Ej. Ensalada César"
+                                placeholder="Ej. Ensalada Fresca de Pollo"
+                                placeholderTextColor="#999"
                             />
 
-                            <Text style={styles.label}>Buscar alimento *</Text>
+                            <Text style={styles.label}>Buscar y añadir ingredientes *</Text>
                             <TextInput
                                 style={styles.input}
                                 value={searchFood}
                                 onChangeText={setSearchFood}
-                                placeholder="Mín. 2 caracteres"
+                                placeholder="Mín. 2 caracteres para buscar..."
+                                placeholderTextColor="#999"
                             />
 
-                            {loadingFoods && <ActivityIndicator style={{ marginVertical: 8 }} />}
+                            {loadingFoods && <ActivityIndicator style={styles.activityIndicator} size="small" color="#67AE6E" />}
 
-                            {/* Lista de alimentos sugeridos, usando map y NO FlatList */}
-                            {filteredFoods.length > 0 && !selectedFood && (
+                            {/* Lista de alimentos sugeridos */}
+                            {searchFood.trim().length >= 2 && filteredFoods.length > 0 && !selectedFood && (
                                 <View style={styles.list}>
                                     {filteredFoods.map(item => (
                                         <TouchableOpacity
@@ -253,228 +263,258 @@ export default function CreateMealScreen() {
                                     ))}
                                 </View>
                             )}
+                            {searchFood.trim().length >= 2 && filteredFoods.length === 0 && !loadingFoods && !selectedFood && (
+                                <Text style={styles.noResultsText}>No se encontraron alimentos.</Text>
+                            )}
 
+                            {/* Sección para añadir cantidad del alimento seleccionado */}
                             {selectedFood && (
                                 <View style={styles.addBox}>
                                     <View style={styles.selectedFoodNameContainer}>
-                                        <Text
-                                            style={styles.bold}
-                                            numberOfLines={2}
-                                            ellipsizeMode="tail"
-                                        >
+                                        <Text style={styles.boldText} numberOfLines={2} ellipsizeMode="tail">
                                             {selectedFood.name}
                                         </Text>
                                     </View>
                                     <TextInput
-                                        style={styles.amount}
+                                        style={styles.amountInput}
                                         value={amount}
                                         onChangeText={setAmount}
                                         placeholder="Gramos"
                                         keyboardType="numeric"
+                                        placeholderTextColor="#999"
                                     />
-                                    <TouchableOpacity style={styles.greenBtn} onPress={handleAddIngredient}>
-                                        <Text style={styles.whiteTxt}>Añadir</Text>
+                                    <TouchableOpacity style={styles.addButton} onPress={handleAddIngredient}>
+                                        <Text style={styles.addButtonText}>Añadir</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
 
                             {ingredients.length > 0 && (
-                                <Text style={styles.label}>Ingredientes</Text>
+                                <Text style={styles.label}>Ingredientes añadidos</Text>
                             )}
                         </View>
                     }
                     ListFooterComponent={
-                        <>
+                        <View style={styles.contentPadding}>
                             {ingredients.length > 0 && (
-                                <View style={styles.totals}>
-                                    <Text style={styles.bold}>Totales: {totals.energy_kcal} kcal</Text>
-                                    <Text>
-                                        Prot {totals.protein_g} g · Carb {totals.carbohydrates_g} g · Grasa {totals.fat_g} g
+                                <View style={styles.totalsBox}>
+                                    <Text style={styles.boldText}>Totales: {totals.energy_kcal} kcal</Text>
+                                    <Text style={styles.totalsText}>
+                                        Prot {totals.protein_g}g · Carb {totals.carbohydrates_g}g · Grasa {totals.fat_g}g
                                     </Text>
                                 </View>
                             )}
 
                             <Text style={styles.label}>Instrucciones (opcional)</Text>
                             <TextInput
-                                style={[styles.input, { height: 90 }]}
+                                style={[styles.input, styles.instructionsInput]}
                                 value={instructions}
                                 onChangeText={setInstructions}
-                                placeholder="Paso a paso…"
+                                placeholder="Describe los pasos para preparar la comida..."
                                 multiline
+                                placeholderTextColor="#999"
                             />
 
                             <TouchableOpacity
-                                style={[styles.greenBtn, loading && { opacity: 0.5 }]}
+                                style={[styles.mainButton, loading && { opacity: 0.6 }]}
                                 disabled={loading}
-                                onPress={handleCreateMeal}
+                                onPress={handleCreateNewMeal}
                             >
                                 {loading ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
-                                    <Text style={styles.whiteTxt}>Crear Comida</Text>
+                                    <Text style={styles.mainButtonText}>Crear Comida</Text>
                                 )}
                             </TouchableOpacity>
-                        </>
+                        </View>
                     }
-                    contentContainerStyle={{ padding: 20 }}
-                    ListEmptyComponent={null}
+                    contentContainerStyle={{ paddingHorizontal: 0, paddingTop: 0 }}
                 />
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
 
-// ---------- Estilos ----------
+// ---------- ESTILOS (Usa colores fijos o tus `colors` del tema si quieres que cambien con el tema) ----------
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#EEEFE0', // fondo general
+        backgroundColor: '#F0F2F5', // Color de fondo claro por defecto
+    },
+    contentPadding: {
+        paddingHorizontal: 20,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 24,
+        marginBottom: 25,
+        marginTop: 10,
         textAlign: 'center',
-        color: '#000', // texto principal
-        letterSpacing: 1,
+        color: '#333',
     },
     label: {
-        fontWeight: 'bold',
-        marginTop: 18,
-        marginBottom: 6,
-        color: '#819A91', // color principal para labels
+        fontWeight: '600',
+        marginTop: 20,
+        marginBottom: 8,
+        color: '#555',
         fontSize: 16,
-        letterSpacing: 0.5,
     },
     input: {
         backgroundColor: '#fff',
-        borderRadius: 12,
+        borderRadius: 10,
         padding: 14,
         borderWidth: 1,
-        borderColor: '#A7C1A8',
-        marginBottom: 4,
+        borderColor: '#E0E0E0',
         fontSize: 16,
-        color: '#000',
+        color: '#333',
+    },
+    activityIndicator: {
+        marginVertical: 10,
     },
     list: {
-        maxHeight: 180,
-        marginVertical: 8,
-        borderRadius: 12,
-        backgroundColor: '#D1D8BE', // card
+        maxHeight: 200,
+        marginVertical: 10,
+        borderRadius: 10,
+        backgroundColor: '#fff',
         borderWidth: 1,
-        borderColor: '#A7C1A8',
-        padding: 2,
+        borderColor: '#E0E0E0',
+        overflow: 'hidden', // Para asegurar que el borderRadius se aplique
     },
     foodItem: {
-        padding: 13,
+        padding: 15,
         borderBottomWidth: 1,
-        borderColor: '#A7C1A8',
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        marginVertical: 3,
-        marginHorizontal: 4,
+        borderColor: '#F0F0F0',
     },
     foodName: {
-        fontWeight: '600',
-        color: '#000',
-        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        fontSize: 15,
     },
     foodInfo: {
         fontSize: 12,
-        color: '#819A91',
-        marginTop: 2,
+        color: '#888',
+        marginTop: 4,
+    },
+    noResultsText: {
+        textAlign: 'center',
+        marginTop: 15,
+        fontSize: 14,
+        color: '#888',
     },
     addBox: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: 10,
-        backgroundColor: '#D1D8BE', // card
-        borderRadius: 12,
+        backgroundColor: '#E6F3FF', // Fondo claro para la caja de añadir
+        borderRadius: 10,
         padding: 10,
         borderWidth: 1,
-        borderColor: '#A7C1A8',
+        borderColor: '#B3D9FF',
+        marginTop: 15,
+        marginBottom: 10,
     },
     selectedFoodNameContainer: {
         flex: 1,
-        marginRight: 8,
-        minWidth: 0,
+        marginRight: 10,
     },
-    amount: {
-        width: 80, // ancho fijo para input de gramos
+    amountInput: {
+        width: 80,
         backgroundColor: '#fff',
-        borderRadius: 10,
+        borderRadius: 8,
         paddingVertical: 8,
         paddingHorizontal: 10,
         borderWidth: 1,
-        borderColor: '#A7C1A8',
-        fontSize: 16,
-        color: '#000',
-        marginRight: 8,
+        borderColor: '#D0D0D0',
+        fontSize: 15,
+        color: '#333',
+        textAlign: 'center',
+        marginRight: 10,
+    },
+    addButton: {
+        backgroundColor: '#007AFF', // Azul para el botón Añadir
+        borderRadius: 8,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        alignItems: 'center',
+    },
+    addButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 15,
     },
     ingredientItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#D1D8BE', // card
-        padding: 12,
-        marginBottom: 6,
+        backgroundColor: '#fff', // Fondo blanco para cada ingrediente
+        padding: 15,
+        marginBottom: 8,
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: '#A7C1A8',
-        minHeight: 44,
+        borderColor: '#E0E0E0',
+        marginHorizontal: 20, // Ajuste para el padding del FlatList
     },
     ingredientNameBox: {
         flex: 1,
-        minWidth: 0,
         marginRight: 10,
     },
     ingredientName: {
         fontSize: 15,
-        color: '#000',
+        color: '#333',
         fontWeight: '500',
     },
     ingredientAmount: {
         fontSize: 15,
-        color: '#819A91',
+        color: '#666',
         fontWeight: '500',
         marginRight: 10,
     },
     removeBox: {
-        paddingHorizontal: 4,
-        paddingVertical: 2,
+        padding: 5,
+        backgroundColor: '#FFEBEE', // Rojo muy claro
+        borderRadius: 15,
+        width: 30,
+        height: 30,
         alignItems: 'center',
         justifyContent: 'center',
     },
     remove: {
-        color: '#FA3E44',
-        fontSize: 22,
+        color: '#FF3B30', // Rojo vibrante
+        fontSize: 18,
         fontWeight: 'bold',
-        opacity: 0.85,
     },
-    totals: {
-        backgroundColor: '#D1D8BE', // card
-        padding: 14,
+    totalsBox: {
+        backgroundColor: '#EAF7EB',
+        padding: 18,
         borderRadius: 12,
-        marginVertical: 14,
+        marginVertical: 20,
         borderWidth: 1,
-        borderColor: '#A7C1A8',
+        borderColor: '#C8E6C9',
         alignItems: 'center',
     },
-    greenBtn: {
-        backgroundColor: '#819A91', // primary
+    totalsText: {
+        fontSize: 15,
+        color: '#555',
+        marginTop: 5,
+    },
+    instructionsInput: {
+        height: 100, // Altura predeterminada para el campo de instrucciones
+        textAlignVertical: 'top', // Alinea el texto al inicio en Android
+    },
+    mainButton: {
+        backgroundColor: '#34C759', // Verde principal para el botón grande
         borderRadius: 10,
-        padding: 16,
+        paddingVertical: 18,
         alignItems: 'center',
-        marginTop: 18,
+        marginTop: 25,
+        marginBottom: 30,
     },
-    whiteTxt: {
+    mainButtonText: {
         color: '#fff',
         fontWeight: 'bold',
-        fontSize: 17,
-        letterSpacing: 0.5,
+        fontSize: 18,
     },
-    bold: {
+    boldText: {
         fontWeight: 'bold',
-        color: '#000',
+        color: '#333',
         fontSize: 16,
     },
 });

@@ -4,7 +4,7 @@ import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import FoodDetails from '../components/FoodDetails';
 import { useTheme } from '../context/ThemeContext';
 
-const SERVER_URL = 'https://fitbalance-backend-production.up.railway.app';
+const API_BASE = 'http://192.168.1.70:3000';
 
 export default function FoodClassicSearch({ navigation }: any) {
     const { colors } = useTheme();
