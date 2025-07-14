@@ -16,10 +16,9 @@ import {
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
-
+ 
+import { API_CONFIG } from '../config';
 import GoogleFit, { Scopes } from 'react-native-google-fit';
-
-const API_BASE_URL = 'https://fitbalance-backend-production.up.railway.app';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -60,13 +59,13 @@ const Home = () => {
       if (!user?.id) return;
 
       const [consumedRes, goalsRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/daily-nutrition`, {
+        axios.get(`${API_CONFIG}/daily-nutrition`, {
           params: {
             patient_id: user.id,
             date: today
           }
         }),
-        axios.get(`${API_BASE_URL}/weeklyplan/latest/${user.id}`)
+        axios.get(`${API_CONFIG}/weeklyplan/latest/${user.id}`)
       ]);
 
       setNutritionData({

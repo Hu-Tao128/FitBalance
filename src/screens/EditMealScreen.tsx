@@ -18,14 +18,14 @@ import {
 import { RootStackParamList } from '../../App';
 import { useUser } from '../context/UserContext';
 
+import {API_CONFIG} from '../config';
+
 // TIPOS ... (sin cambios)
 type EditMealScreenRouteProp = RouteProp<RootStackParamList, 'EditMeal'>;
 type EditMealScreenNavigationProp = StackNavigationProp<RootStackParamList, 'EditMeal'>;
 type Nutrients = { energy_kcal?: number; protein_g?: number; carbohydrates_g?: number; fat_g?: number; fiber_g?: number; sugar_g?: number; };
 type Food = { _id: any; name: string; nutrients?: Nutrients; portion_size_g?: number; };
 type Ingredient = { food_id: string; food_data: Food; amount_g: number; };
-
-const API_BASE = 'http://192.168.1.70:3000';
 
 // UTILIDADES ... (sin cambios)
 function getObjectIdFromMongoDoc(id: any) {
@@ -78,7 +78,7 @@ export default function EditMealScreen() {
         const fetchAllFoods = async () => {
             setLoadingFoods(true);
             try {
-                const res = await axios.get(`${API_BASE}/api/food`);
+                const res = await axios.get(`${API_CONFIG}/api/food`);
                 setFoods(res.data || []);
             } catch (err) {
                 console.error('ERROR al obtener alimentos:', err);
@@ -165,7 +165,7 @@ export default function EditMealScreen() {
                 instructions: instructions.trim(),
             };
 
-            await axios.put(`${API_BASE}/PatientMeals/${mealToEdit._id}`, mealData);
+            await axios.put(`${API_CONFIG}/PatientMeals/${mealToEdit._id}`, mealData);
 
             Alert.alert('¡Éxito!', 'Comida actualizada correctamente.');
             navigation.goBack();

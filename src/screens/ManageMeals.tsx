@@ -20,11 +20,11 @@ import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import { PatientMeal } from '../types';
 
+import { API_CONFIG } from '../config';
+
 // ---------- TIPOS ----------
 type ManageMealsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ManageMeals'>;
 type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
-
-const API_BASE = 'http://192.168.1.70:3000';
 
 export default function ManageMealsScreen() {
     const { user } = useUser();
@@ -64,7 +64,7 @@ export default function ManageMealsScreen() {
             const patientId = String(user.id);
             // Usar ruta RESTful con :patient_id
             const res = await axios.get(
-                `${API_BASE}/PatientMeals/${patientId}`
+                `${API_CONFIG}/PatientMeals/${patientId}`
             );
             setPatientMeals(res.data);
         } catch (error: any) {
@@ -118,7 +118,7 @@ export default function ManageMealsScreen() {
                     onPress: async () => {
                         setLoading(true);
                         try {
-                            await axios.delete(`${API_BASE}/PatientMeals/${mealId}`);
+                            await axios.delete(`${API_CONFIG}/PatientMeals/${mealId}`);
                             Alert.alert('Éxito', 'Comida eliminada correctamente.');
                             fetchPatientMeals();
                         } catch (error) {
@@ -156,7 +156,7 @@ export default function ManageMealsScreen() {
                 .padStart(2, '0')}`;
 
             await axios.post(
-                `${API_BASE}/DailyMealLogs/add-custom-meal`,
+                `${API_CONFIG}/DailyMealLogs/add-custom-meal`,
                 {
                     patient_id: patientId,
                     meal_id: selectedMealForAdd._id,

@@ -4,7 +4,7 @@ import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import FoodDetails from '../components/FoodDetails';
 import { useTheme } from '../context/ThemeContext';
 
-const API_BASE = 'http://192.168.1.70:3000';
+import { API_CONFIG } from '../config';
 
 export default function FoodClassicSearch({ navigation }: any) {
     const { colors } = useTheme();
@@ -66,7 +66,7 @@ export default function FoodClassicSearch({ navigation }: any) {
             return setError("No has puesto un nombre de alimento");
         }
         try {
-            const res = await axios.post(`${SERVER_URL}/search-food`, { query });
+            const res = await axios.post(`${API_CONFIG}/search-food`, { query });
 
             if (res.data.source === 'nutritionix') {
                 setResult({ foods: res.data.results });

@@ -18,6 +18,8 @@ import { RootStackParamList } from '../../App';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from "../context/UserContext";
 
+import { API_CONFIG } from '../config';
+
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
@@ -125,8 +127,6 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
-    const SERVER_URL = 'http://192.168.1.70:3000';
-
     const handleLogin = async () => {
         if (!username || !password) {
             setMessage('Por favor completa usuario y contraseña.');
@@ -138,7 +138,7 @@ export default function LoginScreen() {
             setMessage('');
 
             // Enviar login
-            const res = await axios.post(`${SERVER_URL}/login`, {
+            const res = await axios.post(`${API_CONFIG}/login`, {
                 username: username.trim(),
                 password: password // Si quieres puedes trim aquí también
             }, {
