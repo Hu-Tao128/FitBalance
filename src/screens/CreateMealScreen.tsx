@@ -15,6 +15,8 @@ import {
 } from 'react-native';
 import { useUser } from '../context/UserContext';
 
+import { API_CONFIG } from '../config';
+
 // ---------- TIPOS (Comunes para Create y Edit, podrías moverlos a un archivo types/index.ts) ----------
 type Nutrients = {
     energy_kcal?: number;
@@ -37,9 +39,6 @@ type Ingredient = {
     food_data: Food;
     amount_g: number;
 };
-
-// 👉 BASE DE LA API (Asegúrate que esta URL sea correcta para tu backend)
-const API_BASE = 'http://192.168.1.70:3000';
 
 // ---------- UTILIDADES (Comunes para Create y Edit) ----------
 function getObjectIdFromMongoDoc(id: any) {
@@ -79,7 +78,7 @@ export default function CreateMealScreen() {
         (async () => {
             setLoadingFoods(true);
             try {
-                const res = await axios.get(`${API_BASE}/api/food`);
+                const res = await axios.get(`${API_CONFIG.BASE_URL}/api/food`);
                 if (mounted) setFoods(res.data || []);
             } catch (err) {
                 console.error('ERROR al obtener alimentos:', err);
@@ -176,7 +175,7 @@ export default function CreateMealScreen() {
             };
 
             // ✅ Siempre POST para crear una nueva comida
-            await axios.post(`${API_BASE}/PatientMeals`, mealData, {
+            await axios.post(`${API_CONFIG.BASE_URL}/PatientMeals`, mealData, {
                 headers: { 'Content-Type': 'application/json' },
             });
 
