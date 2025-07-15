@@ -14,9 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "runtimeVersion": {
-        "policy": "appVersion"
-      },
+        "runtimeVersion": "1.0.1",
       "bundleIdentifier": "com.ayasc.nutifrut"
     },
     "android": {
@@ -36,7 +34,7 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
-      "runtimeVersion": "1.0.0"
+      "runtimeVersion": "1.0.1"
     },
     "web": {
       "favicon": "./assets/favicon.png"
