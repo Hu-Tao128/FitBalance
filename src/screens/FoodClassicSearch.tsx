@@ -66,7 +66,7 @@ export default function FoodClassicSearch({ navigation }: any) {
             return setError("No has puesto un nombre de alimento");
         }
         try {
-            const res = await axios.post(`${API_CONFIG}/search-food`, { query });
+            const res = await axios.post(`${API_CONFIG.BASE_URL}/search-food`, { query });
 
             if (res.data.source === 'nutritionix') {
                 setResult({ foods: res.data.results });

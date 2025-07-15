@@ -59,13 +59,13 @@ const Home = () => {
       if (!user?.id) return;
 
       const [consumedRes, goalsRes] = await Promise.all([
-        axios.get(`${API_CONFIG}/daily-nutrition`, {
+        axios.get(`${API_CONFIG.BASE_URL}/daily-nutrition`, {
           params: {
             patient_id: user.id,
             date: today
           }
         }),
-        axios.get(`${API_CONFIG}/weeklyplan/latest/${user.id}`)
+        axios.get(`${API_CONFIG.BASE_URL}/weeklyplan/latest/${user.id}`)
       ]);
 
       setNutritionData({

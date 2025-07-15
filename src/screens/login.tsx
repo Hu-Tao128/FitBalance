@@ -138,7 +138,7 @@ export default function LoginScreen() {
             setMessage('');
 
             // Enviar login
-            const res = await axios.post(`${API_CONFIG}/login`, {
+            const res = await axios.post(`${API_CONFIG.BASE_URL}/login`, {
                 username: username.trim(),
                 password: password // Si quieres puedes trim aquí también
             }, {

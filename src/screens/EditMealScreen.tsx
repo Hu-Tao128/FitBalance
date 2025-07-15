@@ -78,7 +78,7 @@ export default function EditMealScreen() {
         const fetchAllFoods = async () => {
             setLoadingFoods(true);
             try {
-                const res = await axios.get(`${API_CONFIG}/api/food`);
+                const res = await axios.get(`${API_CONFIG.BASE_URL}/api/food`);
                 setFoods(res.data || []);
             } catch (err) {
                 console.error('ERROR al obtener alimentos:', err);
@@ -165,7 +165,7 @@ export default function EditMealScreen() {
                 instructions: instructions.trim(),
             };
 
-            await axios.put(`${API_CONFIG}/PatientMeals/${mealToEdit._id}`, mealData);
+            await axios.put(`${API_CONFIG.BASE_URL}/PatientMeals/${mealToEdit._id}`, mealData);
 
             Alert.alert('¡Éxito!', 'Comida actualizada correctamente.');
             navigation.goBack();
