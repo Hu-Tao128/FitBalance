@@ -10,6 +10,7 @@ import HomeScreen from '../screens/DashboardScreen';
 import NutritionixTest from "../screens/FoodSearchOptions";
 import UserProfileScreen from '../screens/userProfileScreen';
 import weighFood from '../screens/weighFood';
+import StatisticsScreen from '../screens/Stadistics';
 
 const Tab = createBottomTabNavigator();
 
@@ -51,12 +52,11 @@ export const BottomNavigation = () => {
                                     />
                                 </TouchableOpacity>
 
-                                <TouchableOpacity>
+                                <TouchableOpacity onPress={() => navigation.navigate('Stadistics')}>
                                     <Ionicons
                                         name="bar-chart-outline"
                                         size={24}
-                                        color={colors.text} // Cambié aquí
-                                    />
+                                        color={currentRoute === 'Stadistics' ? '#34C759' : colors.text}                                    />
                                 </TouchableOpacity>
 
                                 <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
@@ -76,6 +76,7 @@ export const BottomNavigation = () => {
                 <Tab.Screen name="Test" component={NutritionixTest} />
                 <Tab.Screen name="WeighFood" component={weighFood} />
                 <Tab.Screen name="Settings" component={SettingsStackNavigator} />
+                <Tab.Screen name="Stadistics" component={StatisticsScreen}/>
                 <Tab.Screen
                     name="UserProfile"
                     component={UserProfileScreen}

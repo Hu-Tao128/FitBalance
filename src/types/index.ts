@@ -1,5 +1,3 @@
-
-
 type Nutrients = {
     energy_kcal: number;
     protein_g: number;

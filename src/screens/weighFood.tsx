@@ -8,7 +8,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
-const SERVER_URL = 'https://fitbalance-backend-production.up.railway.app';
+import { API_CONFIG } from '../config';
 
 type MealType = 'Desayuno' | 'Almuerzo' | 'Cena' | 'Snack';
 type RawMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -151,7 +151,7 @@ export default function WeighFoodScreen() {
 
             console.log(user.id);
 
-            const response = await axios.get(`${SERVER_URL}/weeklyplan/daily/${user.id}`);
+            const response = await axios.get(`${API_CONFIG.BASE_URL}/weeklyplan/daily/${user.id}`);
 
             console.log('Respuesta del servidor:', response.data); 
             

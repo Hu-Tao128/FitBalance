@@ -59,17 +59,15 @@ const Home = () => {
       if (!user?.id) return;
 
       const [consumedRes, goalsRes] = await Promise.all([
-        axios.get(`${API_CONFIG.BASE_URL}/daily-nutrition`, {
-          params: {
-            patient_id: user.id,
-            date: today
-          }
-        }),
+        axios.get(`${API_CONFIG.BASE_URL}/daily-meal-logs/today/${user.id}`),
         axios.get(`${API_CONFIG.BASE_URL}/weeklyplan/latest/${user.id}`)
       ]);
 
+    //console.log('Datos de consumo:', consumedRes.data);
+    //console.log('Metas:', goalsRes.data);
+
       setNutritionData({
-        consumed: consumedRes.data,
+        consumed: consumedRes.data.totals,
         goals: {
           calories: goalsRes.data?.dailyCalories || 2000,
           protein: goalsRes.data?.protein || 150,
@@ -188,7 +186,7 @@ const Home = () => {
 
   // Calcular valores
   const caloriasObjetivo = nutritionData?.goals.calories || 2000;
-  const caloriasComidas = nutritionData?.consumed.calories || 100;
+  const caloriasComidas = nutritionData?.consumed.calories || 0;
   const caloriasRestantes = caloriasObjetivo - caloriasComidas;
 
   const proteinasObjetivo = nutritionData?.goals.protein || 150;

@@ -17,6 +17,7 @@ import FoodScanner from '../screens/FoodScanner';
 import FoodSearchOptions from '../screens/FoodSearchOptions';
 import ManageMealsScreen from '../screens/ManageMeals';
 import optionsFood from '../screens/optionsFood';
+import StatisticsScreen from '../screens/Stadistics';
 
 // Importa PatientMeal desde tu archivo de tipos compartido
 import { PatientMeal } from '../types'; // O la ruta correcta a tu archivo de tipos
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   UserProfile: undefined;
   Settings: undefined;
   weighFood: undefined;
+  stadistics: undefined;
   FoodSearchOptions: undefined;
   FoodScanner: undefined;
   FoodClassicSearch: undefined;
@@ -82,6 +84,16 @@ export default function AppNavigator() {
               component={weighFood}
               options={{
                 title: 'Registrar Alimento',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff',
+                headerShown: true
+              }}
+            />
+            <Stack.Screen
+              name="stadistics"
+              component={StatisticsScreen}
+              options={{
+                title: 'Estadisticas del Usuario',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
                 headerShown: true
