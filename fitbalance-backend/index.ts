@@ -389,7 +389,6 @@ async function calculateDailyTotals(dailyLog: IDailyMealLog) {
     meal.foods.map(food => new Types.ObjectId(food.food_id))
   );
 
-
   const foods = await Food.find({
     _id: { $in: foodIds }
   }).lean();
@@ -491,7 +490,6 @@ app.get("/daily-nutrition", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // Endpoint para obtener el plan semanal más reciente
 app.get('/weeklyplan/latest/:patient_id', async (req: Request, res: Response) => {
@@ -745,7 +743,6 @@ app.post('/PatientMeals', async (req: Request, res: Response) => {
   }
 });
 
-
 // 👉 Endpoint para obtener todas las comidas personalizadas de un paciente (GET /PatientMeals/:patient_id)
 app.get('/PatientMeals/:patient_id', async (req: Request, res: Response) => {
   const { patient_id } = req.params;
@@ -823,7 +820,7 @@ app.delete('/PatientMeals/:meal_id', async (req: Request, res: Response) => {
   }
 });
 
-// 👉 Endpoint para añadir una comida personalizada al DailyMealLog (POST /DailyMealLogs/add-custom-meal)
+// 👉 Endpoint para añadir una comida personalizada al DailyMealLog 
 app.post("/DailyMealLogs/add-custom-meal", async (req: Request, res: Response) => {
   const { patient_id, meal_id, type, time } = req.body;
 
@@ -887,7 +884,7 @@ app.post("/DailyMealLogs/add-custom-meal", async (req: Request, res: Response) =
   }
 });
 
-// 📊 Endpoint para obtener todos los registros de DailyMealLogs de un paciente (para estadísticas)
+// obtener todos los registros de DailyMealLogs de un paciente (para estadísticas)
 app.get('/daily-meal-logs/all/:patient_id', async (req: Request, res: Response) => {
   const { patient_id } = req.params;
   

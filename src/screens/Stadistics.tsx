@@ -55,6 +55,7 @@ const StatisticsScreen = () => {
             backgroundColor: colors.card,
             borderRadius: 12,
             padding: 12,
+            width: '100%'
         },
         dayItem: {
             alignItems: 'center',
@@ -78,12 +79,12 @@ const StatisticsScreen = () => {
             borderRadius: 12,
             padding: 16,
             shadowColor: colors.text,
-            shadowOffset: { width: 0, height: 2 },
+            shadowOffset: { width: 0, height: 22 },
             shadowOpacity: 0.1,
             shadowRadius: 4,
             elevation: 3,
-            width: '100%',
-            alignSelf: 'auto',
+            width: screenWidth - 32,
+            alignSelf: 'center',
         },
         chartTitle: { 
             fontSize: 16, 
@@ -171,7 +172,6 @@ const StatisticsScreen = () => {
                 style={styles.chart}
                 withVerticalLines={true}
                 withHorizontalLines={true}
-                withShadow={false}
                 segments={4}
             />
         </View>
