@@ -16,7 +16,7 @@ import {
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
- 
+import { useFocusEffect } from '@react-navigation/native';
 import { API_CONFIG } from '../config';
 import GoogleFit, { Scopes } from 'react-native-google-fit';
 
@@ -86,10 +86,12 @@ const Home = () => {
 
 
   // Obtener datos nutricionales al cargar el componente
-  useEffect(() => {
-    fetchNutritionData();
-  }, [user?.id]);
-
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchNutritionData();
+    }, [user?.id])
+  );
+  
   // Configuración del podómetro
   useEffect(() => {
     const subscribe = async () => {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { LineChart } from 'react-native-chart-kit';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import { API_CONFIG } from '../config';
@@ -104,16 +105,26 @@ const StatisticsScreen = () => {
         },
     });
 
-    useEffect(() => {
-        axios
-            .get(`${API_CONFIG.BASE_URL}/daily-meal-logs/all/${user?.id}`)
-            .then((res) => {
-                const sorted = res.data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-                setData(sorted);
-            })
-            .catch((err) => console.error(err))
-            .finally(() => setLoading(false));
-    }, []);
+    const fetchMealLogs = async () => {
+        setLoading(true);
+    try {
+        const res = await axios.get(`${API_CONFIG.BASE_URL}/daily-meal-logs/all/${user?.id}`);
+        const sorted = res.data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        setData(sorted);
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setLoading(false);
+    }
+    };
+    
+    useFocusEffect(
+    React.useCallback(() => {
+        if (user?.id) {
+        fetchMealLogs();
+        }
+    }, [user?.id])
+    );
 
     const hasDataForDay = (dayIndex: number) => {
         const today = new Date();
@@ -144,14 +155,59 @@ const StatisticsScreen = () => {
         );
     }
 
-    const labels = data.map((entry) =>
-        new Date(entry.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })
+    const getCurrentWeekDates = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 (domingo) a 6 (sábado)
+
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - dayOfWeek); // retrocede al domingo
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // avanza al sábado
+
+    startOfWeek.setHours(0, 0, 0, 0);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    return { startOfWeek, endOfWeek };
+    };
+
+    const { startOfWeek, endOfWeek } = getCurrentWeekDates();
+
+    const weeklyData = data.filter((entry) => {
+    const entryDate = new Date(entry.date);
+    return entryDate >= startOfWeek && entryDate <= endOfWeek;
+    });
+
+    const filledWeekData = Array.from({ length: 7 }).map((_, i) => {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+
+        const match = weeklyData.find(entry => {
+            const entryDate = new Date(entry.date);
+            return (
+                entryDate.getDate() === date.getDate() &&
+                entryDate.getMonth() === date.getMonth() &&
+                entryDate.getFullYear() === date.getFullYear()
+            );
+        });
+
+        return {
+            date: date,
+            calories: match ? match.totals.calories : 0,
+            protein: match ? match.totals.protein : 0,
+            fat: match ? match.totals.fat : 0,
+            carbs: match ? match.totals.carbs : 0,
+        };
+    });
+
+    const labels = filledWeekData.map(entry =>
+        entry.date.toLocaleDateString('es-ES', { weekday: 'short' }) // Dom, Lun, etc.
     );
 
-    const caloriesData = data.map((entry) => entry.totals.calories);
-    const proteinData = data.map((entry) => entry.totals.protein);
-    const fatData = data.map((entry) => entry.totals.fat);
-    const carbsData = data.map((entry) => entry.totals.carbs);
+    const caloriesData = filledWeekData.map(entry => entry.calories);
+    const proteinData = filledWeekData.map(entry => entry.protein);
+    const fatData = filledWeekData.map(entry => entry.fat);
+    const carbsData = filledWeekData.map(entry => entry.carbs);
 
     const renderChart = (title: string, dataset: number[]) => (
         <View style={styles.chartContainer}>
