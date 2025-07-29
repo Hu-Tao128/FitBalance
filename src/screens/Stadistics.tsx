@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator, SafeAreaView } from 'react-native';
 import axios from 'axios';
 import { LineChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
@@ -234,41 +234,43 @@ const StatisticsScreen = () => {
     );
 
     return (
-        <ScrollView 
-            contentContainerStyle={styles.container}
-            showsVerticalScrollIndicator={false}
-        >
-            <Text style={styles.header}>Estadísticas Nutricionales</Text>
-            
-            <View style={styles.streakContainer}>
-                {days.map((day, index) => {
-                    const hasData = hasDataForDay(index);
-                    return (
-                        <View key={day} style={{ alignItems: 'center' }}>
-                            <Text style={styles.dayName}>{day}</Text>
-                            <View style={[
-                                styles.dayItem,
-                                { 
-                                    backgroundColor: hasData ? colors.primary : colors.border,
-                                }
-                            ]}>
-                                <Text style={[
-                                    styles.dayText,
-                                    { color: hasData ? colors.card : colors.textSecondary }
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+            <ScrollView 
+                contentContainerStyle={styles.container}
+                showsVerticalScrollIndicator={false}
+            >
+                <Text style={styles.header}>Estadísticas Nutricionales</Text>
+                
+                <View style={styles.streakContainer}>
+                    {days.map((day, index) => {
+                        const hasData = hasDataForDay(index);
+                        return (
+                            <View key={day} style={{ alignItems: 'center' }}>
+                                <Text style={styles.dayName}>{day}</Text>
+                                <View style={[
+                                    styles.dayItem,
+                                    { 
+                                        backgroundColor: hasData ? colors.primary : colors.border,
+                                    }
                                 ]}>
-                                    {new Date().getDate() - (new Date().getDay() - index)}
-                                </Text>
+                                    <Text style={[
+                                        styles.dayText,
+                                        { color: hasData ? colors.card : colors.textSecondary }
+                                    ]}>
+                                        {new Date().getDate() - (new Date().getDay() - index)}
+                                    </Text>
+                                </View>
                             </View>
-                        </View>
-                    );
-                })}
-            </View>
+                        );
+                    })}
+                </View>
 
-            {renderChart('Calorías', caloriesData)}
-            {renderChart('Proteínas (g)', proteinData)}
-            {renderChart('Grasas (g)', fatData)}
-            {renderChart('Carbohidratos (g)', carbsData)}
-        </ScrollView>
+                {renderChart('Calorías', caloriesData)}
+                {renderChart('Proteínas (g)', proteinData)}
+                {renderChart('Grasas (g)', fatData)}
+                {renderChart('Carbohidratos (g)', carbsData)}
+            </ScrollView>
+        </SafeAreaView>
     );
 };
 

@@ -36,9 +36,13 @@ export const lightColors = {
     divider: '#DAE8B8',  // Línea sutil para separadores
 
     // Para barras de progreso de las macros
-    progressProtein: '#90C67C', // Proteínas: verde intenso
-    progressCarbs: '#FFC107', // Carbs: verde claro intermedio
-    progressFat: '#B22222', // Grasas: verde pastel suave
+    progressProtein: '#67AE6E', // Mantén el verde actual
+    progressCarbs: '#6EC1E4', // Azul celeste suave (antes era #FFC107)
+    progressFat: '#FFC107', // Mueve el amarillo acá (antes era rojo)
+
+    //progressProtein: '#90C67C', // Proteínas: verde intenso
+    //progressCarbs: '#FFC107', // Carbs: verde claro intermedio
+    //progressFat: '#B22222', // Grasas: verde pastel suave
     progressBg: '#E1EEBC', // Fondo de barras de progreso (igual que fondo)
 
     success: '#67AE6E',     // Éxito: mismo verde intermedio
@@ -55,8 +59,11 @@ export const darkColors = {
 
     // Nuevos colores para macros y barras de progreso
     progressProtein: '#67AE6E',
-    progressCarbs: '#90C67C',
-    progressFat: '#E1EEBC',
+    progressCarbs: '#5AB8D1',
+    progressFat: '#F6DE65', // Amarillo pastel bien visible en fondo oscuro
+    //progressProtein: '#67AE6E',
+    //progressCarbs: '#90C67C',
+    //progressFat: '#E1EEBC',
     progressBg: '#23331C',
 
     // Opcionales, pero útiles para mensajes de estado

@@ -84,15 +84,15 @@ const UserProfileCard = ({
       backgroundColor: '#D1D8BE',
     },
     name: {
-      fontSize: 23,
-      color: colors.text,
+      fontSize: 20,
+      color: '#444',
       fontWeight: '800',
       marginBottom: 1,
       letterSpacing: 0.2,
       textAlign: 'center',
     },
     username: {
-      fontSize: 15,
+      fontSize: 20,
       color: colors.primary,
       fontWeight: '500',
       marginBottom: 7,
@@ -133,7 +133,7 @@ const UserProfileCard = ({
       justifyContent: 'center',
     },
     infoText: {
-      color: colors.text,
+      color: '#444',
       fontSize: 16.5,
       flex: 1,
       fontWeight: '400',

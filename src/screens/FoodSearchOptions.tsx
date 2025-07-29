@@ -40,6 +40,81 @@ const iconConfig = [
 export default function FoodSearchOptions({ navigation }: any) {
     const { colors } = useTheme();
 
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 18,
+            paddingTop: 40,
+            paddingBottom: 30,
+        },
+        title: {
+            fontSize: 23,
+            fontWeight: 'bold',
+            color: colors.text,
+            marginBottom: 35,
+            letterSpacing: 0.2,
+            textAlign: 'center',
+            opacity: 0.96,
+        },
+        cards: {
+            width: '100%',
+            gap: 22,
+        },
+        cardShadow: {
+            width: '100%',
+            borderRadius: 22,
+            marginBottom: 6,
+            paddingVertical: 22,
+            paddingHorizontal: 16,
+            shadowColor: '#B6D0B533',
+            shadowOpacity: 0.20,
+            shadowOffset: { width: 0, height: 7 },
+            shadowRadius: 16,
+            elevation: 7,
+            ...Platform.select({
+                android: {
+                    borderWidth: 1,
+                    borderColor: '#F3F6ED',
+                },
+            }),
+        },
+        row: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        iconCircle: {
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 15,
+            backgroundColor: '#fff',
+            shadowColor: '#8ec47e44',
+            shadowOpacity: 0.18,
+            shadowRadius: 18,
+            shadowOffset: { width: 0, height: 3 },
+            elevation: 2,
+        },
+        textContainer: {
+            flex: 1,
+            justifyContent: 'center',
+        },
+        cardLabel: {
+            fontSize: 17.5,
+            fontWeight: 'bold',
+            letterSpacing: 0.3,
+            marginBottom: 4,
+        },
+        cardSub: {
+            fontSize: 14,
+            color: '#444',
+            opacity: 0.80,
+            flexWrap: 'wrap',
+        },
+    });
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <Text style={styles.title}>¿Cómo quieres buscar o crear alimentos?</Text>
@@ -69,80 +144,3 @@ export default function FoodSearchOptions({ navigation }: any) {
         </View>
     );
 }
-
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 18,
-        paddingTop: 40,
-        paddingBottom: 30,
-    },
-    title: {
-        fontSize: 23,
-        fontWeight: 'bold',
-        color: '#28313b',
-        marginBottom: 35,
-        letterSpacing: 0.2,
-        textAlign: 'center',
-        opacity: 0.96,
-    },
-    cards: {
-        width: '100%',
-        gap: 22,
-    },
-    cardShadow: {
-        width: '100%',
-        borderRadius: 22,
-        marginBottom: 6,
-        paddingVertical: 22,
-        paddingHorizontal: 16,
-        shadowColor: '#B6D0B533',
-        shadowOpacity: 0.20,
-        shadowOffset: { width: 0, height: 7 },
-        shadowRadius: 16,
-        elevation: 7,
-        ...Platform.select({
-            android: {
-                borderWidth: 1,
-                borderColor: '#F3F6ED',
-            },
-        }),
-    },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    iconCircle: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 15,
-        backgroundColor: '#fff',
-        shadowColor: '#8ec47e44',
-        shadowOpacity: 0.18,
-        shadowRadius: 18,
-        shadowOffset: { width: 0, height: 3 },
-        elevation: 2,
-    },
-    textContainer: {
-        flex: 1,
-        justifyContent: 'center',
-    },
-    cardLabel: {
-        fontSize: 17.5,
-        fontWeight: 'bold',
-        letterSpacing: 0.3,
-        marginBottom: 4,
-    },
-    cardSub: {
-        fontSize: 14,
-        color: '#444',
-        opacity: 0.80,
-        flexWrap: 'wrap',
-    },
-});

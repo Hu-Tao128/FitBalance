@@ -29,16 +29,39 @@ const UserProfileScreen = ({ navigation }: any) => {
     },
     profileCardBox: {
       width: '100%',
-      backgroundColor: 'rgba(255,255,255,0.78)',
+      backgroundColor: colors.card,
       borderRadius: 28,
-      shadowColor: '#B6D0B533',
-      shadowOpacity: 0.15,
-      shadowRadius: 22,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 6,
+      shadowColor: '#000',
+      shadowOpacity: 0.06,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 3,
+      padding: 22,
       marginBottom: 28,
-      padding: 26,
+    },
+
+    headerRow: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       alignItems: 'center',
+      marginBottom: 18,
+    },
+
+    username: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+
+    iconBtn: {
+      padding: 6,
+      borderRadius: 12,
+      backgroundColor: colors.background,
+      shadowColor: colors.primary,
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 2,
     },
     editBtn: {
       flexDirection: 'row',
@@ -117,15 +140,19 @@ const UserProfileScreen = ({ navigation }: any) => {
     >
       {/* CARD DEL PERFIL */}
       <View style={styles.profileCardBox}>
-        <UserProfileCard {...userData} username={username} />
-        <TouchableOpacity
-          style={styles.editBtn}
-          activeOpacity={0.82}
-          onPress={() => navigation && navigation.navigate ? navigation.navigate('EditProfile') : null}
-        >
-          <MaterialIcons name="edit" size={22} color="#fff" />
-          <Text style={styles.editText}>Editar perfil</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRow}>
+          <Text style={styles.username}>{username}</Text>
+          <TouchableOpacity
+            style={styles.iconBtn}
+            activeOpacity={0.7}
+            onPress={() => navigation?.navigate?.('EditProfile')}
+          >
+            <MaterialIcons name="edit" size={22} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+
+        <UserProfileCard {...user} />
+
       </View>
 
       {/* CARD DE NOTAS */}

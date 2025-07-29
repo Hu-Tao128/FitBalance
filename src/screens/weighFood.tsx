@@ -9,6 +9,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../config';
+import { TouchableWithoutFeedback } from 'react-native';
 
 type MealType = 'Desayuno' | 'Almuerzo' | 'Cena' | 'Snack';
 type RawMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -61,7 +62,7 @@ const makeStyles = (colors: any) => StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: colors.text,
+        color: 'rgba(0,0,0,0.5)',
     },
     mealTitleChecked: {
         textDecorationLine: 'underline',
@@ -72,7 +73,7 @@ const makeStyles = (colors: any) => StyleSheet.create({
     },
     foodItemText: {
         fontSize: 16,
-        color: colors.text,
+        color: 'rgba(0,0,0,0.5)',
     },
     modalOverlay: {
         flex: 1,
@@ -178,7 +179,7 @@ export default function WeighFoodScreen() {
         Alert.alert('¡Éxito!', 'La comida fue añadida a tu log diario');
         setModalVisible(false);
     } catch (err: any) {
-        console.error('Error añadiendo comida:', err);
+        console.error('Error añadiendo comida: Comida ya registrada');
         if (err.response && err.response.status === 400) {
         Alert.alert('Aviso', err.response.data.error || 'Esta comida ya está registrada');
         } else {
@@ -239,31 +240,35 @@ export default function WeighFoodScreen() {
 
             {/* Modal mejorado */}
             <Modal transparent visible={modalVisible} animationType="slide">
+            <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
                 <View style={styles.modalOverlay}>
+                <TouchableWithoutFeedback>
                     <View style={styles.modalContainer}>
-                        <Text style={styles.modalTitle}>
-                            ¿Cómo deseas registrar esta comida?
+                    <Text style={styles.modalTitle}>
+                        ¿Cómo deseas registrar esta comida?
+                    </Text>
+
+                    {/* Opción usar porción recomendada */}
+                    <TouchableOpacity style={styles.optionButton} onPress={handleAddWeeklyMeal}>
+                        <MaterialCommunityIcons name="check-bold" size={22} color="#34C759" />
+                        <Text style={styles.optionText}>Usar porción recomendada</Text>
+                    </TouchableOpacity>
+
+                    {/* Opción usar báscula */}
+                    <TouchableOpacity style={styles.optionButton}>
+                        <MaterialCommunityIcons name="scale" size={22} color="#aaa" />
+                        <Text style={[styles.optionText, { color: '#aaa' }]}>
+                        Usar báscula (próximamente)
                         </Text>
+                    </TouchableOpacity>
 
-                        {/* Opción usar porción recomendada */}
-                        <TouchableOpacity style={styles.optionButton} onPress={handleAddWeeklyMeal}>
-                            <MaterialCommunityIcons name="check-bold" size={22} color="#34C759" />
-                            <Text style={styles.optionText}>Usar porción recomendada</Text>
-                        </TouchableOpacity>
-
-                        {/* Opción usar báscula (sin acción aún) */}
-                        <TouchableOpacity style={styles.optionButton}>
-                            <MaterialCommunityIcons name="scale" size={22} color="#aaa" />
-                            <Text style={[styles.optionText, { color: '#aaa' }]}>
-                                Usar báscula (próximamente)
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity onPress={() => setModalVisible(false)}>
-                            <Text style={styles.closeText}>Cancelar</Text>
-                        </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setModalVisible(false)}>
+                        <Text style={styles.closeText}>Cancelar</Text>
+                    </TouchableOpacity>
                     </View>
+                </TouchableWithoutFeedback>
                 </View>
+            </TouchableWithoutFeedback>
             </Modal>
         </View>
     );
