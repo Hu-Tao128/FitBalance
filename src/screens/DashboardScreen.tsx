@@ -429,6 +429,7 @@ const Home = () => {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+      backgroundColor: colors.background,
     },
     errorText: {
       color: colors.danger,

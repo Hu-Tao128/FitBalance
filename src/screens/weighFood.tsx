@@ -3,11 +3,11 @@ import axios from 'axios';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
     Modal, ScrollView, StyleSheet, Text,
-    TouchableOpacity, View, ActivityIndicator
+    TouchableOpacity, View, ActivityIndicator, Alert
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../config';
 
 type MealType = 'Desayuno' | 'Almuerzo' | 'Cena' | 'Snack';
@@ -90,6 +90,7 @@ const makeStyles = (colors: any) => StyleSheet.create({
         fontWeight: 'bold',
         color: colors.text,
         marginBottom: 20,
+        textAlign: 'center'
     },
     optionButton: {
         flexDirection: 'row',
@@ -104,13 +105,8 @@ const makeStyles = (colors: any) => StyleSheet.create({
     closeText: {
         color: colors.primary,
         marginTop: 20,
-        textAlign: 'right',
-    },
-    errorText: {
-        color: 'red',
         textAlign: 'center',
-        marginTop: 20,
-    }
+    },
 });
 
 export default function WeighFoodScreen() {
@@ -121,25 +117,34 @@ export default function WeighFoodScreen() {
     const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [selectedMeal, setSelectedMeal] = useState<MealType | null>(null);
-    const [selectedItem, setSelectedItem] = useState<string | null>(null);
-    interface RegistradasType {
-        [meal: string]: {
-            [item: string]: boolean
-        }
-    }
 
-    const [registradas, setRegistradas] = useState<RegistradasType>({});
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
 
     const today = useMemo(() => 
         new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(),
         []
     );
 
+    // Interceptor para token
+    useEffect(() => {
+        const reqInterceptor = axios.interceptors.request.use(
+            async config => {
+                const t = await AsyncStorage.getItem('token');
+                if (t && config.headers) {
+                    config.headers['Authorization'] = `Bearer ${t}`;
+                }
+                return config;
+            },
+            error => Promise.reject(error)
+        );
+        return () => {
+            axios.interceptors.request.eject(reqInterceptor);
+        };
+    }, []);
+
     const fetchWeeklyPlan = useCallback(async () => {
         if (!user) {
-            console.warn('No hay usuario autenticado');
             setLoading(false);
             return;
         }
@@ -147,55 +152,40 @@ export default function WeighFoodScreen() {
         try {
             setError(null);
             setLoading(true);
-            const todayISO = new Date().toISOString().split('T')[0];
-
-            console.log(user.id);
-
             const response = await axios.get(`${API_CONFIG.BASE_URL}/weeklyplan/daily/${user.id}`);
-
-            console.log('Respuesta del servidor:', response.data); 
-            
-            if (!response.data) {
-            throw new Error('El servidor respondió sin datos');
-            }
-
             setWeeklyPlan(response.data);
         } catch (error) {
             console.error('Error al cargar el plan:', error);
-            setError('No se pudo cargar el plan. Verifica tu conexión o contacta al soporte.');
+            setError('No se pudo cargar el plan.');
         } finally {
             setLoading(false);
         }
     }, [user?.id]);
 
     useEffect(() => {
-        if (user) {
-            fetchWeeklyPlan();
-        }
+        if (user) fetchWeeklyPlan();
     }, [user, fetchWeeklyPlan]);
 
-    const handleRegister = useCallback(() => {
-        if (selectedMeal && selectedItem) {
-            setRegistradas(prev => ({
-                ...prev,
-                [selectedMeal]: {
-                    ...(prev[selectedMeal] || {}),
-                    [selectedItem]: true
-                }
-            }));
-            setModalVisible(false);
-        }
-    }, [selectedMeal, selectedItem]);
+    const handleAddWeeklyMeal = async () => {
+    if (!user?.id || !selectedMeal) return;
 
-    const handleManualRegister = useCallback(() => {
-        console.log('Registro manual para:', selectedItem);
+    try {
+        await axios.post(`${API_CONFIG.BASE_URL}/DailyMealLogs/add-weekly-meal`, {
+        patient_id: user.id,
+        meal: selectedMeal,
+        });
+
+        Alert.alert('¡Éxito!', 'La comida fue añadida a tu log diario');
         setModalVisible(false);
-    }, [selectedItem]);
-
-    const isMealComplete = useCallback((meal: string, items: FoodItem[]) => {
-        const mealReg = registradas[meal] || {};
-        return items.every(item => mealReg[item.food_id]);
-    }, [registradas]);
+    } catch (err: any) {
+        console.error('Error añadiendo comida:', err);
+        if (err.response && err.response.status === 400) {
+        Alert.alert('Aviso', err.response.data.error || 'Esta comida ya está registrada');
+        } else {
+        Alert.alert('Error', 'No se pudo añadir la comida.');
+        }
+    }
+    };
 
     if (loading) {
         return (
@@ -208,32 +198,9 @@ export default function WeighFoodScreen() {
     const todayMeals = weeklyPlan?.meals.filter(meal => meal.day === today) ?? [];
 
     if (!weeklyPlan || todayMeals.length === 0) {
-    return (
-        <View style={[styles.container, { 
-            justifyContent: 'center',
-            alignItems: 'center',    
-            paddingHorizontal: 20    
-        }]}>
-            <View style={[styles.mealSection, { 
-                backgroundColor: colors.card,
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 30,
-                width: '100%'       
-            }]}>
-                <Ionicons name="calendar-outline" size={40} color={colors.text} style={{ marginBottom: 15 }} />
-                    <Text style={[styles.mealTitle, { textAlign: 'center' }]}>
-                        No tienes planes para esta semana
-                    </Text>
-                    <Text style={{ 
-                        color: colors.text, 
-                        textAlign: 'center', 
-                        marginTop: 10,
-                        maxWidth: '80%'
-                    }}>
-                        Contacta a tu nutricionista para obtener tu plan alimenticio
-                    </Text>
-                </View>
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <Text style={styles.mealTitle}>No tienes planes para esta semana</Text>
             </View>
         );
     }
@@ -245,89 +212,55 @@ export default function WeighFoodScreen() {
                     const label = mealLabels[meal.type];
                     const color =
                         meal.type === 'breakfast' ? '#FFEB99' :
-                            meal.type === 'lunch' ? '#C3FBD8' :
-                                meal.type === 'dinner' ? '#D6C7FB' :
-                                    '#FFD6E7';
-
-                    const mealDone = isMealComplete(label, meal.foods);
+                        meal.type === 'lunch' ? '#C3FBD8' :
+                        meal.type === 'dinner' ? '#D6C7FB' : '#FFD6E7';
 
                     return (
                         <View key={`meal-${index}`} style={[styles.mealSection, { backgroundColor: color }]}>
-                            <Text style={[styles.mealTitle, mealDone && styles.mealTitleChecked]}>
-                                {label} {mealDone && <Ionicons name="checkmark-circle" size={18} color="#34C759" />}
-                            </Text>
-
-                            {meal.foods.map((item, idx) => {
-                                const isItemRegistered = registradas[label]?.[item.food_id];
-                                return (
-                                    <TouchableOpacity
-                                        key={`food-${idx}`}
-                                        onPress={() => {
-                                            setSelectedMeal(label);
-                                            setSelectedItem(item.name);
-                                            setModalVisible(true);
-                                        }}
-                                        style={styles.foodItemTouchable}
-                                        accessibilityLabel={`Registrar ${item.food_id}`}
-                                    >
-                                        <Text style={styles.foodItemText}>
-                                            {item.name} - {item.grams}g
-                                            {isItemRegistered && (
-                                                <Ionicons name="checkmark-circle" size={16} color="#34C759" style={{ marginLeft: 6 }} />
-                                            )}
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
+                            <Text style={styles.mealTitle}>{label}</Text>
+                            {meal.foods.map((item, idx) => (
+                                <TouchableOpacity
+                                    key={`food-${idx}`}
+                                    style={styles.foodItemTouchable}
+                                    onPress={() => {
+                                        setSelectedMeal(meal);
+                                        setModalVisible(true);
+                                    }}
+                                >
+                                    <Text style={styles.foodItemText}>
+                                        {item.name} - {item.grams}g
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
                     );
                 })}
             </ScrollView>
 
-            <Modal
-                transparent
-                visible={modalVisible}
-                animationType="slide"
-                onRequestClose={() => setModalVisible(false)}
-            >
+            {/* Modal mejorado */}
+            <Modal transparent visible={modalVisible} animationType="slide">
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContainer}>
                         <Text style={styles.modalTitle}>
-                            ¿Cómo quieres registrar {selectedItem} de {selectedMeal}?
+                            ¿Cómo deseas registrar esta comida?
                         </Text>
 
-                        <TouchableOpacity 
-                            style={styles.optionButton} 
-                            onPress={handleRegister}
-                            accessibilityLabel="Usar porción recomendada"
-                        >
+                        {/* Opción usar porción recomendada */}
+                        <TouchableOpacity style={styles.optionButton} onPress={handleAddWeeklyMeal}>
                             <MaterialCommunityIcons name="check-bold" size={22} color="#34C759" />
                             <Text style={styles.optionText}>Usar porción recomendada</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity 
-                            style={styles.optionButton} 
-                            onPress={handleManualRegister}
-                            accessibilityLabel="Ingresar manualmente"
-                        >
-                            <Ionicons name="create-outline" size={22} color="#34C759" />
-                            <Text style={styles.optionText}>Ingresar manualmente</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity 
-                            style={styles.optionButton}
-                            accessibilityLabel="Usar báscula (no disponible)"
-                            disabled
-                        >
+                        {/* Opción usar báscula (sin acción aún) */}
+                        <TouchableOpacity style={styles.optionButton}>
                             <MaterialCommunityIcons name="scale" size={22} color="#aaa" />
-                            <Text style={[styles.optionText, { color: '#aaa' }]}>Usar báscula (próximamente)</Text>
+                            <Text style={[styles.optionText, { color: '#aaa' }]}>
+                                Usar báscula (próximamente)
+                            </Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity 
-                            onPress={() => setModalVisible(false)}
-                            accessibilityLabel="Cerrar modal"
-                        >
-                            <Text style={styles.closeText}>Cerrar</Text>
+                        <TouchableOpacity onPress={() => setModalVisible(false)}>
+                            <Text style={styles.closeText}>Cancelar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
