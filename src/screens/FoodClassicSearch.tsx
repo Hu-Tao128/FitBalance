@@ -1,124 +1,146 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
+import { AddFoodModal } from '../components/AddFoodModal';
 import FoodDetails from '../components/FoodDetails';
-import { useTheme } from '../context/ThemeContext';
-
 import { API_CONFIG } from '../config';
+import { useTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
+
+// Interfaz para que TypeScript entienda la estructura del alimento
+interface Food {
+    food_name: string;
+    serving_qty: number;
+    serving_unit: string;
+    serving_weight_grams?: number;
+    nf_calories?: number;
+    nf_protein?: number;
+    nf_total_carbohydrate?: number;
+    nf_total_fat?: number;
+    nf_sugars?: number;
+    nf_dietary_fiber?: number;
+    photo?: {
+        thumb?: string;
+    };
+}
 
 export default function FoodClassicSearch({ navigation }: any) {
     const { colors } = useTheme();
+    const { user } = useUser();
+
     const [query, setQuery] = useState('');
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<{ foods: Food[] } | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const styles = StyleSheet.create({
-        container: {
-            flex: 1,
-            backgroundColor: colors.background,
-            paddingTop: 40,
-            paddingHorizontal: 20,
-        },
-        input: {
-            borderWidth: 1,
-            borderColor: colors.border,
-            padding: 12,
-            marginBottom: 10,
-            borderRadius: 10,
-            fontSize: 16,
-            color: colors.text,
-            backgroundColor: colors.card,
-        },
-        button: {
-            backgroundColor: colors.primary,
-            paddingVertical: 12,
-            borderRadius: 10,
-            marginBottom: 20,
-        },
-        buttonText: {
-            textAlign: 'center',
-            color: '#fff',
-            fontWeight: 'bold',
-        },
-        error: {
-            color: 'red',
-            textAlign: 'center',
-            marginTop: 10,
-        },
-        backButton: {
-            backgroundColor: colors.card,
-            padding: 10,
-            borderRadius: 8,
-            marginTop: 16,
-            alignItems: 'center',
-        },
-        backText: {
-            color: colors.primary,
-        },
-    });
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [selectedFood, setSelectedFood] = useState<Food | null>(null);
 
     const searchByQuery = async () => {
+        if (!query.trim()) {
+            setError("Por favor, ingresa un alimento para buscar.");
+            return;
+        }
         setLoading(true);
         setError('');
-        if (!query.trim()) {
-            setLoading(false);
-            return setError("No has puesto un nombre de alimento");
-        }
-        try {
-            const res = await axios.post(`${API_CONFIG.BASE_URL}/search-food`, { query });
+        setResult(null);
 
-            if (res.data.source === 'nutritionix') {
+        try {
+            const res = await axios.post<{ results: Food[] }>(`${API_CONFIG.BASE_URL}/search-food`, { query });
+            if (res.data?.results && res.data.results.length > 0) {
                 setResult({ foods: res.data.results });
-            } else if (res.data.source === 'fatsecret') {
-                const fatsecretFood = res.data.results.food[0];
-                setResult({
-                    foods: [{
-                        food_name: fatsecretFood.food_name,
-                        serving_qty: 1,
-                        serving_unit: 'serving',
-                        nf_calories: fatsecretFood.calories,
-                        nf_total_fat: fatsecretFood.fat,
-                        nf_saturated_fat: fatsecretFood.saturated_fat,
-                        nf_cholesterol: fatsecretFood.cholesterol,
-                        nf_sodium: fatsecretFood.sodium,
-                        nf_total_carbohydrate: fatsecretFood.carbohydrate,
-                        nf_dietary_fiber: fatsecretFood.fiber,
-                        nf_sugars: fatsecretFood.sugar,
-                        nf_protein: fatsecretFood.protein,
-                        nf_potassium: fatsecretFood.potassium,
-                        photo: {
-                            thumb: fatsecretFood.food_images?.[0] || 'https://via.placeholder.com/150'
-                        }
-                    }]
-                });
+            } else {
+                setError("No se encontraron resultados para tu búsqueda.");
             }
-        } catch (err) {
-            setError('Error al buscar por texto');
-            console.error(err);
+        } catch (err: any) {
+            console.error("❌ ERROR al buscar:", err.response?.data || err.message);
+            setError("Hubo un error al conectar con el servidor.");
         } finally {
             setLoading(false);
         }
     };
 
+    const handleAddFoodPress = (originalFood: Food, adjustedGrams: number) => {
+        const baseGrams = originalFood.serving_weight_grams || 100;
+        if (baseGrams === 0) return; // Evitar división por cero
+
+        const ratio = adjustedGrams / baseGrams;
+
+        const adjustedFood: Food = {
+            ...originalFood,
+            serving_weight_grams: adjustedGrams,
+            serving_qty: 1,
+            serving_unit: `${adjustedGrams}g`,
+            nf_calories: (originalFood.nf_calories || 0) * ratio,
+            nf_protein: (originalFood.nf_protein || 0) * ratio,
+            nf_total_carbohydrate: (originalFood.nf_total_carbohydrate || 0) * ratio,
+            nf_total_fat: (originalFood.nf_total_fat || 0) * ratio,
+            nf_sugars: (originalFood.nf_sugars || 0) * ratio,
+            nf_dietary_fiber: (originalFood.nf_dietary_fiber || 0) * ratio,
+        };
+
+        setSelectedFood(adjustedFood);
+        setModalVisible(true);
+    };
+
+    const handleSelectMeal = async (mealType: string, time: string) => {
+        if (!selectedFood || !user?.id) {
+            Alert.alert("Error", "No se pudo seleccionar el alimento o no has iniciado sesión.");
+            return;
+        }
+        setModalVisible(false);
+        setLoading(true);
+
+        try {
+            const payload = {
+                patient_id: user.id,
+                type: mealType,
+                time: time,
+                food_data: selectedFood,
+            };
+            await axios.post(`${API_CONFIG.BASE_URL}/dailymeallogs/add-food`, payload);
+            Alert.alert("¡Éxito!", `${selectedFood.food_name} se añadió a tu registro.`,
+                [{ text: "OK", onPress: () => navigation.goBack() }]
+            );
+        } catch (err: any) {
+            console.error("❌ ERROR al añadir:", err.response?.data || err.message);
+            Alert.alert("Error", "No se pudo añadir el alimento a tu registro.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const styles = StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.background, padding: 20 },
+        input: { borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 10, borderRadius: 10, fontSize: 16, color: colors.text, backgroundColor: colors.card },
+        button: { backgroundColor: colors.primary, paddingVertical: 12, borderRadius: 10, marginBottom: 20 },
+        buttonText: { textAlign: 'center', color: '#fff', fontWeight: 'bold' },
+        error: { color: 'red', textAlign: 'center', marginVertical: 10, fontSize: 16 },
+    });
+
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
             <TextInput
                 style={styles.input}
                 placeholder="Ej: 1 manzana, 2 rebanadas de pan"
                 placeholderTextColor={colors.text}
                 value={query}
                 onChangeText={setQuery}
+                onSubmitEditing={searchByQuery}
             />
-            <TouchableOpacity style={styles.button} onPress={searchByQuery}>
+            <TouchableOpacity style={styles.button} onPress={searchByQuery} disabled={loading}>
                 <Text style={styles.buttonText}>Buscar</Text>
             </TouchableOpacity>
-            {loading && <ActivityIndicator size="large" color="#188827" style={{ marginTop: 20 }} />}
+
+            {loading && <ActivityIndicator size="large" color={colors.primary} />}
             {error ? <Text style={styles.error}>{error}</Text> : null}
-            {result?.foods && <FoodDetails foods={result.foods} />}
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                <Text style={styles.backText}>Regresar</Text>
-            </TouchableOpacity>
-        </View>
+            {result?.foods && <FoodDetails foods={result.foods} onAddFood={handleAddFoodPress} />}
+
+            <AddFoodModal
+                visible={isModalVisible}
+                onClose={() => setModalVisible(false)}
+                onSelectMeal={handleSelectMeal}
+            />
+        </ScrollView>
     );
 }
