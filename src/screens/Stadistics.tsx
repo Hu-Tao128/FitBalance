@@ -129,7 +129,10 @@ const StatisticsScreen = () => {
     const hasDataForDay = (dayIndex: number) => {
         const today = new Date();
         const targetDate = new Date();
-        targetDate.setDate(today.getDate() - (today.getDay() - dayIndex));
+        const diff = today.getDay() === 0 ? 
+            (6 - dayIndex) : // si es domingo
+            (today.getDay() - 1 - dayIndex);
+        targetDate.setDate(today.getDate() - diff);
 
         return data.some(entry => {
             const entryDate = new Date(entry.date);
@@ -145,7 +148,7 @@ const StatisticsScreen = () => {
         });
     };
 
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     if (loading) {
         return (
@@ -158,12 +161,15 @@ const StatisticsScreen = () => {
     const getCurrentWeekDates = () => {
         const today = new Date();
         const dayOfWeek = today.getDay(); // 0 (domingo) a 6 (sábado)
-
+        
+        // Calcular diferencia para que el lunes sea el primer día (restamos 1 día menos)
+        const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        
         const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - dayOfWeek); // retrocede al domingo
+        startOfWeek.setDate(today.getDate() - diffToMonday); // retrocede al lunes
 
         const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6); // avanza al sábado
+        endOfWeek.setDate(startOfWeek.getDate() + 6); // avanza al domingo
 
         startOfWeek.setHours(0, 0, 0, 0);
         endOfWeek.setHours(23, 59, 59, 999);

@@ -10,14 +10,15 @@ import { useUser } from '../context/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../config';
 import { TouchableWithoutFeedback } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
-type MealType = 'Desayuno' | 'Almuerzo' | 'Cena' | 'Snack';
+type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
 type RawMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 const mealLabels: Record<RawMealType, MealType> = {
-    breakfast: 'Desayuno',
-    lunch: 'Almuerzo',
-    dinner: 'Cena',
+    breakfast: 'Breakfast',
+    lunch: 'Lunch',
+    dinner: 'Dinner',
     snack: 'Snack'
 };
 
@@ -62,7 +63,7 @@ const makeStyles = (colors: any) => StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: 'rgba(0,0,0,0.5)',
+        color: '#444',
     },
     mealTitleChecked: {
         textDecorationLine: 'underline',
@@ -122,10 +123,10 @@ export default function WeighFoodScreen() {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
 
-    const today = useMemo(() => 
-        new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(),
-        []
-    );
+    const today = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    timeZone: 'America/Tijuana' // o la que estés usando
+    }).format(new Date()).toLowerCase();
 
     // Interceptor para token
     useEffect(() => {
@@ -154,18 +155,29 @@ export default function WeighFoodScreen() {
             setError(null);
             setLoading(true);
             const response = await axios.get(`${API_CONFIG.BASE_URL}/weeklyplan/daily/${user.id}`);
-            setWeeklyPlan(response.data);
+            
+            console.log('API Response:', response.data);
+            
+            if (!response.data?.meals || response.data.meals.length === 0) {
+                setError('No hay comidas planificadas para hoy');
+                setWeeklyPlan(null);
+            } else {
+                setWeeklyPlan(response.data);
+            }
         } catch (error) {
             console.error('Error al cargar el plan:', error);
             setError('No se pudo cargar el plan.');
+            setWeeklyPlan(null);
         } finally {
             setLoading(false);
         }
     }, [user?.id]);
 
-    useEffect(() => {
+useFocusEffect(
+    useCallback(() => {
         if (user) fetchWeeklyPlan();
-    }, [user, fetchWeeklyPlan]);
+    }, [user, fetchWeeklyPlan])
+);
 
     const handleAddWeeklyMeal = async () => {
     if (!user?.id || !selectedMeal) return;
@@ -196,14 +208,40 @@ export default function WeighFoodScreen() {
         );
     }
 
+    //console.log('Today (frontend):', today);
+    //console.log('Meals days:', weeklyPlan?.meals.map(m => m.day));
+
     const todayMeals = weeklyPlan?.meals.filter(meal => meal.day === today) ?? [];
 
     if (!weeklyPlan || todayMeals.length === 0) {
-        return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <Text style={styles.mealTitle}>No tienes planes para esta semana</Text>
-            </View>
-        );
+    return (
+        <View style={[styles.container, { 
+        justifyContent: 'center',
+        alignItems: 'center',    
+        paddingHorizontal: 20    
+        }]}>
+        <View style={[styles.mealSection, { 
+            backgroundColor: colors.card,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 30,
+            width: '100%'       
+        }]}>
+            <Ionicons name="calendar-outline" size={40} color={colors.text} style={{ marginBottom: 15 }} />
+            <Text style={[styles.mealTitle, { textAlign: 'center' }]}>
+            No tienes planes para esta semana
+            </Text>
+            <Text style={{ 
+            color: colors.text, 
+            textAlign: 'center', 
+            marginTop: 10,
+            maxWidth: '80%'
+            }}>
+            Contacta a tu nutricionista para obtener tu plan alimenticio
+            </Text>
+        </View>
+        </View>
+    );
     }
 
     return (
