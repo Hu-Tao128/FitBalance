@@ -532,22 +532,30 @@ app.get('/weeklyplan/latest/:patient_id', async (req: Request, res: Response) =>
   }
 });
 
-// 📅 Obtener comidas del día actual para un paciente
+const { DateTime } = require('luxon');
+
 app.get('/weeklyplan/daily/:patient_id', async (req, res) => {
   try {
-    const patientId = req.params.patient_id;
+    let patientId = req.params.patient_id;
+    patientId = patientId.replace(/\.$/, '');
 
-    const plan = await WeeklyPlan.findOne({
-      patient_id: patientId,
-      'meals.day': new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
-    }).lean();
+    const plan = await WeeklyPlan.findOne({ patient_id: patientId })
+      .sort({ week_start: -1 })
+      .lean();
 
     if (!plan) {
       return res.status(404).json({ message: 'Plan no encontrado' });
     }
 
-    // Reemplazar food_id con información del alimento
-    const enrichedMeals = await Promise.all(plan.meals.map(async (meal) => {
+    // Obtener la fecha actual en la zona horaria de Tijuana
+    const todayInTijuana = DateTime.now().setZone('America/Tijuana');
+
+    const todayWeekDay = todayInTijuana.weekdayLong.toLowerCase(); 
+    // Retorna 'monday', 'tuesday', etc. (en inglés y lowercase, ideal para tu lógica)
+
+    const todayMeals = plan.meals.filter(meal => meal.day === todayWeekDay);
+
+    const enrichedMeals = await Promise.all(todayMeals.map(async (meal) => {
       const enrichedFoods = await Promise.all(meal.foods.map(async (item) => {
         const food = await Food.findById(item.food_id).lean();
         return {
@@ -562,12 +570,11 @@ app.get('/weeklyplan/daily/:patient_id', async (req, res) => {
       };
     }));
 
-    plan.meals = enrichedMeals;
+    res.json({ ...plan, meals: enrichedMeals });
 
-    res.json(plan);
   } catch (err) {
     console.error('Error al obtener el plan diario:', err);
-    res.status(500).json({ error: 'Error al obtener el plan diario' });
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
 
@@ -646,7 +653,7 @@ app.post('/send-reset-code', async (req: Request, res: Response) => {
     }
 
     // Generar un token único de 6 dígitos
-    const token = crypto.randomBytes(3).toString('hex'); // Ej: 'f3a1bc'
+    const token = crypto.randomBytes(3).toString('hex');
 
     // Guardar el token en la base de datos
     const resetToken = new PasswordResetToken({
