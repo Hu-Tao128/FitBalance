@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Image, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
-// Interfaz para la estructura del alimento
 interface Food {
     food_name: string;
     serving_qty: number;
@@ -17,7 +16,6 @@ interface Food {
     };
 }
 
-// Propiedades que espera el componente
 interface Props {
     food: Food;
     onAddFood: (food: Food, grams: number) => void;
@@ -61,7 +59,7 @@ export default function FoodItemCard({ food, onAddFood }: Props) {
     const handleAdd = () => {
         const numericGrams = parseInt(grams, 10);
         if (isNaN(numericGrams) || numericGrams <= 0) {
-            alert('Por favor, ingresa un número válido de gramos.');
+            alert('Please enter a valid number of grams.');
             return;
         }
         onAddFood(food, numericGrams);
@@ -92,11 +90,11 @@ export default function FoodItemCard({ food, onAddFood }: Props) {
             {food.photo?.thumb && <Image source={{ uri: food.photo.thumb }} style={styles.image} />}
 
             <Text style={styles.foodName}>{food.food_name}</Text>
-            <Text style={styles.servingText}>Info. base por {food.serving_weight_grams?.toFixed(0)}g</Text>
+            <Text style={styles.servingText}>Info. basis for {food.serving_weight_grams?.toFixed(0)}g</Text>
 
             {/* Input para ajustar gramos */}
             <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Cantidad:</Text>
+                <Text style={styles.inputLabel}>Quantity:</Text>
                 <TextInput
                     style={styles.input}
                     value={grams}
@@ -115,7 +113,7 @@ export default function FoodItemCard({ food, onAddFood }: Props) {
                 </View>
                 <View style={styles.macroItem}>
                     <Text style={styles.macroValue}>{calculatedNutrients.protein.toFixed(1)}</Text>
-                    <Text style={styles.macroLabel}>Proteína</Text>
+                    <Text style={styles.macroLabel}>Protein</Text>
                 </View>
                 <View style={styles.macroItem}>
                     <Text style={styles.macroValue}>{calculatedNutrients.carbs.toFixed(1)}</Text>
@@ -123,12 +121,12 @@ export default function FoodItemCard({ food, onAddFood }: Props) {
                 </View>
                 <View style={styles.macroItem}>
                     <Text style={styles.macroValue}>{calculatedNutrients.fat.toFixed(1)}</Text>
-                    <Text style={styles.macroLabel}>Grasa</Text>
+                    <Text style={styles.macroLabel}>Fats</Text>
                 </View>
             </View>
 
             <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
-                <Text style={styles.addButtonText}>Añadir al Registro</Text>
+                <Text style={styles.addButtonText}>Add to the Register</Text>
             </TouchableOpacity>
         </View>
     );

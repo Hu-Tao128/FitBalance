@@ -50,11 +50,11 @@ export default function FoodClassicSearch({ navigation }: any) {
             if (res.data?.results && res.data.results.length > 0) {
                 setResult({ foods: res.data.results });
             } else {
-                setError("No se encontraron resultados para tu búsqueda.");
+                setError("No results were found for your search.");
             }
         } catch (err: any) {
-            console.error("❌ ERROR al buscar:", err.response?.data || err.message);
-            setError("Hubo un error al conectar con el servidor.");
+            console.error("❌ ERROR when searching:", err.response?.data || err.message);
+            setError("There was an error connecting to the server.");
         } finally {
             setLoading(false);
         }
@@ -85,7 +85,7 @@ export default function FoodClassicSearch({ navigation }: any) {
 
     const handleSelectMeal = async (mealType: string, time: string) => {
         if (!selectedFood || !user?.id) {
-            Alert.alert("Error", "No se pudo seleccionar el alimento o no has iniciado sesión.");
+            Alert.alert("Error“, ”Food could not be selected or you are not logged in.");
             return;
         }
         setModalVisible(false);
@@ -104,7 +104,7 @@ export default function FoodClassicSearch({ navigation }: any) {
             );
         } catch (err: any) {
             console.error("❌ ERROR al añadir:", err.response?.data || err.message);
-            Alert.alert("Error", "No se pudo añadir el alimento a tu registro.");
+            Alert.alert("Error“, ”The food could not be added to your record.");
         } finally {
             setLoading(false);
         }
@@ -122,14 +122,14 @@ export default function FoodClassicSearch({ navigation }: any) {
         <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
             <TextInput
                 style={styles.input}
-                placeholder="Ej: 1 manzana, 2 rebanadas de pan"
+                placeholder="Example: 1 apple, 2 slices of bread"
                 placeholderTextColor={colors.text}
                 value={query}
                 onChangeText={setQuery}
                 onSubmitEditing={searchByQuery}
             />
             <TouchableOpacity style={styles.button} onPress={searchByQuery} disabled={loading}>
-                <Text style={styles.buttonText}>Buscar</Text>
+                <Text style={styles.buttonText}>Search</Text>
             </TouchableOpacity>
 
             {loading && <ActivityIndicator size="large" color={colors.primary} />}

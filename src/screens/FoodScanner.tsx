@@ -34,7 +34,7 @@ export default function FoodScanner({ navigation }: any) {
                 const product = response.data.product;
                 setResult({
                     foods: [{
-                        food_name: product.product_name || 'Producto sin nombre',
+                        food_name: product.product_name || 'Unnamed product',
                         serving_qty: 1,
                         serving_unit: product.serving_size || '100g',
                         nf_calories: product.nutriments['energy-kcal_100g'],
@@ -53,10 +53,10 @@ export default function FoodScanner({ navigation }: any) {
                     }]
                 });
             } else {
-                setError('🔍 Producto no encontrado en Open Food Facts');
+                setError('🔍 Product not found in Open Food Facts');
             }
         } catch (err) {
-            setError('Error al buscar por código de barras');
+            setError('Error when searching by barcode');
             console.error(err);
         } finally {
             setLoading(false);

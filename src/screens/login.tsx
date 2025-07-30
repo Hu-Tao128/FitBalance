@@ -129,7 +129,7 @@ export default function LoginScreen() {
 
     const handleLogin = async () => {
         if (!username || !password) {
-            setMessage('Por favor completa usuario y contraseña.');
+            setMessage('Please complete your username and password.');
             return;
         }
 
@@ -171,16 +171,16 @@ export default function LoginScreen() {
                 isActive: res.data.patient.isActive
             });
 
-            setMessage(`✅ Bienvenido/a, ${res.data.patient.name}`);
+            setMessage(`✅ Welcome, ${res.data.patient.name}`);
             navigation.navigate('Root');
         } catch (error: any) {
             // Mostrar mensaje específico si lo hay en la respuesta
             if (error.response && error.response.data && error.response.data.message) {
                 setMessage('❌ ' + error.response.data.message);
             } else if (error.response && error.response.status === 401) {
-                setMessage('❌ Usuario o contraseña incorrectos');
+                setMessage('❌ Incorrect username or password');
             } else {
-                setMessage('❌ Error de red o del servidor');
+                setMessage('❌ Network or server error');
             }
             console.error('Login error:', error);
         }

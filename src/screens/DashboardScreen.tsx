@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import { Pedometer } from 'expo-sensors';
 import React, { useEffect, useState } from 'react';
@@ -14,11 +15,10 @@ import {
   View
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import GoogleFit, { Scopes } from 'react-native-google-fit';
+import { API_CONFIG } from '../config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
-import { useFocusEffect } from '@react-navigation/native';
-import { API_CONFIG } from '../config';
-import GoogleFit, { Scopes } from 'react-native-google-fit';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -55,7 +55,7 @@ const Home = () => {
       setError(null);
 
       const today = new Date().toISOString().split('T')[0];
-      
+
       if (!user?.id) return;
 
       const [consumedRes, goalsRes] = await Promise.all([
@@ -63,8 +63,8 @@ const Home = () => {
         axios.get(`${API_CONFIG.BASE_URL}/weeklyplan/latest/${user.id}`)
       ]);
 
-    //console.log('Datos de consumo:', consumedRes.data);
-    //console.log('Metas:', goalsRes.data);
+      //console.log('Datos de consumo:', consumedRes.data);
+      //console.log('Metas:', goalsRes.data);
 
       setNutritionData({
         consumed: consumedRes.data.totals,
@@ -91,7 +91,7 @@ const Home = () => {
       fetchNutritionData();
     }, [user?.id])
   );
-  
+
   // Configuración del podómetro
   useEffect(() => {
     const subscribe = async () => {
@@ -101,8 +101,8 @@ const Home = () => {
           if (!response.granted) {
             setIsPedometerAvailable('unavailable');
             Alert.alert(
-              'Permisos requeridos',
-              'Necesitamos acceso a los sensores de actividad para contar tus pasos',
+              'Permits required',
+              'We need access to the activity sensors to count your steps.',
               [{ text: 'OK' }]
             );
             return;
@@ -449,8 +449,8 @@ const Home = () => {
     if (isPedometerAvailable === 'unavailable') {
       return (
         <TouchableOpacity onPress={() => Alert.alert(
-          'Función no disponible',
-          'El contador de pasos no está disponible en este dispositivo o requiere permisos adicionales'
+          'Function not available',
+          'The step counter is not available on this device or requires additional permissions.'
         )}>
           <Text style={[styles.cardText, { color: colors.danger }]}>No disponible</Text>
         </TouchableOpacity>
@@ -478,7 +478,7 @@ const Home = () => {
           {Math.round((steps / 10000) * 100)}% de tu meta
         </Text>
         <Text style={[styles.cardText, { fontSize: 12 }]}>
-          {pastStepCount} pasos en 24h
+          {pastStepCount} steps in 24h
         </Text>
       </>
     );
@@ -550,10 +550,10 @@ const Home = () => {
             )}
           </AnimatedCircularProgress>
           <Text style={styles.subtext}>
-            {caloriasObjetivo} cal objetivo | {caloriasComidas} consumidas
+            {caloriasObjetivo} target calories | {caloriasComidas} consumed
           </Text>
           <Text style={styles.statusText}>
-            {Math.abs(caloriasRestantes)} cal {caloriasRestantes > 0 ? 'faltantes' : 'excedidas'}
+            {Math.abs(caloriasRestantes)} cal {caloriasRestantes > 0 ? 'missing' : 'exceeded'}
           </Text>
         </View>
 
@@ -561,7 +561,7 @@ const Home = () => {
           <Text style={styles.sectionTitle}>Macros</Text>
           {/* NUEVO DISEÑO: PROGRESS BARS */}
           <MacroBar
-            label="Proteínas"
+            label="Proteins"
             icon="restaurant"
             value={proteinasConsumidas}
             goal={proteinasObjetivo}
@@ -570,7 +570,7 @@ const Home = () => {
             unit="g"
           />
           <MacroBar
-            label="Carbohidratos"
+            label="Carbohydrates"
             icon="pizza"
             value={carbohidratosConsumidos}
             goal={carbohidratosObjetivo}
@@ -579,7 +579,7 @@ const Home = () => {
             unit="g"
           />
           <MacroBar
-            label="Grasas"
+            label="Fats"
             icon="egg"
             value={grasasConsumidas}
             goal={grasasObjetivo}
@@ -591,24 +591,24 @@ const Home = () => {
 
         <View style={styles.sectionRow}>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Pasos</Text>
+            <Text style={styles.cardTitle}>Steps</Text>
             {renderStepsCard()}
           </View>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Ejercicio</Text>
+            <Text style={styles.cardTitle}>Exercise</Text>
             <Text style={styles.cardText}>{caloriesFromSteps} cal</Text>
             <Text style={[styles.cardText, { fontSize: 12 }]}>
-              Estimado por {steps} pasos
+              Estimated by {steps} steps
             </Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Comentario del nutriólogo</Text>
+          <Text style={styles.sectionTitle}>Nutritionist's comment</Text>
           <Text style={styles.sectionText}>
             {caloriasRestantes > 0
-              ? '¡Vas muy bien! Sigue así.'
-              : 'Te has excedido, intenta balancear tus próximas comidas.'}
+              ? 'Youre doing great! Keep it up.'
+              : 'You have overdone it, try to balance your next meals.'}
           </Text>
         </View>
       </ScrollView>

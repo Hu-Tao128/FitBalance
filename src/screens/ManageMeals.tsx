@@ -205,21 +205,21 @@ export default function ManageMealsScreen() {
                     onPress={() => handleAddMealToDailyLog(item)}
                     disabled={loading}
                 >
-                    <Text style={[styles.buttonText, { color: '#fff' }]}>+ Añadir</Text>
+                    <Text style={[styles.buttonText, { color: '#fff' }]}>+ Add</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.actionButton, { backgroundColor: colors.info }]}
                     onPress={() => handleEditMeal(item)}
                     disabled={loading}
                 >
-                    <Text style={[styles.buttonText, { color: '#fff' }]}>Editar</Text>
+                    <Text style={[styles.buttonText, { color: '#fff' }]}>Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.actionButton, { backgroundColor: colors.danger }]}
                     onPress={() => handleDeleteMeal(item._id)}
                     disabled={loading}
                 >
-                    <Text style={[styles.buttonText, { color: '#fff' }]}>Eliminar</Text>
+                    <Text style={[styles.buttonText, { color: '#fff' }]}>Delete</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -227,7 +227,7 @@ export default function ManageMealsScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <Text style={[styles.title, { color: colors.text }]}>Tus Comidas Personalizadas</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Your Personalized Meals</Text>
             {loading ? (
                 <ActivityIndicator size="large" color={colors.primary} style={styles.activityIndicatorCenter} />
             ) : patientMeals.length === 0 ? (
@@ -245,9 +245,9 @@ export default function ManageMealsScreen() {
                 <View style={styles.centeredView}>
                     <View style={[styles.modalView, { backgroundColor: colors.card }]}>
                         <Text style={[styles.modalTitle, { color: colors.text }]}>
-                            Añadir "{selectedMealForAdd?.name}" al log
+                            Add "{selectedMealForAdd?.name}" al log
                         </Text>
-                        <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Tipo de comida:</Text>
+                        <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Type of food:</Text>
                         <View style={styles.mealTypeContainer}>
                             {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map(type => (
                                 <TouchableOpacity
@@ -291,13 +291,13 @@ export default function ManageMealsScreen() {
                                 style={[styles.modalButton, { backgroundColor: colors.border }]}
                                 onPress={() => setIsModalVisible(false)}
                             >
-                                <Text style={[styles.buttonText, { color: colors.text }]}>Cancelar</Text>
+                                <Text style={[styles.buttonText, { color: colors.text }]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.modalButton, { backgroundColor: colors.primary }]}
                                 onPress={confirmAddMealToDailyLog}
                             >
-                                <Text style={[styles.buttonText, { color: '#fff' }]}>Confirmar</Text>
+                                <Text style={[styles.buttonText, { color: '#fff' }]}>Confirm</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator, SafeAreaView } from 'react-native';
-import axios from 'axios';
-import { LineChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
+import axios from 'axios';
+import React, { useState } from 'react';
+import { ActivityIndicator, Dimensions, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
+import { API_CONFIG } from '../config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
-import { API_CONFIG } from '../config';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -36,16 +36,16 @@ const StatisticsScreen = () => {
     };
 
     const styles = StyleSheet.create({
-        container: { 
-            padding: 16, 
+        container: {
+            padding: 16,
             backgroundColor: colors.background,
             flexGrow: 1,
             width: '100%',
         },
-        header: { 
-            fontSize: 22, 
-            fontWeight: 'bold', 
-            marginBottom: 16, 
+        header: {
+            fontSize: 22,
+            fontWeight: 'bold',
+            marginBottom: 16,
             color: colors.primary,
             textAlign: 'center'
         },
@@ -74,7 +74,7 @@ const StatisticsScreen = () => {
             marginBottom: 4,
             color: colors.textSecondary,
         },
-        chartContainer: { 
+        chartContainer: {
             marginBottom: 24,
             backgroundColor: colors.card,
             borderRadius: 12,
@@ -87,13 +87,13 @@ const StatisticsScreen = () => {
             width: screenWidth - 32,
             alignSelf: 'center',
         },
-        chartTitle: { 
-            fontSize: 16, 
-            fontWeight: '600', 
+        chartTitle: {
+            fontSize: 16,
+            fontWeight: '600',
             marginBottom: 8,
-            color: colors.text 
+            color: colors.text
         },
-        chart: { 
+        chart: {
             borderRadius: 12,
             overflow: 'hidden'
         },
@@ -107,45 +107,45 @@ const StatisticsScreen = () => {
 
     const fetchMealLogs = async () => {
         setLoading(true);
-    try {
-        const res = await axios.get(`${API_CONFIG.BASE_URL}/daily-meal-logs/all/${user?.id}`);
-        const sorted = res.data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        setData(sorted);
-    } catch (err) {
-        console.error(err);
-    } finally {
-        setLoading(false);
-    }
-    };
-    
-    useFocusEffect(
-    React.useCallback(() => {
-        if (user?.id) {
-        fetchMealLogs();
+        try {
+            const res = await axios.get(`${API_CONFIG.BASE_URL}/daily-meal-logs/all/${user?.id}`);
+            const sorted = res.data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            setData(sorted);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
         }
-    }, [user?.id])
+    };
+
+    useFocusEffect(
+        React.useCallback(() => {
+            if (user?.id) {
+                fetchMealLogs();
+            }
+        }, [user?.id])
     );
 
     const hasDataForDay = (dayIndex: number) => {
         const today = new Date();
         const targetDate = new Date();
         targetDate.setDate(today.getDate() - (today.getDay() - dayIndex));
-        
+
         return data.some(entry => {
             const entryDate = new Date(entry.date);
             return (
                 entryDate.getDate() === targetDate.getDate() &&
                 entryDate.getMonth() === targetDate.getMonth() &&
                 entryDate.getFullYear() === targetDate.getFullYear() &&
-                    (entry.totals.calories > 0 || 
-                    entry.totals.protein > 0 || 
-                    entry.totals.fat > 0 || 
+                (entry.totals.calories > 0 ||
+                    entry.totals.protein > 0 ||
+                    entry.totals.fat > 0 ||
                     entry.totals.carbs > 0)
             );
         });
     };
 
-    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     if (loading) {
         return (
@@ -156,26 +156,26 @@ const StatisticsScreen = () => {
     }
 
     const getCurrentWeekDates = () => {
-    const today = new Date();
-    const dayOfWeek = today.getDay(); // 0 (domingo) a 6 (sábado)
+        const today = new Date();
+        const dayOfWeek = today.getDay(); // 0 (domingo) a 6 (sábado)
 
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - dayOfWeek); // retrocede al domingo
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - dayOfWeek); // retrocede al domingo
 
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6); // avanza al sábado
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6); // avanza al sábado
 
-    startOfWeek.setHours(0, 0, 0, 0);
-    endOfWeek.setHours(23, 59, 59, 999);
+        startOfWeek.setHours(0, 0, 0, 0);
+        endOfWeek.setHours(23, 59, 59, 999);
 
-    return { startOfWeek, endOfWeek };
+        return { startOfWeek, endOfWeek };
     };
 
     const { startOfWeek, endOfWeek } = getCurrentWeekDates();
 
     const weeklyData = data.filter((entry) => {
-    const entryDate = new Date(entry.date);
-    return entryDate >= startOfWeek && entryDate <= endOfWeek;
+        const entryDate = new Date(entry.date);
+        return entryDate >= startOfWeek && entryDate <= endOfWeek;
     });
 
     const filledWeekData = Array.from({ length: 7 }).map((_, i) => {
@@ -215,7 +215,7 @@ const StatisticsScreen = () => {
             <LineChart
                 data={{
                     labels,
-                    datasets: [{ 
+                    datasets: [{
                         data: dataset,
                         color: (opacity = 1) => colors.primary,
                         strokeWidth: 2,
@@ -234,13 +234,13 @@ const StatisticsScreen = () => {
     );
 
     return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-            <ScrollView 
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+            <ScrollView
                 contentContainerStyle={styles.container}
                 showsVerticalScrollIndicator={false}
             >
-                <Text style={styles.header}>Estadísticas Nutricionales</Text>
-                
+                <Text style={styles.header}>Nutritional Statistics</Text>
+
                 <View style={styles.streakContainer}>
                     {days.map((day, index) => {
                         const hasData = hasDataForDay(index);
@@ -249,7 +249,7 @@ const StatisticsScreen = () => {
                                 <Text style={styles.dayName}>{day}</Text>
                                 <View style={[
                                     styles.dayItem,
-                                    { 
+                                    {
                                         backgroundColor: hasData ? colors.primary : colors.border,
                                     }
                                 ]}>
@@ -265,10 +265,10 @@ const StatisticsScreen = () => {
                     })}
                 </View>
 
-                {renderChart('Calorías', caloriesData)}
-                {renderChart('Proteínas (g)', proteinData)}
-                {renderChart('Grasas (g)', fatData)}
-                {renderChart('Carbohidratos (g)', carbsData)}
+                {renderChart('Calories', caloriesData)}
+                {renderChart('Proteins (g)', proteinData)}
+                {renderChart('Fats (g)', fatData)}
+                {renderChart('Carbs (g)', carbsData)}
             </ScrollView>
         </SafeAreaView>
     );

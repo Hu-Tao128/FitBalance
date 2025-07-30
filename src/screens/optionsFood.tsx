@@ -13,8 +13,8 @@ const buttonsConfig = [
     {
         name: 'plus-circle', // Icono para "Nueva comida"
         lib: FontAwesome5, // O puedes usar MaterialIcons si prefieres
-        label: 'Nueva comida',
-        sub: 'Crea un nuevo platillo desde cero',
+        label: 'New food',
+        sub: 'Create a new dish from scratch',
         color: '#34C759', // Verde vibrante
         bg: '#EAF7EB', // Fondo suave para el botón
         screen: 'CreateMealScreen',
@@ -23,8 +23,8 @@ const buttonsConfig = [
     {
         name: 'food-fork-drink', // Icono para "Gestionar comidas"
         lib: MaterialCommunityIcons, // O puedes usar FontAwesome5 si prefieres
-        label: 'Gestionar comidas',
-        sub: 'Edita o elimina tus platillos guardados',
+        label: 'Manage meals',
+        sub: 'Edit or delete your saved dishes',
         color: '#FF9500', // Naranja
         bg: '#FFF3E0', // Fondo suave para el botón
         screen: 'ManageMeals',

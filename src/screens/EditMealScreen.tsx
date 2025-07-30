@@ -18,7 +18,7 @@ import {
 import { RootStackParamList } from '../../App';
 import { useUser } from '../context/UserContext';
 
-import {API_CONFIG} from '../config';
+import { API_CONFIG } from '../config';
 
 // TIPOS ... (sin cambios)
 type EditMealScreenRouteProp = RouteProp<RootStackParamList, 'EditMeal'>;
@@ -69,7 +69,7 @@ export default function EditMealScreen() {
             }));
             setIngredients(loadedIngredients);
         } else {
-            Alert.alert('Error', 'No se encontró la comida para editar.');
+            Alert.alert('Error', 'No food found to edit.');
             navigation.goBack();
         }
     }, [mealToEdit]);
@@ -81,8 +81,8 @@ export default function EditMealScreen() {
                 const res = await axios.get(`${API_CONFIG.BASE_URL}/api/food`);
                 setFoods(res.data || []);
             } catch (err) {
-                console.error('ERROR al obtener alimentos:', err);
-                Alert.alert('Error', 'No se pudieron cargar los alimentos.');
+                console.error('ERROR in obtaining food:', err);
+                Alert.alert('Error', 'Food could not be loaded.');
             } finally {
                 setLoadingFoods(false);
             }
@@ -123,11 +123,11 @@ export default function EditMealScreen() {
     // --- MANEJADORES DE EVENTOS ---
     const handleAddIngredient = () => {
         const grams = Number(amount);
-        if (!selectedFood) return Alert.alert('Error', 'Selecciona un alimento válido.');
-        if (!grams || grams <= 0) return Alert.alert('Error', 'Ingresa una cantidad válida (>0 g).');
+        if (!selectedFood) return Alert.alert('Error', 'Select a valid food.');
+        if (!grams || grams <= 0) return Alert.alert('Error', 'Enter a valid quantity (>0 g).');
         const _id = getObjectIdFromMongoDoc(selectedFood._id);
         if (ingredients.some(i => i.food_id === _id))
-            return Alert.alert('Error', 'Este alimento ya está agregado a la lista.');
+            return Alert.alert('Error', 'This food is already added to the list.');
         setIngredients(prev => [...prev, { food_id: _id, food_data: selectedFood, amount_g: grams }]);
         setSelectedFood(null);
         setSearchFood('');
@@ -147,10 +147,10 @@ export default function EditMealScreen() {
     // ✅ FUNCIÓN CORREGIDA
     const handleUpdateMeal = async () => {
         if (!user) {
-            return Alert.alert('Error', 'No se pudo obtener la información de tu usuario.');
+            return Alert.alert('Error', 'Your user information could not be obtained.');
         }
-        if (!mealName.trim()) return Alert.alert('Error', 'Debes ponerle un nombre a la comida.');
-        if (ingredients.length === 0) return Alert.alert('Error', 'Agrega al menos un ingrediente.');
+        if (!mealName.trim()) return Alert.alert('Error', 'You must name the food.');
+        if (ingredients.length === 0) return Alert.alert('Error', 'Add at least one ingredient.');
 
         setLoading(true);
         try {
@@ -167,11 +167,11 @@ export default function EditMealScreen() {
 
             await axios.put(`${API_CONFIG.BASE_URL}/PatientMeals/${mealToEdit._id}`, mealData);
 
-            Alert.alert('¡Éxito!', 'Comida actualizada correctamente.');
+            Alert.alert('Success!', 'Food updated correctly.');
             navigation.goBack();
         } catch (err: any) {
-            console.error('ERROR al actualizar comida:', err.response?.data || err.message);
-            Alert.alert('Error', 'No se pudo actualizar la comida.');
+            console.error('ERROR when updating food:', err.response?.data || err.message);
+            Alert.alert('Error', 'Could not update food.');
         } finally {
             setLoading(false);
         }

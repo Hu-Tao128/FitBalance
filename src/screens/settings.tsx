@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView, Modal, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useState } from 'react';
+import { Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { RootStackParamList } from '../../App';
-import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
 
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
@@ -155,13 +155,13 @@ const SettingsScreen = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Ajustes</Text>
+        <Text style={styles.title}>Settings</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Cuenta */}
         <Text style={styles.sectionHeader}>Cuenta</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.item}
           onPress={() => navigation.navigate('UserProfile')}
         >
@@ -170,14 +170,14 @@ const SettingsScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity style={styles.item}>
           <Ionicons name="lock-closed-outline" size={24} color="#34C759" />
-          <Text style={styles.itemText}>Cambiar contraseña</Text>
+          <Text style={styles.itemText}>Change password</Text>
         </TouchableOpacity>
 
         {/* Preferencias */}
-        <Text style={styles.sectionHeader}>Preferencias</Text>
+        <Text style={styles.sectionHeader}>Preferences</Text>
         <View style={styles.item}>
           <Ionicons name="notifications-outline" size={24} color="#34C759" />
-          <Text style={styles.itemText}>Notificaciones</Text>
+          <Text style={styles.itemText}>Notifications</Text>
           <Switch
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
@@ -188,11 +188,11 @@ const SettingsScreen = () => {
         </View>
         <View style={styles.item}>
           <Ionicons name="moon-outline" size={24} color={colors.primary} />
-          <Text style={styles.itemText}>Modo oscuro</Text>
+          <Text style={styles.itemText}>Dark mode</Text>
           <Switch
             value={darkMode}
             onValueChange={toggleTheme}
-            trackColor={{ false: '#555', true: colors.primary}}
+            trackColor={{ false: '#555', true: colors.primary }}
             thumbColor="#fff"
             style={styles.switch}
           />
@@ -202,23 +202,23 @@ const SettingsScreen = () => {
         <Text style={styles.sectionHeader}>Otros</Text>
         <TouchableOpacity style={styles.item}>
           <MaterialIcons name="help-outline" size={24} color="#34C759" />
-          <Text style={styles.itemText}>Ayuda</Text>
+          <Text style={styles.itemText}>Help</Text>
         </TouchableOpacity>
         <TouchableOpacity
-            style={styles.item}
-            onPress={() => setLogoutModalVisible(true)} // Abre el modal al presionar
+          style={styles.item}
+          onPress={() => setLogoutModalVisible(true)} // Abre el modal al presionar
         >
           <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-          <Text style={[styles.itemText, { color: '#FF3B30' }]}>Cerrar sesión</Text>
+          <Text style={[styles.itemText, { color: '#FF3B30' }]}>Log off</Text>
         </TouchableOpacity>
       </ScrollView>
 
       {/* Modal de confirmación de cierre de sesión */}
       <Modal
-          animationType="fade"
-          transparent={true}
-          visible={logoutModalVisible}
-          onRequestClose={() => setLogoutModalVisible(false)}
+        animationType="fade"
+        transparent={true}
+        visible={logoutModalVisible}
+        onRequestClose={() => setLogoutModalVisible(false)}
       >
         <TouchableWithoutFeedback onPress={() => setLogoutModalVisible(false)}>
           <View style={styles.modalOverlay}>
@@ -229,15 +229,15 @@ const SettingsScreen = () => {
 
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
-                      style={[styles.modalButton, styles.cancelButton]}
-                      onPress={() => setLogoutModalVisible(false)}
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => setLogoutModalVisible(false)}
                   >
                     <Text style={styles.cancelButtonText}>Cancelar</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                      style={[styles.modalButton, styles.confirmButton]}
-                      onPress={handleLogout}
+                    style={[styles.modalButton, styles.confirmButton]}
+                    onPress={handleLogout}
                   >
                     <Text style={styles.confirmButtonText}>Cerrar sesión</Text>
                   </TouchableOpacity>

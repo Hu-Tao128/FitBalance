@@ -223,23 +223,23 @@ export default function CreateMealScreen() {
                     renderItem={({ item, index }) => <IngredientItem item={item} index={index} />}
                     ListHeaderComponent={
                         <View style={styles.contentPadding}>
-                            <Text style={styles.title}>Crear Comida Personalizada</Text>
+                            <Text style={styles.title}>Create Customized Meals</Text>
 
-                            <Text style={styles.label}>Nombre de la comida *</Text>
+                            <Text style={styles.label}>Name of food *</Text>
                             <TextInput
                                 style={styles.input}
                                 value={mealName}
                                 onChangeText={setMealName}
-                                placeholder="Ej. Ensalada Fresca de Pollo"
+                                placeholder="Example. Fresh Chicken Salad"
                                 placeholderTextColor="#999"
                             />
 
-                            <Text style={styles.label}>Buscar y añadir ingredientes *</Text>
+                            <Text style={styles.label}>Search and add ingredients *</Text>
                             <TextInput
                                 style={styles.input}
                                 value={searchFood}
                                 onChangeText={setSearchFood}
-                                placeholder="Mín. 2 caracteres para buscar..."
+                                placeholder="Min. 2 characters to search..."
                                 placeholderTextColor="#999"
                             />
 
@@ -263,7 +263,7 @@ export default function CreateMealScreen() {
                                 </View>
                             )}
                             {searchFood.trim().length >= 2 && filteredFoods.length === 0 && !loadingFoods && !selectedFood && (
-                                <Text style={styles.noResultsText}>No se encontraron alimentos.</Text>
+                                <Text style={styles.noResultsText}>No food was found.</Text>
                             )}
 
                             {/* Sección para añadir cantidad del alimento seleccionado */}
@@ -278,18 +278,18 @@ export default function CreateMealScreen() {
                                         style={styles.amountInput}
                                         value={amount}
                                         onChangeText={setAmount}
-                                        placeholder="Gramos"
+                                        placeholder="Grams"
                                         keyboardType="numeric"
                                         placeholderTextColor="#999"
                                     />
                                     <TouchableOpacity style={styles.addButton} onPress={handleAddIngredient}>
-                                        <Text style={styles.addButtonText}>Añadir</Text>
+                                        <Text style={styles.addButtonText}>Add</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
 
                             {ingredients.length > 0 && (
-                                <Text style={styles.label}>Ingredientes añadidos</Text>
+                                <Text style={styles.label}>Added ingredients</Text>
                             )}
                         </View>
                     }
@@ -297,19 +297,19 @@ export default function CreateMealScreen() {
                         <View style={styles.contentPadding}>
                             {ingredients.length > 0 && (
                                 <View style={styles.totalsBox}>
-                                    <Text style={styles.boldText}>Totales: {totals.energy_kcal} kcal</Text>
+                                    <Text style={styles.boldText}>Totals: {totals.energy_kcal} kcal</Text>
                                     <Text style={styles.totalsText}>
-                                        Prot {totals.protein_g}g · Carb {totals.carbohydrates_g}g · Grasa {totals.fat_g}g
+                                        Prot {totals.protein_g}g · Carb {totals.carbohydrates_g}g · Fats {totals.fat_g}g
                                     </Text>
                                 </View>
                             )}
 
-                            <Text style={styles.label}>Instrucciones (opcional)</Text>
+                            <Text style={styles.label}>Instructions (opcional)</Text>
                             <TextInput
                                 style={[styles.input, styles.instructionsInput]}
                                 value={instructions}
                                 onChangeText={setInstructions}
-                                placeholder="Describe los pasos para preparar la comida..."
+                                placeholder="Describes the steps to prepare the meal...."
                                 multiline
                                 placeholderTextColor="#999"
                             />
@@ -322,7 +322,7 @@ export default function CreateMealScreen() {
                                 {loading ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
-                                    <Text style={styles.mainButtonText}>Crear Comida</Text>
+                                    <Text style={styles.mainButtonText}>Create Food</Text>
                                 )}
                             </TouchableOpacity>
                         </View>

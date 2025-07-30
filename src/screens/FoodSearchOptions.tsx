@@ -8,8 +8,8 @@ const iconConfig = [
     {
         name: 'barcode-scan',
         lib: MaterialCommunityIcons,
-        label: 'Buscar con código de barras',
-        sub: 'Escanea el empaque del alimento',
+        label: 'Search with barcode',
+        sub: 'Scan food packaging',
         color: '#7CB342',
         bg: '#ECF9E4',
         screen: 'FoodScanner',
@@ -18,8 +18,8 @@ const iconConfig = [
     {
         name: 'search',
         lib: MaterialIcons,
-        label: 'Buscar por nombre o descripción',
-        sub: 'Encuentra alimentos con texto',
+        label: 'Search by name or description',
+        sub: 'Find food with text',
         color: '#1976D2',
         bg: '#E7F0FB',
         screen: 'FoodClassicSearch',
@@ -28,11 +28,11 @@ const iconConfig = [
     {
         name: 'utensils',
         lib: FontAwesome5,
-        label: 'Crear tu propio platillo',
-        sub: 'Arma recetas y guarda combinaciones',
-        color: '#FA3E44',   // Guinda
-        bg: '#FDE5E7',      // Fondo suave rosado
-        screen: 'optionsFood', // <--- ¡CAMBIA ESTA LÍNEA!
+        label: 'Create your own dish',
+        sub: 'Create recipes and save combinations',
+        color: '#FA3E44',
+        bg: '#FDE5E7',
+        screen: 'optionsFood',
         size: 33,
     },
 ];
@@ -117,7 +117,7 @@ export default function FoodSearchOptions({ navigation }: any) {
     });
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <Text style={styles.title}>¿Cómo quieres buscar o crear alimentos?</Text>
+            <Text style={styles.title}>How do you want to search for or create food?</Text>
             <View style={styles.cards}>
                 {iconConfig.map((btn, idx) => {
                     const IconLib = btn.lib;

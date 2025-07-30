@@ -99,10 +99,10 @@ export default function BarCodeScanner({ onBarCodeScanned }: BarCodeScannerProps
         return (
             <View style={styles.container}>
                 <Text style={styles.message}>
-                    Necesitamos permiso para acceder a tu cámara y escanear el código de barras.
+                    We need permission to access your camera and scan the barcode.
                 </Text>
                 <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
-                    <Text style={styles.permissionBtnText}>Conceder permiso</Text>
+                    <Text style={styles.permissionBtnText}>Granting permission</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -123,7 +123,7 @@ export default function BarCodeScanner({ onBarCodeScanned }: BarCodeScannerProps
                 onBarcodeScanned={onBarCodeScanned}
             >
                 {/* Mensaje y guía */}
-                <Text style={styles.scanMsg}>Alinea el código de barras dentro del recuadro</Text>
+                <Text style={styles.scanMsg}>Grant permissionLine up the barcode inside the box</Text>
                 <View style={styles.guideBox} />
 
                 {/* Botón girar cámara */}

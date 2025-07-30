@@ -26,7 +26,7 @@ export const AddFoodModal = ({ visible, onClose, onSelectMeal }: any) => {
         <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={onClose}>
             <View style={styles.modalContainer}>
                 <View style={styles.modalContent}>
-                    <Text style={styles.title}>Añadir a:</Text>
+                    <Text style={styles.title}>Add to:</Text>
                     {MEAL_TYPES.map(meal => (
                         <TouchableOpacity
                             key={meal.key}
@@ -37,7 +37,7 @@ export const AddFoodModal = ({ visible, onClose, onSelectMeal }: any) => {
                         </TouchableOpacity>
                     ))}
                     <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-                        <Text style={styles.cancelText}>Cancelar</Text>
+                        <Text style={styles.cancelText}>Cancel</Text>
                     </TouchableOpacity>
                 </View>
             </View>
