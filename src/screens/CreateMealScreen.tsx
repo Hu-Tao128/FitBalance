@@ -338,7 +338,7 @@ export default function CreateMealScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F0F2F5', // Color de fondo claro por defecto
+        backgroundColor: '#E1EEBC', // Color de fondo claro por defecto
     },
     contentPadding: {
         paddingHorizontal: 20,

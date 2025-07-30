@@ -46,7 +46,7 @@ export default function LoginScreen() {
             height: '100%',
         },
         loginBox: {
-            marginTop: -50,
+            marginTop: -20,
             paddingHorizontal: 30,
             paddingVertical: 20,
         },
@@ -105,7 +105,7 @@ export default function LoginScreen() {
             marginBottom: 10,
         },
         linkText: {
-            color: '#188827',
+            color: '#000000ff',
             fontWeight: '600',
         },
         footerDecor: {
@@ -224,11 +224,6 @@ export default function LoginScreen() {
                         />
                     </View>
 
-                    <View style={styles.optionsRow}>
-                        <TouchableOpacity>
-                            <Text style={styles.optionText}>Forgot your password?</Text>
-                        </TouchableOpacity>
-                    </View>
 
                     <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
                         <Text style={styles.loginText}>Login</Text>
@@ -239,7 +234,7 @@ export default function LoginScreen() {
                     ) : null}
 
                     <Text style={styles.signUpText}>
-                        Want to try the app? <Text style={styles.linkText}>Sign up</Text>
+                        Be your best version.
                     </Text>
                 </View>
             </ScrollView>
