@@ -181,7 +181,7 @@ const UserProfileCard = ({
           <View style={styles.iconBox}>
             <Ionicons name="body-outline" size={22} color={colors.primary} />
           </View>
-          <Text style={styles.infoText}>{age} años • {gender}</Text>
+          <Text style={styles.infoText}>{age} Age • {gender}</Text>
         </View>
         <View style={styles.row}>
           <View style={styles.iconBox}>
@@ -204,14 +204,14 @@ const UserProfileCard = ({
           <View style={styles.iconBox}>
             <Ionicons name="barbell-outline" size={22} color={colors.primary} />
           </View>
-          <Text style={styles.infoText}>Objetivo: {objective}</Text>
+          <Text style={styles.infoText}>Target: {objective}</Text>
         </View>
         <View style={styles.row}>
           <View style={styles.iconBox}>
             <Ionicons name="calendar-outline" size={22} color={colors.primary} />
           </View>
           <Text style={styles.infoText}>
-            Última consulta: {formatLastConsultation()}
+            Last consultation: {formatLastConsultation()}
           </Text>
         </View>
       </View>

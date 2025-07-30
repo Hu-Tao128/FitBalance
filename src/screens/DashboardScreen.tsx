@@ -602,15 +602,6 @@ const Home = () => {
             </Text>
           </View>
         </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Nutritionist's comment</Text>
-          <Text style={styles.sectionText}>
-            {caloriasRestantes > 0
-              ? 'Youre doing great! Keep it up.'
-              : 'You have overdone it, try to balance your next meals.'}
-          </Text>
-        </View>
       </ScrollView>
     </View>
   );

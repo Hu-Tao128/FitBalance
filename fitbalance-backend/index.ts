@@ -1188,3 +1188,36 @@ app.post('/dailymeallogs/add-food', async (req: Request, res: Response) => {
     });
   }
 });
+
+
+
+// EDITAR PEFIL------------------------
+app.put('/patient/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'ID de paciente no válido' });
+  }
+
+  // No permitir la actualización de campos sensibles como el username o la contraseña desde aquí
+  delete updateData.username;
+  delete updateData.password;
+
+  try {
+    const updatedPatient = await Patient.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true } // new: true devuelve el documento actualizado
+    ).select('-password'); // Excluir la contraseña de la respuesta
+
+    if (!updatedPatient) {
+      return res.status(404).json({ message: 'Paciente no encontrado' });
+    }
+
+    res.json({ message: 'Perfil actualizado con éxito', patient: updatedPatient });
+  } catch (error) {
+    console.error('❌ Error al actualizar el perfil:', error);
+    res.status(500).json({ error: 'Error interno del servidor al actualizar el perfil' });
+  }
+});

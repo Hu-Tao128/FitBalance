@@ -9,9 +9,9 @@ import UserProfileScreen from '../screens/userProfileScreen';
 import weighFood from '../screens/weighFood';
 import { BottomNavigation } from './bottom-navigation';
 
-// NUEVAS IMPORTACIONES DE PANTALLAS
 import CreateMealScreen from '../screens/CreateMealScreen';
-import EditMealScreen from '../screens/EditMealScreen'; // <--- ¡Importa la nueva pantalla de edición!
+import EditMealScreen from '../screens/EditMealScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 import FoodClassicSearch from '../screens/FoodClassicSearch';
 import FoodScanner from '../screens/FoodScanner';
 import FoodSearchOptions from '../screens/FoodSearchOptions';
@@ -32,10 +32,11 @@ export type RootStackParamList = {
   FoodSearchOptions: undefined;
   FoodScanner: undefined;
   FoodClassicSearch: undefined;
-  CreateMealScreen: undefined; // <--- Ahora sin parámetros para crear
+  CreateMealScreen: undefined;
   optionsFood: undefined;
   ManageMeals: undefined;
-  EditMeal: { mealToEdit: PatientMeal }; // <--- ¡Define la ruta de edición!
+  EditMeal: { mealToEdit: PatientMeal };
+  EditProfile: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -162,6 +163,15 @@ export default function AppNavigator() {
                 title: 'Editar Comida', // Título para la pantalla de edición
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
+              }}
+            />
+            <Stack.Screen
+              name="EditProfile"
+              component={EditProfileScreen}
+              options={{
+                title: 'Editar Perfil',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff'
               }}
             />
           </>

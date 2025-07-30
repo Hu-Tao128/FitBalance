@@ -155,21 +155,7 @@ const UserProfileScreen = ({ navigation }: any) => {
 
       </View>
 
-      {/* CARD DE NOTAS */}
-      <View style={styles.notes}>
-        <MaterialIcons
-          name="sticky-note-2"
-          size={32}
-          color={colors.primary}
-          style={styles.notesIcon}
-        />
-        <View style={styles.notesTextWrap}>
-          <Text style={styles.notesTitle}>Notas del nutriólogo</Text>
-          <Text style={styles.noteText}>
-            Vas muy bien, sigue así. Recuerda incluir proteína vegetal en tus desayunos y procura al menos 1 fruta diaria.
-          </Text>
-        </View>
-      </View>
+
     </ScrollView>
   );
 };
