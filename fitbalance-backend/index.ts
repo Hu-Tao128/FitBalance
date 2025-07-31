@@ -980,7 +980,7 @@ app.get('/daily-meal-logs/all/:patient_id', async (req: Request, res: Response) 
   }
 });
 
-// 📅 Endpoint unificado para obtener/crear registro diario
+// Endpoint unificado para obtener/crear registro diario
 app.get('/daily-meal-logs/today/:patient_id', async (req: Request, res: Response) => {
   const { patient_id } = req.params;
 
@@ -1003,11 +1003,11 @@ app.get('/daily-meal-logs/today/:patient_id', async (req: Request, res: Response
       date: { $gte: todayStart, $lte: todayEnd }
     });
 
-    // 3. Si no existe, crear uno nuevo (como en /daily-nutrition)
+    // 3. Si no existe, crear uno nuevo 
     if (!log) {
       log = new DailyMealLog({
         patient_id: pid,
-        date: todayStart, // Fecha normalizada a medianoche
+        date: todayStart, // Fecha a medianoche
         meals: [],
         totalCalories: 0,
         totalProtein: 0,
@@ -1049,7 +1049,7 @@ app.get('/daily-meal-logs/today/:patient_id', async (req: Request, res: Response
   }
 });
 
-// 👉 Nuevo endpoint: añade una comida del WeeklyPlan al DailyMealLog
+// Endpoint: añade una comida del WeeklyPlan al DailyMealLog
 app.post("/DailyMealLogs/add-weekly-meal", async (req: Request, res: Response) => {
   const { patient_id, meal } = req.body;
 
@@ -1111,8 +1111,6 @@ app.post("/DailyMealLogs/add-weekly-meal", async (req: Request, res: Response) =
 // --------------------------------------------
 //
 
-// Reemplaza el endpoint '/dailymeallogs/add-food' en tu archivo index.ts con esta versión
-
 app.post('/dailymeallogs/add-food', async (req: Request, res: Response) => {
   const { patient_id, type, time, food_data } = req.body;
 
@@ -1121,19 +1119,15 @@ app.post('/dailymeallogs/add-food', async (req: Request, res: Response) => {
   }
 
   try {
-    // 👇 CORRECCIÓN FINAL: Creamos el objeto 'foodToSave' para que cumpla con tu schema 'Food'.
     const foodToSave = {
       name: food_data.food_name,
       portion_size_g: food_data.serving_weight_grams || 100,
-      // 1. Se añade el campo 'category' requerido. Asignamos un valor por defecto.
       category: food_data.category || 'general',
       nutrients: {
-        // Campos que ya teníamos
         energy_kcal: food_data.nf_calories || 0,
         protein_g: food_data.nf_protein || 0,
         carbohydrates_g: food_data.nf_total_carbohydrate || 0,
         fat_g: food_data.nf_total_fat || 0,
-        // 2. Se añaden los campos de nutrientes requeridos que faltaban.
         fiber_g: food_data.nf_dietary_fiber || 0,
         sugar_g: food_data.nf_sugars || 0,
       }
@@ -1145,7 +1139,6 @@ app.post('/dailymeallogs/add-food', async (req: Request, res: Response) => {
       { new: true, upsert: true, runValidators: true }
     );
 
-    // --- El resto de la lógica para DailyMealLogs (ya es correcta) ---
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

@@ -16,7 +16,8 @@
     "express": "^4.21.2",
     "luxon": "^3.7.1",
     "mongoose": "^7.8.7",
-    "nodemailer": "^7.0.4"
+    "nodemailer": "^7.0.4",
+    "expo-updates": "~0.28.17"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

@@ -130,7 +130,7 @@ const StatisticsScreen = () => {
         const today = new Date();
         const targetDate = new Date();
         const diff = today.getDay() === 0 ? 
-            (6 - dayIndex) : // si es domingo
+            (6 - dayIndex) :
             (today.getDay() - 1 - dayIndex);
         targetDate.setDate(today.getDate() - diff);
 
@@ -207,7 +207,7 @@ const StatisticsScreen = () => {
     });
 
     const labels = filledWeekData.map(entry =>
-        entry.date.toLocaleDateString('es-ES', { weekday: 'short' }) // Dom, Lun, etc.
+        entry.date.toLocaleDateString('en-EN', { weekday: 'short' }) // en-EN para ingles / es-ES espaniol Dom, Lun, etc.
     );
 
     const caloriesData = filledWeekData.map(entry => entry.calories);
