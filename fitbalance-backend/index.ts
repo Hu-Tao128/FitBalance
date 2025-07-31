@@ -497,12 +497,12 @@ app.get("/daily-nutrition", async (req: Request, res: Response) => {
   }
 });
 
-// Endpoint para obtener el plan semanal más reciente
+// Endpoint to get the latest weekly plan
 app.get('/weeklyplan/latest/:patient_id', async (req: Request, res: Response) => {
   const { patient_id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(patient_id)) {
-    return res.status(400).json({ error: 'ID de paciente no válido' });
+    return res.status(400).json({ error: 'Invalid patient ID' });
   }
 
   try {
@@ -513,22 +513,23 @@ app.get('/weeklyplan/latest/:patient_id', async (req: Request, res: Response) =>
       .lean();
 
     if (!latestPlan) {
-      return res.status(404).json({
-        message: 'No se encontró ningún plan semanal.',
-        defaultValues: {
-          dailyCalories: 2000,
-          protein: 150,
-          fat: 70,
-          carbs: 250
-        }
+      // ✅ CORRECTED: Always return a 200 OK status.
+      // This indicates the request was successful, even if no plan was found.
+      return res.status(200).json({
+        message: 'No weekly plan found.',
+        // Provide default values so the frontend has something to work with.
+        dailyCalories: 2000,
+        protein: 150,
+        fat: 70,
+        carbs: 250
       });
     }
 
     return res.json(latestPlan);
 
   } catch (error) {
-    console.error('❌ Error en /weeklyplan/latest:', error);
-    return res.status(500).json({ error: 'Error al obtener el plan semanal más reciente' });
+    console.error('❌ Error in /weeklyplan/latest:', error);
+    return res.status(500).json({ error: 'Error getting the latest weekly plan' });
   }
 });
 
@@ -550,7 +551,7 @@ app.get('/weeklyplan/daily/:patient_id', async (req, res) => {
     // Obtener la fecha actual en la zona horaria de Tijuana
     const todayInTijuana = DateTime.now().setZone('America/Tijuana');
 
-    const todayWeekDay = todayInTijuana.weekdayLong.toLowerCase(); 
+    const todayWeekDay = todayInTijuana.weekdayLong.toLowerCase();
     // Retorna 'monday', 'tuesday', etc. (en inglés y lowercase, ideal para tu lógica)
 
     const todayMeals = plan.meals.filter(meal => meal.day === todayWeekDay);
@@ -1219,5 +1220,68 @@ app.put('/patient/:id', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('❌ Error al actualizar el perfil:', error);
     res.status(500).json({ error: 'Error interno del servidor al actualizar el perfil' });
+  }
+});
+
+
+// --------------------------
+
+//  CITAS ------------------------
+
+// -------------------
+
+interface IAppointment extends Document {
+  nutritionist_id: Types.ObjectId;
+  patient_id: Types.ObjectId;
+  appointment_date: Date;
+  appointment_time: string;
+  appointment_type?: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+  notes?: string;
+}
+
+const AppointmentSchema = new Schema<IAppointment>({
+  nutritionist_id: { type: Schema.Types.ObjectId, required: true, ref: 'Nutritionist' }, // Asumiendo que tienes un modelo Nutritionist
+  patient_id: { type: Schema.Types.ObjectId, required: true, ref: 'Patient' },
+  appointment_date: { type: Date, required: true },
+  appointment_time: { type: String, required: true },
+  appointment_type: { type: String },
+  status: { type: String, enum: ['scheduled', 'completed', 'cancelled'], required: true },
+  notes: { type: String }
+}, {
+  collection: 'Appointments', // Nombre de tu colección en MongoDB
+  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
+});
+
+const Appointment = mongoose.model<IAppointment>('Appointment', AppointmentSchema);
+
+// ... (antes de tus endpoints de app.get, app.post, etc.)
+
+// index.ts (backend)
+
+app.get('/appointments/:patient_id', async (req: Request, res: Response) => {
+  const { patient_id } = req.params;
+
+  // Log en el servidor para ver qué ID llega
+  console.log(`Backend: Buscando citas para el patient_id: ${patient_id}`);
+
+  if (!mongoose.Types.ObjectId.isValid(patient_id)) {
+    console.log('Backend: El ID recibido no es válido.');
+    return res.status(400).json({ error: 'ID de paciente no válido' });
+  }
+
+  try {
+    const appointments = await Appointment.find({ patient_id: new Types.ObjectId(patient_id) });
+
+    // Log en el servidor para ver cuántas citas se encontraron
+    console.log(`Backend: Se encontraron ${appointments.length} citas.`);
+
+    // Devuelve 200 OK y un array (vacío o con datos). Esto es mejor que un 404.
+    // Así, la app sabrá que la consulta fue exitosa aunque no haya resultados.
+    res.status(200).json(appointments);
+
+  } catch (error) {
+    console.error('❌ Backend: Error en /appointments/:patient_id:', error);
+    res.status(500).json({ error: 'Error al obtener las citas' });
   }
 });

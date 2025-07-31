@@ -16,6 +16,7 @@ import FoodClassicSearch from '../screens/FoodClassicSearch';
 import FoodScanner from '../screens/FoodScanner';
 import FoodSearchOptions from '../screens/FoodSearchOptions';
 import ManageMealsScreen from '../screens/ManageMeals';
+import ManagementDatingScreen from '../screens/managementDating';
 import optionsFood from '../screens/optionsFood';
 import StatisticsScreen from '../screens/Stadistics';
 
@@ -37,6 +38,7 @@ export type RootStackParamList = {
   ManageMeals: undefined;
   EditMeal: { mealToEdit: PatientMeal };
   EditProfile: undefined;
+  ManagementDating: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -163,6 +165,15 @@ export default function AppNavigator() {
                 title: 'Editar Comida', // Título para la pantalla de edición
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
+              }}
+            />
+            <Stack.Screen
+              name="ManagementDating"
+              component={ManagementDatingScreen}
+              options={{
+                title: 'Gestión de Citas', // Título para la cabecera
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff'
               }}
             />
             <Stack.Screen

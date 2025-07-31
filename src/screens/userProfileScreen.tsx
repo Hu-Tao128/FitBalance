@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import UserProfileCard from '../components/userProfileCard';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
@@ -119,6 +119,12 @@ const UserProfileScreen = ({ navigation }: any) => {
       lineHeight: 21,
       opacity: 0.92,
     },
+    buttonContainer: {
+      marginTop: 12,
+      marginBottom: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
   });
 
   if (!user) {
@@ -151,8 +157,18 @@ const UserProfileScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
 
+
+
         <UserProfileCard {...user} />
 
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Mis Citas"
+          onPress={() => navigation.navigate('ManagementDating')}
+          color="#34C759"
+        />
       </View>
 
 

@@ -17,6 +17,7 @@ type User = {
   last_consultation?: string | null;
   nutritionist_id?: string;
   isActive?: boolean;
+  displayName?: string | null;
 };
 
 type UserContextType = {

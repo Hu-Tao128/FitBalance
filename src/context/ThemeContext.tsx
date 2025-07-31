@@ -46,7 +46,7 @@ export const lightColors = {
     progressBg: '#E1EEBC', // Fondo de barras de progreso (igual que fondo)
 
     success: '#67AE6E',     // Éxito: mismo verde intermedio
-    warning: '#F6DE65',     // Warning: amarillo pastel visible sobre fondo
+    warning: '#7d795fff',     // Warning: amarillo pastel visible sobre fondo
     error: '#EA6B6B',     // Error: rojo pastel moderno (por si acaso)
 };
 
