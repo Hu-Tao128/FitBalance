@@ -1,4 +1,4 @@
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
@@ -160,13 +160,13 @@ const SettingsScreen = () => {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Cuenta */}
-        <Text style={styles.sectionHeader}>Cuenta</Text>
+        <Text style={styles.sectionHeader}>Account</Text>
         <TouchableOpacity
           style={styles.item}
           onPress={() => navigation.navigate('UserProfile')}
         >
           <Ionicons name="person-outline" size={24} color="#34C759" />
-          <Text style={styles.itemText}>Perfil</Text>
+          <Text style={styles.itemText}>Profile</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.item}>
           <Ionicons name="lock-closed-outline" size={24} color="#34C759" />
@@ -199,11 +199,25 @@ const SettingsScreen = () => {
         </View>
 
         {/* Otros */}
-        <Text style={styles.sectionHeader}>Otros</Text>
-        <TouchableOpacity style={styles.item}>
-          <MaterialIcons name="help-outline" size={24} color="#34C759" />
-          <Text style={styles.itemText}>Help</Text>
+        <Text style={styles.sectionHeader}>Others</Text>
+
+        <TouchableOpacity
+          style={styles.item}
+          onPress={() => navigation.navigate('ManagementDating')}
+        >
+          <Ionicons name="calendar-outline" size={24} color="#34C759" />
+          <Text style={styles.itemText}>Appointments</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.item}
+          onPress={() => navigation.navigate('NutritionistProfile')}
+        >
+          <Ionicons name="id-card-outline" size={24} color="#34C759" />
+          <Text style={styles.itemText}>Nutritionist</Text>
+        </TouchableOpacity>
+
+
         <TouchableOpacity
           style={styles.item}
           onPress={() => setLogoutModalVisible(true)} // Abre el modal al presionar
@@ -224,22 +238,22 @@ const SettingsScreen = () => {
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>¿Cerrar sesión?</Text>
-                <Text style={styles.modalText}>¿Estás seguro de que quieres salir de tu cuenta?</Text>
+                <Text style={styles.modalTitle}>Log out?</Text>
+                <Text style={styles.modalText}>Are you sure you want to get out of your account?</Text>
 
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
                     style={[styles.modalButton, styles.cancelButton]}
                     onPress={() => setLogoutModalVisible(false)}
                   >
-                    <Text style={styles.cancelButtonText}>Cancelar</Text>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={[styles.modalButton, styles.confirmButton]}
                     onPress={handleLogout}
                   >
-                    <Text style={styles.confirmButtonText}>Cerrar sesión</Text>
+                    <Text style={styles.confirmButtonText}>Log off</Text>
                   </TouchableOpacity>
                 </View>
               </View>

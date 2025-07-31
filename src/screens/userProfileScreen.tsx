@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import UserProfileCard from '../components/userProfileCard';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
@@ -161,14 +161,6 @@ const UserProfileScreen = ({ navigation }: any) => {
 
         <UserProfileCard {...user} />
 
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Mis Citas"
-          onPress={() => navigation.navigate('ManagementDating')}
-          color="#34C759"
-        />
       </View>
 
 

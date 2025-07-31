@@ -1285,3 +1285,82 @@ app.get('/appointments/:patient_id', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error al obtener las citas' });
   }
 });
+
+
+// 
+
+//  -------------------------- VER LOS DATOS DEL NUTRIOLOGO -------------------------
+
+
+// 👇 ADD THIS NEW MODEL FOR NUTRITIONISTS
+interface INutritionist extends Document {
+  _id: Types.ObjectId;
+  name: string;
+  lastName: string;
+  secondLastName?: string;
+  email: string;
+  password?: string;
+  city: string;
+  street: string;
+  neighborhood: string;
+  streetNumber: string;
+  licenseNumber?: string;
+  specialization?: string;
+  isActive: boolean;
+}
+
+const NutritionistSchema = new Schema<INutritionist>({
+  name: { type: String, required: true },
+  lastName: { type: String, required: true },
+  secondLastName: { type: String },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true, select: false },
+  city: { type: String, required: true },
+  street: { type: String, required: true },
+  neighborhood: { type: String, required: true },
+  streetNumber: { type: String, required: true },
+  licenseNumber: { type: String },
+  specialization: { type: String },
+  isActive: { type: Boolean, default: true },
+}, {
+  collection: 'Nutritionist',
+  timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
+});
+
+const Nutritionist = mongoose.model<INutritionist>('Nutritionist', NutritionistSchema);
+
+
+// 👇 ADD THIS NEW ENDPOINT
+// In your backend index.ts file...
+
+app.get('/nutritionist/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  // --- LOGS FOR DEBUGGING ---
+  console.log('--- PETICIÓN RECIBIDA EN /nutritionist/:id ---');
+  console.log(`1. ID Recibido del request: ${id}`);
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    console.log('2. El ID no es válido. Devolviendo error 400.');
+    return res.status(400).json({ error: 'Invalid nutritionist ID' });
+  }
+
+  try {
+    console.log('2. El ID es válido. Buscando en la base de datos...');
+    const nutritionist = await Nutritionist.findById(id).select('-password');
+
+    console.log('3. Resultado de la búsqueda:', nutritionist); // This is the most important log
+
+    if (!nutritionist) {
+      console.log('4. Nutriólogo no encontrado en la base de datos. Devolviendo error 404.');
+      return res.status(404).json({ message: 'Nutritionist not found in DB.' });
+    }
+
+    console.log('4. Nutriólogo ENCONTRADO. Devolviendo datos.');
+    res.json(nutritionist);
+
+  } catch (error) {
+    console.error('❌ Error en el bloque try/catch:', error);
+    return res.status(500).json({ error: 'Internal server error while fetching nutritionist.' });
+  }
+});
