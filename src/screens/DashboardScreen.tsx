@@ -20,11 +20,17 @@ import { API_CONFIG } from '../config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/AppNavigator'; // (verifica que esta ruta sea correcta)
+
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
 const Home = () => {
   const { colors } = useTheme();
   const { user } = useUser();
+  type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Root'>;
+  const navigation = useNavigation<DashboardScreenNavigationProp>();
 
   const [nutritionData, setNutritionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -535,27 +541,34 @@ const Home = () => {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={styles.caloriesWrapper}>
-          <AnimatedCircularProgress
-            size={180}
-            width={16}
-            fill={(caloriasComidas / caloriasObjetivo) * 100}
-            tintColor={colors.primary}
-            backgroundColor={colors.progressBg}
-            rotation={0}
-            lineCap="round"
-          >
-            {(fill: number) => (
-              <Text style={styles.caloriesNumber}>{Math.round(fill)}%</Text>
-            )}
-          </AnimatedCircularProgress>
-          <Text style={styles.subtext}>
-            {caloriasObjetivo} target calories | {caloriasComidas} consumed
-          </Text>
-          <Text style={styles.statusText}>
-            {Math.abs(caloriasRestantes)} cal {caloriasRestantes > 0 ? 'missing' : 'exceeded'}
-          </Text>
-        </View>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('MealLogHistory', {
+            initialDate: new Date().toISOString(),
+          })}
+        >
+          <View style={styles.caloriesWrapper}>
+            <AnimatedCircularProgress
+              size={180}
+              width={16}
+              fill={(caloriasComidas / caloriasObjetivo) * 100}
+              tintColor={colors.primary}
+              backgroundColor={colors.progressBg}
+              rotation={0}
+              lineCap="round"
+            >
+              {(fill: number) => (
+                <Text style={styles.caloriesNumber}>{Math.round(fill)}%</Text>
+              )}
+            </AnimatedCircularProgress>
+            <Text style={styles.subtext}>
+              {caloriasObjetivo} target calories | {caloriasComidas} consumed
+            </Text>
+            <Text style={styles.statusText}>
+              {Math.abs(caloriasRestantes)} cal {caloriasRestantes > 0 ? 'missing' : 'exceeded'}
+            </Text>
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Macros</Text>

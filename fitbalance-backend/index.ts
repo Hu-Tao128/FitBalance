@@ -215,6 +215,7 @@ interface IMealFood {
 }
 
 interface IMeal {
+  _id?: Types.ObjectId;
   day: string;
   type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   time: string;
@@ -1362,5 +1363,152 @@ app.get('/nutritionist/:id', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('❌ Error en el bloque try/catch:', error);
     return res.status(500).json({ error: 'Internal server error while fetching nutritionist.' });
+  }
+});
+
+
+// -------------------------
+
+// DASHBOARD DAILYMEAL MANAGE
+
+// ----------------------
+
+// In your backend index.ts file...
+
+// 1.A: Endpoint to get a specific DailyMealLog by date
+// En tu backend index.ts
+
+app.get('/daily-meal-logs/by-date', async (req: Request, res: Response) => {
+  const { patient_id, date } = req.query;
+
+  if (!patient_id || !date) {
+    return res.status(400).json({ error: 'patient_id and date are required query parameters.' });
+  }
+  if (!mongoose.Types.ObjectId.isValid(patient_id as string)) {
+    return res.status(400).json({ error: 'Invalid patient ID.' });
+  }
+
+  try {
+    const searchDate = new Date(date as string);
+    const startOfDay = new Date(searchDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(searchDate.setHours(23, 59, 59, 999));
+
+    const log = await DailyMealLog.findOne({
+      patient_id: new Types.ObjectId(patient_id as string),
+      date: { $gte: startOfDay, $lte: endOfDay }
+    }).populate('meals.foods.food_id', 'name');
+
+    if (!log) {
+      return res.json({
+        _id: null, // Para días sin registro, el _id es null (y el botón no aparecerá)
+        date: startOfDay,
+        meals: [],
+        totals: { calories: 0, protein: 0, fat: 0, carbs: 0 }
+      });
+    }
+
+    // ✅ ASEGÚRATE DE QUE TU RESPUESTA INCLUYA EL _id DEL LOG
+    res.json({
+      _id: log._id, // <-- ¡ESTA LÍNEA ES LA MÁS IMPORTANTE!
+      date: log.date,
+      meals: log.meals,
+      totals: {
+        calories: log.totalCalories || 0,
+        protein: log.totalProtein || 0,
+        fat: log.totalFat || 0,
+        carbs: log.totalCarbs || 0,
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error in /daily-meal-logs/by-date:', error);
+    res.status(500).json({ error: 'Server error fetching daily log.' });
+  }
+});
+
+// 1.B: Endpoint to delete a specific meal from a DailyMealLog
+
+
+app.get('/daily-meal-logs/by-date', async (req: Request, res: Response) => {
+  const { patient_id, date } = req.query;
+
+  if (!patient_id || !date) {
+    return res.status(400).json({ error: 'patient_id and date are required query parameters.' });
+  }
+  if (!mongoose.Types.ObjectId.isValid(patient_id as string)) {
+    return res.status(400).json({ error: 'Invalid patient ID.' });
+  }
+
+  try {
+    const searchDate = new Date(date as string);
+    const startOfDay = new Date(searchDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(searchDate.setHours(23, 59, 59, 999));
+
+    const log = await DailyMealLog.findOne({
+      patient_id: new Types.ObjectId(patient_id as string),
+      date: { $gte: startOfDay, $lte: endOfDay }
+    }).populate('meals.foods.food_id', 'name');
+
+    if (!log) {
+      return res.json({
+        _id: null,
+        date: startOfDay,
+        meals: [],
+        totals: { calories: 0, protein: 0, fat: 0, carbs: 0 }
+      });
+    }
+
+    // ✅ CORRECCIÓN FINAL: Se añade el _id del log a la respuesta.
+    res.json({
+      _id: log._id, // <-- ¡LA LÍNEA QUE FALTABA!
+      date: log.date,
+      meals: log.meals,
+      totals: {
+        calories: log.totalCalories || 0,
+        protein: log.totalProtein || 0,
+        fat: log.totalFat || 0,
+        carbs: log.totalCarbs || 0,
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error in /daily-meal-logs/by-date:', error);
+    res.status(500).json({ error: 'Server error fetching daily log.' });
+  }
+});
+
+// En tu backend index.ts
+
+app.delete('/daily-meal-logs/:logId/meals/:mealId', async (req: Request, res: Response) => {
+  const { logId, mealId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(logId) || !mongoose.Types.ObjectId.isValid(mealId)) {
+    return res.status(400).json({ error: 'Invalid Log ID or Meal ID.' });
+  }
+
+  try {
+    // Usamos el operador $pull de MongoDB para eliminar el subdocumento del arreglo.
+    // Esto es más directo y atómico que buscar, filtrar y guardar.
+    const updatedLog = await DailyMealLog.findByIdAndUpdate(
+      logId,
+      { $pull: { meals: { _id: mealId } } },
+      { new: true } // Esta opción hace que nos devuelva el documento ya actualizado.
+    );
+
+    if (!updatedLog) {
+      return res.status(404).json({ error: 'Daily log not found.' });
+    }
+
+    // Después de la eliminación, recalculamos los totales.
+    await calculateDailyTotals(updatedLog);
+
+    // Guardamos el documento con los nuevos totales.
+    const finalLog = await updatedLog.save();
+
+    res.json({ message: 'Meal deleted successfully.', dailyLog: finalLog });
+
+  } catch (error) {
+    console.error('❌ Error deleting meal:', error);
+    res.status(500).json({ error: 'Server error deleting meal.' });
   }
 });

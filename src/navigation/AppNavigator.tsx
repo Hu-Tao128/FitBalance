@@ -17,6 +17,7 @@ import FoodScanner from '../screens/FoodScanner';
 import FoodSearchOptions from '../screens/FoodSearchOptions';
 import ManageMealsScreen from '../screens/ManageMeals';
 import ManagementDatingScreen from '../screens/managementDating';
+import MealLogHistoryScreen from '../screens/MealLogHistoryScreen'; // 2. Import the new screen
 import NutritionistProfileScreen from '../screens/NutritionistProfileScreen';
 import optionsFood from '../screens/optionsFood';
 import StatisticsScreen from '../screens/Stadistics';
@@ -41,6 +42,7 @@ export type RootStackParamList = {
   EditProfile: undefined;
   ManagementDating: undefined;
   NutritionistProfile: undefined;
+  MealLogHistory: { initialDate: string }; // Pass the starting date
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -183,6 +185,15 @@ export default function AppNavigator() {
               component={NutritionistProfileScreen}
               options={{
                 title: 'My Nutritionist',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff',
+              }}
+            />
+            <Stack.Screen
+              name="MealLogHistory"
+              component={MealLogHistoryScreen}
+              options={{
+                title: 'Meal Log',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}
