@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { API_CONFIG } from '../config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
+// El campo 'profileImageUrl' ya no es necesario en la interfaz
 interface Nutritionist {
     _id: string;
     name: string;
@@ -28,7 +29,6 @@ const NutritionistProfileScreen = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // ✅ The styles are now created at the top of the component
     const styles = createDynamicStyles(colors);
 
     useEffect(() => {
@@ -83,7 +83,12 @@ const NutritionistProfileScreen = () => {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.headerCard}>
                     <View style={styles.avatarContainer}>
-                        <Ionicons name="person" size={60} color={colors.primary} />
+                        {/* ✅ Se eliminó la lógica condicional, ahora solo muestra la imagen local */}
+                        <Image
+                            // Asegúrate de que esta ruta a tu imagen sea correcta
+                            source={require('../../assets/default-avatar.png')}
+                            style={styles.avatarImage}
+                        />
                     </View>
                     <Text style={styles.name}>{fullName}</Text>
                     <Text style={styles.specialization}>
@@ -103,10 +108,9 @@ const NutritionistProfileScreen = () => {
     );
 };
 
-// We pass `styles` down as a prop to avoid re-creating them in the helper component
 const InfoRow = ({ icon, label, value }: { icon: any, label: string, value: string }) => {
     const { colors } = useTheme();
-    const styles = createDynamicStyles(colors); // Or pass styles as a prop
+    const styles = createDynamicStyles(colors);
     return (
         <View style={styles.infoRow}>
             <View style={styles.iconContainer}>
@@ -120,27 +124,11 @@ const InfoRow = ({ icon, label, value }: { icon: any, label: string, value: stri
     );
 };
 
-// Dynamic styles that depend on the theme
 const createDynamicStyles = (colors: any) => StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
-    scrollContent: {
-        padding: 20,
-    },
-    centeredContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-        backgroundColor: colors.background,
-    },
-    errorText: {
-        fontSize: 16,
-        textAlign: 'center',
-        color: colors.danger,
-    },
+    container: { flex: 1, backgroundColor: colors.background },
+    scrollContent: { padding: 20 },
+    centeredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: colors.background },
+    errorText: { fontSize: 16, textAlign: 'center', color: colors.danger },
     headerCard: {
         alignItems: 'center',
         padding: 24,
@@ -163,18 +151,14 @@ const createDynamicStyles = (colors: any) => StyleSheet.create({
         marginBottom: 16,
         borderWidth: 2,
         borderColor: colors.primary,
+        overflow: 'hidden',
     },
-    name: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: colors.text,
-        textAlign: 'center',
+    avatarImage: {
+        width: '100%',
+        height: '100%',
     },
-    specialization: {
-        fontSize: 16,
-        color: colors.textSecondary,
-        marginTop: 4,
-    },
+    name: { fontSize: 24, fontWeight: 'bold', color: colors.text, textAlign: 'center' },
+    specialization: { fontSize: 16, color: colors.textSecondary, marginTop: 4 },
     detailsCard: {
         padding: 16,
         borderRadius: 20,
@@ -185,11 +169,7 @@ const createDynamicStyles = (colors: any) => StyleSheet.create({
         shadowRadius: 6,
         elevation: 3,
     },
-    infoRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: 12,
-    },
+    infoRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 12 },
     iconContainer: {
         width: 44,
         height: 44,
@@ -199,19 +179,9 @@ const createDynamicStyles = (colors: any) => StyleSheet.create({
         backgroundColor: `${colors.primary}20`,
         marginRight: 16,
     },
-    infoTextContainer: {
-        flex: 1,
-    },
-    label: {
-        fontSize: 14,
-        color: colors.textSecondary,
-        marginBottom: 2,
-    },
-    value: {
-        fontSize: 16,
-        color: colors.text,
-        fontWeight: '500',
-    },
+    infoTextContainer: { flex: 1 },
+    label: { fontSize: 14, color: colors.textSecondary, marginBottom: 2 },
+    value: { fontSize: 16, color: colors.text, fontWeight: '500' },
 });
 
 export default NutritionistProfileScreen;
