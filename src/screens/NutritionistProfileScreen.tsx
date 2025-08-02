@@ -86,7 +86,7 @@ const NutritionistProfileScreen = () => {
                         {/* ✅ Se eliminó la lógica condicional, ahora solo muestra la imagen local */}
                         <Image
                             // Asegúrate de que esta ruta a tu imagen sea correcta
-                            source={require('../../assets/default-avatar.png')}
+                            source={require('../../assets/image.png')}
                             style={styles.avatarImage}
                         />
                     </View>
