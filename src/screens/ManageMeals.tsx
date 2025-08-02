@@ -231,7 +231,7 @@ export default function ManageMealsScreen() {
             {loading ? (
                 <ActivityIndicator size="large" color={colors.primary} style={styles.activityIndicatorCenter} />
             ) : patientMeals.length === 0 ? (
-                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Aún no tienes comidas personalizadas.</Text>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>You still don't have customized meals.</Text>
             ) : (
                 <FlatList
                     data={patientMeals}

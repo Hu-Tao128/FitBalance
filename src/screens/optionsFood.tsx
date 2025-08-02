@@ -38,7 +38,7 @@ export default function OptionsFood() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <Text style={[styles.title, { color: colors.text }]}>¿Qué quieres hacer con tus comidas?</Text>
+            <Text style={[styles.title, { color: colors.text }]}>What do you want to do with your meals?</Text>
             <View style={styles.cards}>
                 {buttonsConfig.map((btn) => {
                     const IconLib = btn.lib;

@@ -99,7 +99,7 @@ export default function FoodClassicSearch({ navigation }: any) {
                 food_data: selectedFood,
             };
             await axios.post(`${API_CONFIG.BASE_URL}/dailymeallogs/add-food`, payload);
-            Alert.alert("¡Éxito!", `${selectedFood.food_name} se añadió a tu registro.`,
+            Alert.alert("Success!", `${selectedFood.food_name} was added to your registry.`,
                 [{ text: "OK", onPress: () => navigation.goBack() }]
             );
         } catch (err: any) {

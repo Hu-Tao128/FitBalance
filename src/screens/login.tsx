@@ -241,7 +241,7 @@ export default function LoginScreen() {
 
             <View style={[styles.footerDecor, { backgroundColor: colors.background }]}>
                 <Image
-                    source={require('../../assets/f5.png')}
+                    source={require('../../assets/f6.png')}
                     style={styles.footerImage}
                     resizeMode="cover"
                 />

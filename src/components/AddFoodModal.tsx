@@ -3,9 +3,9 @@ import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
 const MEAL_TYPES = [
-    { key: 'breakfast', label: 'Desayuno', time: '09:00' },
-    { key: 'lunch', label: 'Almuerzo', time: '14:00' },
-    { key: 'dinner', label: 'Cena', time: '20:00' },
+    { key: 'breakfast', label: 'Breakfast', time: '09:00' },
+    { key: 'lunch', label: 'Lunch', time: '14:00' },
+    { key: 'dinner', label: 'Dinner', time: '20:00' },
     { key: 'snack', label: 'Snack', time: '17:00' }
 ];
 
