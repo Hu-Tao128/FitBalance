@@ -23,6 +23,7 @@
     "expo": "53.0.19",
     "expo-activity-recognition": "^0.2.0",
     "expo-auth-session": "~6.2.1",
+    "expo-barcode-scanner": "^13.0.1",
     "expo-camera": "~16.1.7",
     "expo-device": "~7.1.4",
     "expo-linear-gradient": "^14.1.5",
