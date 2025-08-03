@@ -28,7 +28,6 @@
     "expo-device": "~7.1.4",
     "expo-linear-gradient": "^14.1.5",
     "expo-notifications": "~0.31.4",
-    "expo-permissions": "^14.4.0",
     "expo-sensors": "~14.1.4",
     "expo-status-bar": "~2.2.3",
     "expo-system-ui": "~5.0.10",

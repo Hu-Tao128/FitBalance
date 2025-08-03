@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/FitBalanceLogo.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/FitBalanceLogo.jpg",
         "backgroundColor": "#ffffff",
         "permissions": [
           "CAMERA",
@@ -42,7 +42,6 @@
     "plugins": [
       "expo-web-browser",
       "expo-activity-recognition",
-      "expo-barcode-scanner",
       [
         "expo-camera",
         {
