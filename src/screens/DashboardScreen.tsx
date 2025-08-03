@@ -503,8 +503,9 @@ const Home = () => {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Ionicons name="person-circle-outline" size={40} color={colors.primary} />
-          <Text style={styles.title}>FitBalance</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('UserProfile')}>
+            <Ionicons name="person-circle-outline" size={40} color={colors.primary} />
+          </TouchableOpacity>          <Text style={styles.title}>FitBalance</Text>
           <TouchableOpacity>
             <Ionicons name="notifications-outline" size={28} color={colors.primary} />
           </TouchableOpacity>
@@ -533,7 +534,9 @@ const Home = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="person-circle-outline" size={40} color={colors.primary} />
+        <TouchableOpacity onPress={() => navigation.navigate('UserProfile')}>
+          <Ionicons name="person-circle-outline" size={40} color={colors.primary} />
+        </TouchableOpacity>
         <Text style={styles.title}>FitBalance</Text>
         <TouchableOpacity>
           <Ionicons name="notifications-outline" size={28} color={colors.primary} />
