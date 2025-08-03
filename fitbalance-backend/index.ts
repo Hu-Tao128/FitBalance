@@ -315,26 +315,22 @@ async function getFatSecretToken(): Promise<string> {
 }
 
 // 🔎 Función para buscar en FatSecret
-async function searchFatSecretByText(query: string) {
-  const accessToken = await getFatSecretToken();
-
-  const response = await axios.post(
-    'https://platform.fatsecret.com/rest/server.api',
-    new URLSearchParams({
-      method: 'foods.search',
-      search_expression: query,
-      format: 'json',
-      max_results: '10'
-    }),
+// Nueva función de búsqueda usando el endpoint 'instant' de Nutritionix
+async function searchNutritionixForList(query: string) {
+  const response = await axios.get(
+    'https://trackapi.nutritionix.com/v2/search/instant',
     {
+      params: {
+        query: query
+      },
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+        'x-app-id': NUTRITIONIX_APP_ID,
+        'x-app-key': NUTRITIONIX_APP_KEY,
+      },
     }
   );
-
-  return response.data;
+  // La respuesta de esta API tiene resultados comunes ('common') y de marcas ('branded')
+  return [...(response.data.common || []), ...(response.data.branded || [])];
 }
 
 // 🧠 Ruta combinada de búsqueda nutricional
@@ -346,33 +342,14 @@ app.post('/search-food', async (req: Request, res: Response) => {
   }
 
   try {
-    const nutritionixResponse = await axios.post(
-      'https://trackapi.nutritionix.com/v2/natural/nutrients',
-      { query },
-      {
-        headers: {
-          'x-app-id': NUTRITIONIX_APP_ID,
-          'x-app-key': NUTRITIONIX_APP_KEY,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    // Llama a la nueva función de búsqueda de Nutritionix
+    const foodList = await searchNutritionixForList(query);
 
-    const items = nutritionixResponse.data.foods;
-    if (items && items.length > 0) {
+    if (foodList && foodList.length > 0) {
       return res.json({
         source: 'nutritionix',
-        results: items
-      });
-    }
-
-    const fatSecretData = await searchFatSecretByText(query);
-    const foods = fatSecretData?.foods?.food;
-
-    if (foods && foods.length > 0) {
-      return res.json({
-        source: 'fatsecret',
-        results: foods
+        // Devuelve solo los primeros 3 resultados
+        results: foodList.slice(0, 3)
       });
     }
 
