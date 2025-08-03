@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useUser } from '../context/UserContext';
 
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 
 // ---------- TIPOS (Comunes para Create y Edit, podrías moverlos a un archivo types/index.ts) ----------
 type Nutrients = {

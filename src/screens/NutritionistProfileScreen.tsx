@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 

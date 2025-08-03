@@ -8,9 +8,13 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 import { TouchableWithoutFeedback } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+
+import { SERVICE_UUID, CHAR_UUID } from '../config/bluetooth'; 
+import { useBLEDevice } from '../components/UseBL';
+import { Device } from 'react-native-ble-plx';
 
 type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
 type RawMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -122,6 +126,42 @@ export default function WeighFoodScreen() {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
+
+    const [scaleModal, setScaleModal] = useState(false);
+
+    const {
+        requestPermissions: reqScalePerms,
+        scan: scanScaleDevices,
+        connect: connectScale,
+        disconnect: disconnectScale,
+        devices: scaleDevices,
+        connected: scaleConnected,
+        dataValue: scaleWeight,
+    } = useBLEDevice(SERVICE_UUID, CHAR_UUID);
+
+    const handleUseScale = async () => {
+        const ok = await reqScalePerms();
+        if (!ok) {
+        Alert.alert('Permisos denegados', 'No se puede acceder a BLE');
+        return;
+        }
+        scanScaleDevices();
+        setScaleModal(true);
+    };
+
+    const onSelectScaleDevice = async (device: Device) => {
+        await connectScale(device);
+        setScaleModal(false);
+        // Opcional: postea inmediatamente al log diario
+        if (scaleWeight != null) {
+        await axios.post(`${API_CONFIG.BASE_URL}/DailyMealLogs/add-weight-meal`, {
+            patient_id: user?.id,
+            weight: scaleWeight,
+            meal: selectedMeal,
+        });
+        Alert.alert('Peso registrado', `${scaleWeight}g añadidos`);
+        }
+    };
 
     const today = new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
@@ -293,7 +333,7 @@ useFocusEffect(
                     </TouchableOpacity>
 
                     {/* Opción usar báscula */}
-                    <TouchableOpacity style={styles.optionButton}>
+                    <TouchableOpacity style={styles.optionButton} onPress={handleUseScale}>
                         <MaterialCommunityIcons name="scale" size={22} color="#aaa" />
                         <Text style={[styles.optionText, { color: '#aaa' }]}>
                         Usar báscula (próximamente)
@@ -307,6 +347,30 @@ useFocusEffect(
                 </TouchableWithoutFeedback>
                 </View>
             </TouchableWithoutFeedback>
+            </Modal>
+            {/* Modal de la báscula */}
+            <Modal transparent visible={scaleModal} animationType="slide">
+                <View style={styles.modalOverlay}>
+                <View style={styles.modalContainer}>
+                    <Text style={styles.modalTitle}>Seleccione su báscula</Text>
+                    {scaleDevices.length === 0 ? (
+                    <ActivityIndicator />
+                    ) : (
+                    scaleDevices.map(dev => (
+                        <TouchableOpacity
+                        key={dev.id}
+                        style={styles.optionButton}
+                        onPress={() => onSelectScaleDevice(dev)}
+                        >
+                        <Text style={styles.optionText}>{dev.name || dev.id}</Text>
+                        </TouchableOpacity>
+                    ))
+                    )}
+                    <TouchableOpacity onPress={() => setScaleModal(false)}>
+                    <Text style={styles.closeText}>Cancelar</Text>
+                    </TouchableOpacity>
+                </View>
+                </View>
             </Modal>
         </View>
     );

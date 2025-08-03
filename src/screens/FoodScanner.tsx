@@ -4,7 +4,7 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacit
 import { AddFoodModal } from '../components/AddFoodModal';
 import BarCodeScanner from '../components/BardCodeScanner';
 import FoodDetails from '../components/FoodDetails';
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 

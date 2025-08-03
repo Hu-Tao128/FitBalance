@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import GoogleFit, { Scopes } from 'react-native-google-fit';
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 

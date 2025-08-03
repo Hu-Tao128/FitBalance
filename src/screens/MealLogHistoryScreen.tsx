@@ -3,7 +3,7 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import { RootStackParamList } from '../navigation/AppNavigator';

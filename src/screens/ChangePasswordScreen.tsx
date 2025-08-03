@@ -10,7 +10,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 

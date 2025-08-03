@@ -18,7 +18,7 @@ import { RootStackParamList } from '../../App';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from "../context/UserContext";
 
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 

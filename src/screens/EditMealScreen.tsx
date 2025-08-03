@@ -18,7 +18,7 @@ import {
 import { RootStackParamList } from '../../App';
 import { useUser } from '../context/UserContext';
 
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 
 // TIPOS ... (sin cambios)
 type EditMealScreenRouteProp = RouteProp<RootStackParamList, 'EditMeal'>;

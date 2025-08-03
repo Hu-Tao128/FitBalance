@@ -20,7 +20,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import { PatientMeal } from '../types';
 
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 
 // ---------- TIPOS ----------
 type ManageMealsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ManageMeals'>;

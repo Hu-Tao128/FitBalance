@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { AddFoodModal } from '../components/AddFoodModal';
 import FoodDetails from '../components/FoodDetails';
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../config/config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 

@@ -7,58 +7,61 @@
     "icon": "./assets/FitBalanceLogo.jpg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/FitBalanceLogo.jpg",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true,
-        "runtimeVersion": "1.0.1",
-      "bundleIdentifier": "com.ayasc.nutifrut"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/FitBalanceLogo.jpg",
-        "backgroundColor": "#ffffff",
-        "permissions": [
-          "CAMERA",
-          "ACTIVITY_RECOGNITION",
-          "CAMERA",
-          "ACTIVITY_RECOGNITION"
-        ]
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.ayasc.nutifrut",
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ],
-      "runtimeVersion": "1.0.1"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
-      "expo-web-browser",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true,
+          "modes": ["central"],
+          "bluetoothAlwaysPermission": "Permitir a FitBalance conectar con dispositivos Bluetooth"
+        }
+      ],
       "expo-activity-recognition",
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "cameraPermission": "Permitir a FitBalance acceder a la cámara",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
+    "android": {
+      "package": "com.fitbalance",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/FitBalanceLogo.jpg",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "runtimeVersion": "1.0.1",
+      "permissions": [
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_ADVERTISE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.INTERNET"
+      ],
+      "googleServicesFile": "./google-services.json"
+    },
+    "ios": {
+      "bundleIdentifier": "com.ayasc.nutifrut",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "Permitir a FitBalance usar Bluetooth para conectar con dispositivos de salud"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
     "extra": {
       "eas": {
-        "projectId": "82f4234e-cbbc-4e4d-9b39-7ff1b567c9ff"
+        "projectId": "82f4234e-ccbc-4e4d-9b39-7ff1b567c9ff"
       }
     },
     "owner": "ayasc",
     "updates": {
-      "url": "https://u.expo.dev/82f4234e-cbbc-4e4d-9b39-7ff1b567c9ff"
+      "url": "https://u.expo.dev/82f4234e-ccbc-4e4d-9b39-7ff1b567c9ff"
     }
   }
 }

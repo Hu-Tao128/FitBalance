@@ -1,4 +1,4 @@
-package com.ayasc.nutifrut
+package com.fitbalance
 
 import android.app.Application
 import android.content.res.Configuration
