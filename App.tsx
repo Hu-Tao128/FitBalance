@@ -20,6 +20,11 @@ export type RootStackParamList = {
   ManageMeals: undefined;
   CreateMealScreen: undefined;
   EditMeal: { mealToEdit: PatientMeal };
+  EditProfile: undefined;
+  ManagementDating: undefined;
+  NutritionistProfile: undefined;
+  MealLogHistory: { initialDate: string };
+  ChangePassword: undefined;
 };
 
 export default function App() {

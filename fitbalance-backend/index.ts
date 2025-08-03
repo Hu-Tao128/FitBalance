@@ -93,7 +93,6 @@ interface IPatient {
 const Patient = mongoose.model<IPatient>(
   'Patient',
   new mongoose.Schema({
-    _id: { type: String, required: true },
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     name: { type: String, required: true },
@@ -1487,5 +1486,46 @@ app.delete('/daily-meal-logs/:logId/meals/:mealId', async (req: Request, res: Re
   } catch (error) {
     console.error('❌ Error deleting meal:', error);
     res.status(500).json({ error: 'Server error deleting meal.' });
+  }
+});
+
+
+// 
+
+// CAMBIAR PASSWORD -----------FDFDFFDFJHDSIOFNIOUD
+
+//
+
+// En tu backend index.ts
+
+app.put('/patients/change-password', async (req: Request, res: Response) => {
+  const { patient_id, currentPassword, newPassword } = req.body;
+
+  if (!patient_id || !currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
+  }
+
+  try {
+    // ✅ Volvemos a usar findById, que ahora funcionará correctamente
+    const patient = await Patient.findById(patient_id).select('+password');
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, patient.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'La contraseña actual es incorrecta.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    patient.password = await bcrypt.hash(newPassword, salt);
+    await patient.save();
+
+    res.json({ message: 'Contraseña actualizada con éxito.' });
+
+  } catch (error) {
+    console.error('❌ Error al cambiar la contraseña:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });

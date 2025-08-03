@@ -7,6 +7,7 @@ import { RootStackParamList } from '../../App';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
+
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
 const SettingsScreen = () => {
@@ -168,7 +169,10 @@ const SettingsScreen = () => {
           <Ionicons name="person-outline" size={24} color="#34C759" />
           <Text style={styles.itemText}>Profile</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.item}>
+        <TouchableOpacity
+          style={styles.item}
+          onPress={() => navigation.navigate('ChangePassword')}
+        >
           <Ionicons name="lock-closed-outline" size={24} color="#34C759" />
           <Text style={styles.itemText}>Change password</Text>
         </TouchableOpacity>

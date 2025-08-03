@@ -9,6 +9,7 @@ import UserProfileScreen from '../screens/userProfileScreen';
 import weighFood from '../screens/weighFood';
 import { BottomNavigation } from './bottom-navigation';
 
+import ChangePasswordScreen from '../screens/ChangePasswordScreen'; // 2. Importa la pantalla
 import CreateMealScreen from '../screens/CreateMealScreen';
 import EditMealScreen from '../screens/EditMealScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
@@ -42,7 +43,8 @@ export type RootStackParamList = {
   EditProfile: undefined;
   ManagementDating: undefined;
   NutritionistProfile: undefined;
-  MealLogHistory: { initialDate: string }; // Pass the starting date
+  MealLogHistory: { initialDate: string };
+  ChangePassword: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -194,6 +196,15 @@ export default function AppNavigator() {
               component={MealLogHistoryScreen}
               options={{
                 title: 'Meal Log',
+                headerStyle: { backgroundColor: '#1c1c1e' },
+                headerTintColor: '#fff',
+              }}
+            />
+            <Stack.Screen
+              name="ChangePassword"
+              component={ChangePasswordScreen}
+              options={{
+                title: 'Change Password',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}
