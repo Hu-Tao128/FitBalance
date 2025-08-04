@@ -34,7 +34,9 @@
             "buildToolsVersion": "35.0.0",
             "ndkVersion": "21.4.7075529",
             "cmakeVersion": "3.18.1",
-            "kotlinVersion": "1.8.10"
+            "kotlin": {
+              "version": "1.8.10"
+            }
           }
         }
       ]
