@@ -113,6 +113,25 @@ const makeStyles = (colors: any) => StyleSheet.create({
         marginTop: 20,
         textAlign: 'center',
     },
+    scaleWeightText: {
+        fontSize: 24,
+        color: colors.primary,
+        textAlign: 'center',
+        marginVertical: 20,
+        fontWeight: 'bold'
+    },
+    addWeightButton: {
+        justifyContent: 'center',
+        backgroundColor: colors.primary,
+        borderRadius: 8,
+        padding: 12,
+        marginTop: 10
+    },
+    addWeightButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center'
+    }
 });
 
 export default function WeighFoodScreen() {
@@ -126,7 +145,6 @@ export default function WeighFoodScreen() {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
-
     const [scaleModal, setScaleModal] = useState(false);
 
     const {
@@ -142,8 +160,8 @@ export default function WeighFoodScreen() {
     const handleUseScale = async () => {
         const ok = await reqScalePerms();
         if (!ok) {
-        Alert.alert('Permisos denegados', 'No se puede acceder a BLE');
-        return;
+            Alert.alert('Permisos denegados', 'No se puede acceder a BLE');
+            return;
         }
         scanScaleDevices();
         setScaleModal(true);
@@ -151,24 +169,36 @@ export default function WeighFoodScreen() {
 
     const onSelectScaleDevice = async (device: Device) => {
         await connectScale(device);
-        setScaleModal(false);
-        // Opcional: postea inmediatamente al log diario
-        if (scaleWeight != null) {
-        await axios.post(`${API_CONFIG.BASE_URL}/DailyMealLogs/add-weight-meal`, {
-            patient_id: user?.id,
-            weight: scaleWeight,
-            meal: selectedMeal,
-        });
-        Alert.alert('Peso registrado', `${scaleWeight}g añadidos`);
+    };
+
+    const handleAddScaleWeight = async () => {
+        if (!user?.id || !selectedMeal || scaleWeight === null) return;
+
+        try {
+            await axios.post(`${API_CONFIG.BASE_URL}/DailyMealLogs/add-weight-meal`, {
+                patient_id: user.id,
+                weight: scaleWeight,
+                meal: selectedMeal,
+            });
+
+            Alert.alert('¡Éxito!', `${scaleWeight}g añadidos a tu log diario`);
+            setModalVisible(false);
+            setScaleModal(false);
+        } catch (err: any) {
+            console.error('Error añadiendo peso:', err);
+            if (err.response && err.response.status === 400) {
+                Alert.alert('Aviso', err.response.data.error || 'Esta comida ya está registrada');
+            } else {
+                Alert.alert('Error', 'No se pudo añadir el peso.');
+            }
         }
     };
 
     const today = new Intl.DateTimeFormat('en-US', {
-    weekday: 'long',
-    timeZone: 'America/Tijuana' // o la que estés usando
+        weekday: 'long',
+        timeZone: 'America/Tijuana'
     }).format(new Date()).toLowerCase();
 
-    // Interceptor para token
     useEffect(() => {
         const reqInterceptor = axios.interceptors.request.use(
             async config => {
@@ -196,8 +226,6 @@ export default function WeighFoodScreen() {
             setLoading(true);
             const response = await axios.get(`${API_CONFIG.BASE_URL}/weeklyplan/daily/${user.id}`);
             
-            console.log('API Response:', response.data);
-            
             if (!response.data?.meals || response.data.meals.length === 0) {
                 setError('No hay comidas planificadas para hoy');
                 setWeeklyPlan(null);
@@ -213,31 +241,31 @@ export default function WeighFoodScreen() {
         }
     }, [user?.id]);
 
-useFocusEffect(
-    useCallback(() => {
-        if (user) fetchWeeklyPlan();
-    }, [user, fetchWeeklyPlan])
-);
+    useFocusEffect(
+        useCallback(() => {
+            if (user) fetchWeeklyPlan();
+        }, [user, fetchWeeklyPlan])
+    );
 
     const handleAddWeeklyMeal = async () => {
-    if (!user?.id || !selectedMeal) return;
+        if (!user?.id || !selectedMeal) return;
 
-    try {
-        await axios.post(`${API_CONFIG.BASE_URL}/DailyMealLogs/add-weekly-meal`, {
-        patient_id: user.id,
-        meal: selectedMeal,
-        });
+        try {
+            await axios.post(`${API_CONFIG.BASE_URL}/DailyMealLogs/add-weekly-meal`, {
+                patient_id: user.id,
+                meal: selectedMeal,
+            });
 
-        Alert.alert('¡Éxito!', 'La comida fue añadida a tu log diario');
-        setModalVisible(false);
-    } catch (err: any) {
-        console.error('Error añadiendo comida: Comida ya registrada');
-        if (err.response && err.response.status === 400) {
-        Alert.alert('Aviso', err.response.data.error || 'Esta comida ya está registrada');
-        } else {
-        Alert.alert('Error', 'No se pudo añadir la comida.');
+            Alert.alert('¡Éxito!', 'La comida fue añadida a tu log diario');
+            setModalVisible(false);
+        } catch (err: any) {
+            console.error('Error añadiendo comida:', err);
+            if (err.response && err.response.status === 400) {
+                Alert.alert('Aviso', err.response.data.error || 'Esta comida ya está registrada');
+            } else {
+                Alert.alert('Error', 'No se pudo añadir la comida.');
+            }
         }
-    }
     };
 
     if (loading) {
@@ -248,40 +276,37 @@ useFocusEffect(
         );
     }
 
-    //console.log('Today (frontend):', today);
-    //console.log('Meals days:', weeklyPlan?.meals.map(m => m.day));
-
     const todayMeals = weeklyPlan?.meals.filter(meal => meal.day === today) ?? [];
 
     if (!weeklyPlan || todayMeals.length === 0) {
-    return (
-        <View style={[styles.container, { 
-        justifyContent: 'center',
-        alignItems: 'center',    
-        paddingHorizontal: 20    
-        }]}>
-        <View style={[styles.mealSection, { 
-            backgroundColor: colors.card,
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingVertical: 30,
-            width: '100%'       
-        }]}>
-            <Ionicons name="calendar-outline" size={40} color={colors.text} style={{ marginBottom: 15 }} />
-            <Text style={[styles.mealTitle, { textAlign: 'center' }]}>
-            No tienes planes para esta semana
-            </Text>
-            <Text style={{ 
-            color: colors.text, 
-            textAlign: 'center', 
-            marginTop: 10,
-            maxWidth: '80%'
-            }}>
-            Contacta a tu nutricionista para obtener tu plan alimenticio
-            </Text>
-        </View>
-        </View>
-    );
+        return (
+            <View style={[styles.container, { 
+                justifyContent: 'center',
+                alignItems: 'center',    
+                paddingHorizontal: 20    
+            }]}>
+                <View style={[styles.mealSection, { 
+                    backgroundColor: colors.card,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 30,
+                    width: '100%'       
+                }]}>
+                    <Ionicons name="calendar-outline" size={40} color={colors.text} style={{ marginBottom: 15 }} />
+                    <Text style={[styles.mealTitle, { textAlign: 'center' }]}>
+                        No tienes planes para esta semana
+                    </Text>
+                    <Text style={{ 
+                        color: colors.text, 
+                        textAlign: 'center', 
+                        marginTop: 10,
+                        maxWidth: '80%'
+                    }}>
+                        Contacta a tu nutricionista para obtener tu plan alimenticio
+                    </Text>
+                </View>
+            </View>
+        );
     }
 
     return (
@@ -316,60 +341,88 @@ useFocusEffect(
                 })}
             </ScrollView>
 
-            {/* Modal mejorado */}
+            {/* Modal de opciones */}
             <Modal transparent visible={modalVisible} animationType="slide">
-            <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-                <View style={styles.modalOverlay}>
-                <TouchableWithoutFeedback>
-                    <View style={styles.modalContainer}>
-                    <Text style={styles.modalTitle}>
-                        ¿Cómo deseas registrar esta comida?
-                    </Text>
+                <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                    <View style={styles.modalOverlay}>
+                        <TouchableWithoutFeedback>
+                            <View style={styles.modalContainer}>
+                                <Text style={styles.modalTitle}>
+                                    ¿Cómo deseas registrar esta comida?
+                                </Text>
 
-                    {/* Opción usar porción recomendada */}
-                    <TouchableOpacity style={styles.optionButton} onPress={handleAddWeeklyMeal}>
-                        <MaterialCommunityIcons name="check-bold" size={22} color="#34C759" />
-                        <Text style={styles.optionText}>Usar porción recomendada</Text>
-                    </TouchableOpacity>
+                                <TouchableOpacity style={styles.optionButton} onPress={handleAddWeeklyMeal}>
+                                    <MaterialCommunityIcons name="check-bold" size={22} color="#34C759" />
+                                    <Text style={styles.optionText}>Usar porción recomendada</Text>
+                                </TouchableOpacity>
 
-                    {/* Opción usar báscula */}
-                    <TouchableOpacity style={styles.optionButton} onPress={handleUseScale}>
-                        <MaterialCommunityIcons name="scale" size={22} color="#aaa" />
-                        <Text style={[styles.optionText, { color: '#aaa' }]}>
-                        Usar báscula (próximamente)
-                        </Text>
-                    </TouchableOpacity>
+                                <TouchableOpacity style={styles.optionButton} onPress={handleUseScale}>
+                                    <MaterialCommunityIcons name="scale" size={22} color={colors.text} />
+                                    <Text style={styles.optionText}>Usar báscula</Text>
+                                </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => setModalVisible(false)}>
-                        <Text style={styles.closeText}>Cancelar</Text>
-                    </TouchableOpacity>
+                                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                    <Text style={styles.closeText}>Cancelar</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </TouchableWithoutFeedback>
                     </View>
                 </TouchableWithoutFeedback>
-                </View>
-            </TouchableWithoutFeedback>
             </Modal>
+
             {/* Modal de la báscula */}
             <Modal transparent visible={scaleModal} animationType="slide">
                 <View style={styles.modalOverlay}>
-                <View style={styles.modalContainer}>
-                    <Text style={styles.modalTitle}>Seleccione su báscula</Text>
-                    {scaleDevices.length === 0 ? (
-                    <ActivityIndicator />
-                    ) : (
-                    scaleDevices.map(dev => (
-                        <TouchableOpacity
-                        key={dev.id}
-                        style={styles.optionButton}
-                        onPress={() => onSelectScaleDevice(dev)}
-                        >
-                        <Text style={styles.optionText}>{dev.name || dev.id}</Text>
+                    <View style={styles.modalContainer}>
+                        <Text style={styles.modalTitle}>
+                            {scaleConnected ? 'Peso actual' : 'Seleccione su báscula'}
+                        </Text>
+
+                        {scaleConnected && (
+                            <>
+                                <Text style={styles.scaleWeightText}>
+                                    {scaleWeight != null ? `${scaleWeight} g` : 'Esperando dato...'}
+                                </Text>
+                                
+                                <TouchableOpacity 
+                                    style={styles.addWeightButton}
+                                    onPress={handleAddScaleWeight}
+                                    disabled={scaleWeight === null}
+                                >
+                                    <Text style={styles.addWeightButtonText}>
+                                        Agregar {scaleWeight !== null ? `${scaleWeight}g` : 'peso'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </>
+                        )}
+
+                        {!scaleConnected && (
+                            <>
+                                {scaleDevices.length === 0 ? (
+                                    <ActivityIndicator />
+                                ) : (
+                                    scaleDevices.map(dev => (
+                                        <TouchableOpacity
+                                            key={dev.id}
+                                            style={styles.optionButton}
+                                            onPress={() => onSelectScaleDevice(dev)}
+                                        >
+                                            <Text style={styles.optionText}>
+                                                {dev.name || dev.id}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))
+                                )}
+                            </>
+                        )}
+
+                        <TouchableOpacity onPress={() => {
+                            setScaleModal(false);
+                            disconnectScale();
+                        }}>
+                            <Text style={styles.closeText}>Cancelar</Text>
                         </TouchableOpacity>
-                    ))
-                    )}
-                    <TouchableOpacity onPress={() => setScaleModal(false)}>
-                    <Text style={styles.closeText}>Cancelar</Text>
-                    </TouchableOpacity>
-                </View>
+                    </View>
                 </View>
             </Modal>
         </View>

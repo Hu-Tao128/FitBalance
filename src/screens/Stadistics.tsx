@@ -126,43 +126,11 @@ const StatisticsScreen = () => {
         }, [user?.id])
     );
 
-    const hasDataForDay = (dayIndex: number) => {
-        const today = new Date();
-        const targetDate = new Date();
-        const diff = today.getDay() === 0 ? 
-            (6 - dayIndex) :
-            (today.getDay() - 1 - dayIndex);
-        targetDate.setDate(today.getDate() - diff);
-
-        return data.some(entry => {
-            const entryDate = new Date(entry.date);
-            return (
-                entryDate.getDate() === targetDate.getDate() &&
-                entryDate.getMonth() === targetDate.getMonth() &&
-                entryDate.getFullYear() === targetDate.getFullYear() &&
-                (entry.totals.calories > 0 ||
-                    entry.totals.protein > 0 ||
-                    entry.totals.fat > 0 ||
-                    entry.totals.carbs > 0)
-            );
-        });
-    };
-
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    if (loading) {
-        return (
-            <View style={styles.center}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
-
     const getCurrentWeekDates = () => {
         const today = new Date();
         const dayOfWeek = today.getDay(); // 0 (domingo) a 6 (sábado)
         
-        // Calcular diferencia para que el lunes sea el primer día (restamos 1 día menos)
+        // Calcular diferencia para que el lunes sea el primer día
         const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
         
         const startOfWeek = new Date(today);
@@ -206,8 +174,36 @@ const StatisticsScreen = () => {
         };
     });
 
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    const hasDataForDay = (dayIndex: number) => {
+        const targetDate = new Date(startOfWeek);
+        targetDate.setDate(startOfWeek.getDate() + dayIndex);
+
+        return data.some(entry => {
+            const entryDate = new Date(entry.date);
+            return (
+                entryDate.getDate() === targetDate.getDate() &&
+                entryDate.getMonth() === targetDate.getMonth() &&
+                entryDate.getFullYear() === targetDate.getFullYear() &&
+                (entry.totals.calories > 0 ||
+                    entry.totals.protein > 0 ||
+                    entry.totals.fat > 0 ||
+                    entry.totals.carbs > 0)
+            );
+        });
+    };
+
+    if (loading) {
+        return (
+            <View style={styles.center}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
+
     const labels = filledWeekData.map(entry =>
-        entry.date.toLocaleDateString('en-EN', { weekday: 'short' }) // en-EN para ingles / es-ES espaniol Dom, Lun, etc.
+        entry.date.toLocaleDateString('en-EN', { weekday: 'short' })
     );
 
     const caloriesData = filledWeekData.map(entry => entry.calories);
@@ -250,6 +246,9 @@ const StatisticsScreen = () => {
                 <View style={styles.streakContainer}>
                     {days.map((day, index) => {
                         const hasData = hasDataForDay(index);
+                        const dayDate = new Date(startOfWeek);
+                        dayDate.setDate(startOfWeek.getDate() + index);
+                        
                         return (
                             <View key={day} style={{ alignItems: 'center' }}>
                                 <Text style={styles.dayName}>{day}</Text>
@@ -263,7 +262,7 @@ const StatisticsScreen = () => {
                                         styles.dayText,
                                         { color: hasData ? colors.card : colors.textSecondary }
                                     ]}>
-                                        {new Date().getDate() - (new Date().getDay() - index)}
+                                        {dayDate.getDate()}
                                     </Text>
                                 </View>
                             </View>

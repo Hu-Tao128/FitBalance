@@ -40,8 +40,6 @@ const Home = () => {
   const [pastStepCount, setPastStepCount] = useState<number>(0);
   const [isPedometerAvailable, setIsPedometerAvailable] = useState<'checking' | 'available' | 'unavailable'>('checking');
 
-  // ---- ESTO ES LO NUEVO ----
-  // Solo llama a GoogleFit.authorize() si no está autorizado
   useEffect(() => {
     const subscribe = async () => {
       try {
@@ -59,8 +57,7 @@ const Home = () => {
             const options = {
               scopes: [
                 Scopes.FITNESS_ACTIVITY_READ,
-                Scopes.FITNESS_ACTIVITY_WRITE,
-                Scopes.FITNESS_LOCATION_READ,
+                Scopes.FITNESS_ACTIVITY_WRITE
               ],
             };
             const authResult = await GoogleFit.authorize(options);

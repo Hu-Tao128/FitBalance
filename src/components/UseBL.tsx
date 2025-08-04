@@ -11,19 +11,19 @@ export function useBLEDevice(serviceUUID: string, charUUID: string) {
     const [dataValue, setDataValue] = useState<number | null>(null);
 
     type BLERationale = {
-        title: string;
-        message: string;
-        buttonPositive: string;
-        buttonNegative?: string;
-        buttonNeutral?: string;
+    title: string;
+    message: string;
+    buttonPositive: string;
+    buttonNegative?: string;
+    buttonNeutral?: string;
     };
 
-    const rationale: PermissionsAndroid.Rationale = {
-        title: "Permiso de Ubicación",
-        message: "Bluetooth Low Energy necesita permiso de ubicación para escanear dispositivos",
-        buttonPositive: "Aceptar",
-        buttonNegative: "Cancelar",      
-        buttonNeutral: "Preguntar luego" 
+    const rationale: BLERationale = {
+    title: "Permiso de Ubicación",
+    message: "Bluetooth Low Energy necesita permiso de ubicación para escanear dispositivos",
+    buttonPositive: "Aceptar",
+    buttonNegative: "Cancelar",
+    buttonNeutral: "Preguntar luego"
     };
 
     async function requestAndroidLegacy() {
@@ -68,22 +68,33 @@ export function useBLEDevice(serviceUUID: string, charUUID: string) {
     }
 
     function scan() {
-        setDevices([]);
-        manager.startDeviceScan(
+    setDevices([]);  // limpia lista al inicio
+    manager.startDeviceScan(
         [serviceUUID],
         null,
         (error, device) => {
-            if (error) { console.warn(error); return; }
-            if (device && !devices.find(d => d.id === device.id)) {
-            setDevices(prev => [...prev, device]);
-            }
+        if (error) {
+            console.warn(error);
+            return;
         }
-        );
+        if (device) {
+            setDevices(prev => {
+            // si ya existe ese id, devolver el array sin cambios
+            if (prev.some(d => d.id === device.id)) {
+                return prev;
+            }
+            // si no, agregarlo
+            return [...prev, device];
+            });
+        }
+        }
+    );
     }
 
-    async function connect(device: Device) {
+    async function connect(deviceOrId: Device | string) {
         try {
-        const conn = await manager.connectToDevice(device.id);
+        const id = typeof deviceOrId === 'string' ? deviceOrId : deviceOrId.id;
+        const conn = await manager.connectToDevice(id);
         setConnected(conn);
         await conn.discoverAllServicesAndCharacteristics();
         manager.stopDeviceScan();

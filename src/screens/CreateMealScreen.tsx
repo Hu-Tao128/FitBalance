@@ -154,7 +154,7 @@ export default function CreateMealScreen() {
         if (!mealName.trim()) return Alert.alert('Error', 'Debes ponerle un nombre a la comida.');
         if (ingredients.length === 0) return Alert.alert('Error', 'Agrega al menos un ingrediente para crear la comida.');
 
-        const patientId = getObjectIdFromMongoDoc(user.id);
+        const patientId = getObjectIdFromMongoDoc(user?.id);
         if (!isValidObjectId(patientId)) {
             console.error('ID de paciente no válido:', patientId);
             return Alert.alert('Error', 'No se pudo obtener la información de tu usuario. Intenta reiniciar la app.');
