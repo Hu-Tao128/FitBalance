@@ -16,7 +16,7 @@ import { DateTime } from 'luxon';
 import { API_CONFIG } from '../config/config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 
 type MealLogHistoryScreenRouteProp = RouteProp<RootStackParamList, 'MealLogHistory'>;
 
@@ -85,17 +85,22 @@ const MealItem = React.memo(({
         </View>
         
         <View style={styles.foodList}>
-        {item.foods.map((food, idx) => (
-            <View key={`${food.food_id._id}-${idx}`} style={styles.foodItem}>
-            <Text style={[styles.foodText, { color: colors.text }]}>
-                • {food.food_id.name} 
-            </Text>
-            <Text style={[styles.foodGrams, { color: colors.textSecondary }]}>
+        {item.foods
+            //  ❌ si food_id es null, plántalo
+            .filter(f => f.food_id !== null)
+            .map((food, idx) => (
+            <View key={`${food.food_id!._id}-${idx}`} style={styles.foodItem}>
+                <Text style={[styles.foodText, { color: colors.text }]}>
+                • {food.food_id!.name}
+                </Text>
+                <Text style={[styles.foodGrams, { color: colors.textSecondary }]}>
                 {food.grams}g
-            </Text>
+                </Text>
             </View>
-        ))}
+            ))
+        }
         </View>
+
         
         {item.notes && (
         <Text style={[styles.mealNotes, { color: colors.textSecondary }]}>

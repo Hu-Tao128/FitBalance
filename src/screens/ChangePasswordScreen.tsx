@@ -25,6 +25,7 @@ const ChangePasswordScreen = () => {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const pid = user?.id;
 
     const handleSaveChanges = async () => {
         // Validación en el frontend
@@ -45,11 +46,19 @@ const ChangePasswordScreen = () => {
         setLoading(true);
 
         try {
-            const response = await axios.put(`${API_CONFIG.BASE_URL}/patients/change-password`, {
-                patient_id: user?.id, // Usa el ID del usuario del contexto
-                currentPassword,
-                newPassword,
-            });
+        const response = await axios.put(
+            `${API_CONFIG.BASE_URL}/patients/change-password`,
+            { 
+                patient_id: pid, 
+                currentPassword, 
+                newPassword 
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
 
             Alert.alert('Éxito', response.data.message);
             // Limpiar campos después del éxito

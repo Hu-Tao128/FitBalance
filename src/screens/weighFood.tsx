@@ -400,24 +400,28 @@ export default function WeighFoodScreen() {
                             </>
                         )}
 
+                        {/* Dentro de tu Modal de selección de báscula */}
                         {!scaleConnected && (
-                            <>
-                                {scaleDevices.length === 0 ? (
-                                    <ActivityIndicator />
-                                ) : (
-                                    scaleDevices.map(dev => (
-                                        <TouchableOpacity
-                                            key={dev.id}
-                                            style={styles.optionButton}
-                                            onPress={() => onSelectScaleDevice(dev)}
-                                        >
-                                            <Text style={styles.optionText}>
-                                                {dev.name || dev.id}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))
-                                )}
-                            </>
+                        <ScrollView 
+                            style={{ maxHeight: 300, marginBottom: 10 }}
+                            contentContainerStyle={{ paddingVertical: 8 }}
+                        >
+                            {scaleDevices.length === 0 ? (
+                            <ActivityIndicator />
+                            ) : (
+                            scaleDevices.map(dev => (
+                                <TouchableOpacity
+                                key={dev.id}
+                                style={styles.optionButton}
+                                onPress={() => onSelectScaleDevice(dev)}
+                                >
+                                <Text style={styles.optionText}>
+                                    {dev.name || dev.id}
+                                </Text>
+                                </TouchableOpacity>
+                            ))
+                            )}
+                        </ScrollView>
                         )}
 
                         <TouchableOpacity onPress={() => {
