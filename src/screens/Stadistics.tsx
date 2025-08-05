@@ -24,27 +24,27 @@ const parseLocalDate = (iso: string): Date => {
     return new Date(year, month - 1, day);
 };
 
-// Devuelve inicio y fin de semana según offset
+    // Devuelve inicio y fin de semana según offset
 const getWeekDates = (offset: number) => {
     const base = new Date();
     base.setDate(base.getDate() - offset * 7);
-    const dayOfWeek = base.getDay(); // 0 (dom) – 6 (sáb)
+    const dayOfWeek = base.getDay();
     const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-
     const start = new Date(base);
     start.setDate(base.getDate() - diffToMonday);
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
-
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
+
     return { startOfWeek: start, endOfWeek: end };
+    
 };
 
 const StatisticsScreen: React.FC = () => {
     const { colors } = useTheme();
     const { user } = useUser();
-    const [data, setData] = useState<Array<{ date: string; totals: { calories: number; protein: number; fat: number; carbs: number }; meals: any[]; }>>([]);
+    const [data, setData] = useState<Array<{ date: string; totals: { calories: number; protein: number; fat: number; carbs: number }; meals: any[] }>>([]);
     const [loading, setLoading] = useState(true);
     const [weekOffset, setWeekOffset] = useState(0);
     const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
@@ -55,70 +55,56 @@ const StatisticsScreen: React.FC = () => {
         backgroundGradientTo: colors.card,
         decimalPlaces: 0 as const,
         color: (opacity = 1) => colors.primary,
-        labelColor: (opacity = 1) => colors.text,
-        propsForDots: { r: '4', strokeWidth: '2', stroke: colors.primary },
-        propsForBackgroundLines: { stroke: colors.border, strokeWidth: 0.5 },
-        propsForLabels: { fill: colors.text }
+        labelColor: (opacity = 1) => colors.textSecondary,
+        propsForDots: { r: '6', strokeWidth: '2', stroke: colors.primary },
+        propsForBackgroundLines: { stroke: colors.border, strokeWidth: 1 },
+        propsForLabels: { fontSize: '12' }
     };
 
     const fetchMealLogs = async (): Promise<void> => {
         setLoading(true);
         try {
-        const res = await axios.get(
-            `${API_CONFIG.BASE_URL}/daily-meal-logs/all/${user?.id}`
-        );
+        const res = await axios.get(`${API_CONFIG.BASE_URL}/daily-meal-logs/all/${user?.id}`);
         const sorted = (res.data as Array<any>).sort(
             (a, b) => parseLocalDate(a.date).getTime() - parseLocalDate(b.date).getTime()
         );
-            setData(sorted);
+        setData(sorted);
         } catch (err) {
-            console.error(err);
+        console.error(err);
         } finally {
-            setLoading(false);
+        setLoading(false);
         }
     };
 
     useFocusEffect(
-        React.useCallback(() => {
-        if (user?.id) fetchMealLogs();
-        }, [user?.id, weekOffset])
+        React.useCallback(() => { if (user?.id) fetchMealLogs(); }, [user?.id, weekOffset])
     );
 
-    const { startOfWeek, endOfWeek } = getWeekDates(weekOffset);
-
-    const weeklyData = data.filter(entry => {
-        const d = parseLocalDate(entry.date);
-        return d >= startOfWeek && d <= endOfWeek;
+    const { startOfWeek } = getWeekDates(weekOffset);
+    const weeklyData = data.filter(e => {
+        const d = parseLocalDate(e.date);
+        return d >= startOfWeek && d <= getWeekDates(weekOffset).endOfWeek;
     });
-
     const filledWeekData = Array.from({ length: 7 }).map((_, i) => {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + i);
-        const match = weeklyData.find(
-        entry => parseLocalDate(entry.date).getTime() === date.getTime()
-        );
+        const match = weeklyData.find(e => parseLocalDate(e.date).getTime() === date.getTime());
         return {
         date,
         calories: match ? match.totals.calories : 0,
-        protein:  match ? match.totals.protein  : 0,
-        fat:      match ? match.totals.fat      : 0,
-        carbs:    match ? match.totals.carbs    : 0
+        protein: match ? match.totals.protein : 0,
+        fat: match ? match.totals.fat : 0,
+        carbs: match ? match.totals.carbs : 0
         };
     });
 
-    const days: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    const hasDataForDay = (index: number): boolean => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const hasDataForDay = (i: number) => weeklyData.some(e => {
+        const d = parseLocalDate(e.date);
         const target = new Date(startOfWeek);
-        target.setDate(startOfWeek.getDate() + index);
-        return data.some(entry => {
-        const d = parseLocalDate(entry.date);
-        return (
-            d.getTime() === target.getTime() &&
-            (entry.totals.calories > 0 || entry.totals.protein > 0 || entry.totals.fat > 0 || entry.totals.carbs > 0)
-        );
-        });
-    };
+        target.setDate(startOfWeek.getDate() + i);
+        return d.getTime() === target.getTime();
+    });
 
     if (loading) {
         return (
@@ -128,208 +114,102 @@ const StatisticsScreen: React.FC = () => {
         );
     }
 
-    const labels: string[] = filledWeekData.map(e =>
-        e.date.toLocaleDateString('en-EN', { weekday: 'short' })
-    );
-    const caloriesData: number[] = filledWeekData.map(e => e.calories);
-    const proteinData: number[] = filledWeekData.map(e => e.protein);
-    const fatData: number[]     = filledWeekData.map(e => e.fat);
-    const carbsData: number[]   = filledWeekData.map(e => e.carbs);
+    const labels = filledWeekData.map(e => e.date.toLocaleDateString('en-EN', { weekday: 'short' }));
+    const caloriesData = filledWeekData.map(e => e.calories);
+    const proteinData = filledWeekData.map(e => e.protein);
+    const fatData = filledWeekData.map(e => e.fat);
+    const carbsData = filledWeekData.map(e => e.carbs);
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        {/* Título fijo */}
         <View style={[styles.headerContainer, { backgroundColor: colors.card }]}>        
             <Text style={[styles.header, { color: colors.primary }]}>Nutritional Statistics</Text>
         </View>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
 
-        <ScrollView
-            contentContainerStyle={[styles.container, { backgroundColor: colors.background } ]}
-            showsVerticalScrollIndicator={false}
-        >
-            {/* Navegación y racha */}
-            <View style={styles.navAndStreakRow}>
+        {/* Semana + navegación */}
+        <View style={styles.navRow}>
+            {/* Flecha para semana anterior */}
             <Pressable onPress={() => setWeekOffset(weekOffset + 1)}>
-                <Text style={[styles.arrow, { color: colors.primary }]}>‹</Text>
+                <Text style={[styles.navArrow, { color: colors.primary }]}>‹</Text>
             </Pressable>
-
-            <View style={styles.streakContainer}>
-                {days.map((day, idx) => {
-                const has = hasDataForDay(idx);
-                const date = new Date(startOfWeek);
-                date.setDate(startOfWeek.getDate() + idx);
-                const selected = idx === selectedDayIndex;
-                return (
-                    <Pressable
-                    key={day}
-                    style={styles.dayPressable}
-                    onPress={() => setSelectedDayIndex(idx)}
-                    >
-                    <View
-                        style={[
-                        styles.dayItem,
-                        {
-                            backgroundColor: has ? colors.primary : colors.border,
-                            borderWidth: selected ? 2 : 0,
-                            borderColor: selected ? colors.card : 'transparent'
-                        }
-                        ]}
-                    >
-                        <Text
-                        style={[styles.dayText, { color: has ? colors.card : colors.textSecondary }]}>
-                        {date.getDate()}
-                        </Text>
-                    </View>
-                    <Text style={[styles.dayName, { color: colors.text }]}> {day}</Text>
-                    </Pressable>
-                );
-                })}
-            </View>
-
-            <Pressable
-            disabled={weekOffset === 0}
-            onPress={() => setWeekOffset(weekOffset - 1)}
-            >
-                <Text style={[styles.arrow, { color: weekOffset === 0 ? colors.border : colors.primary }]}>›</Text>
+            <Text style={[styles.weekLabel, { color: colors.text }]}>Week</Text>
+            {/* Flecha para semana siguiente, deshabilitada en semana actual */}
+            <Pressable disabled={weekOffset === 0} onPress={() => setWeekOffset(weekOffset - 1)}>
+                <Text style={[styles.navArrow, { color: weekOffset === 0 ? colors.border : colors.primary }]}>›</Text>
             </Pressable>
         </View>
 
-        {/* Gráficos */}
-        <LineChart
-            data={{ labels, datasets: [{ data: caloriesData }] }}
-            width={screenWidth - 64}
-            height={220}
-            chartConfig={chartConfig}
-            style={styles.chart}
-            bezier
-            withVerticalLines
-            withHorizontalLines
-            fromZero
-        />
-        <LineChart
-            data={{ labels, datasets: [{ data: proteinData }] }}
-            width={screenWidth - 64}
-            height={220}
-            chartConfig={chartConfig}
-            style={styles.chart}
-            bezier
-            fromZero
-        />
-        <LineChart
-            data={{ labels, datasets: [{ data: fatData }] }}
-            width={screenWidth - 64}
-            height={220}
-            chartConfig={chartConfig}
-            style={styles.chart}
-            bezier
-            fromZero
-        />
-        <LineChart
-            data={{ labels, datasets: [{ data: carbsData }] }}
-            width={screenWidth - 64}
-            height={220}
-            chartConfig={chartConfig}
-            style={styles.chart}
-            bezier
-            fromZero
-        />
-
-        {/* Comidas del día */}
-        {selectedDayIndex !== null && (
-            <View style={{ marginTop: 16 }}>
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Comidas del {labels[selectedDayIndex]}</Text>
-                {weeklyData
-                .find(e => parseLocalDate(e.date).getTime() === filledWeekData[selectedDayIndex].date.getTime())
-                ?.meals.map((m: any) => (
-                    <View key={m._id} style={[styles.mealItem, { backgroundColor: colors.card }]}> 
-                    <Text style={[styles.mealName, { color: colors.text }]}>{m.notes || m.type}</Text>
-                    <Text style={[styles.mealInfo, { color: colors.textSecondary }]}>{m.time}</Text>
+            {/* Racha con número */}
+            <View style={[styles.streakContainer, { backgroundColor: colors.card }]}>          
+            {filledWeekData.map((entry, idx) => {
+                const has = entry.calories > 0 || entry.protein > 0 || entry.fat > 0 || entry.carbs > 0;
+                const day = days[idx];
+                const dateNum = entry.date.getDate();
+                return (
+                <Pressable key={day} style={styles.streakItem} onPress={() => setSelectedDayIndex(idx)}>
+                    <View style={[styles.streakCircle, { backgroundColor: has ? colors.primary : colors.border }]}>                  
+                    <Text style={[styles.streakNumber, { color: has ? colors.card : colors.textSecondary }]}>
+                        {dateNum}
+                    </Text>
                     </View>
-                )) || <Text style={{ color: colors.textSecondary }}>No hay comidas registradas</Text>}
+                    <Text style={[styles.streakDay, { color: colors.textSecondary }]}>{day}</Text>
+                </Pressable>
+                );
+            })}
             </View>
-            )}
+
+            {/* Charts */}
+            {[
+            { title: 'Calories', unit: 'kcal', data: caloriesData },
+            { title: 'Proteins', unit: 'g', data: proteinData },
+            { title: 'Fats', unit: 'g', data: fatData },
+            { title: 'Carbs', unit: 'g', data: carbsData }
+            ].map((series) => (
+            series.data.every(v => v === 0) ? (
+                <View key={series.title} style={[styles.noDataBox, { backgroundColor: colors.card }]}> 
+                <Text style={[styles.noDataText, { color: colors.textSecondary }]}>No data for {series.title}</Text>
+                </View>
+            ) : (
+                <View key={series.title} style={[styles.chartBox, { backgroundColor: colors.card }]}>            
+                <Text style={[styles.chartHeader, { color: colors.text }]}>{series.title} ({series.unit})</Text>
+                <LineChart
+                    data={{ labels, datasets: [{ data: series.data }] }}
+                    width={screenWidth - 48}
+                    height={200}
+                    yAxisSuffix={series.unit}
+                    chartConfig={chartConfig}
+                    style={styles.chartStyle}
+                    bezier
+                    fromZero
+                />
+                </View>
+            )
+            ))}
+
         </ScrollView>
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    headerContainer: {
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    container: {
-        padding: 16,
-        flexGrow: 1,
-        width: '100%'
-    },
-    header: {
-        fontSize: 22,
-        fontWeight: 'bold'
-    },
-    navAndStreakRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 16
-    },
-    arrow: {
-        fontSize: 24,
-        padding: 8
-    },
-    streakContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        flex: 1
-    },
-    dayPressable: {
-        alignItems: 'center'
-    },
-    dayItem: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    dayText: {
-        fontWeight: 'bold',
-        fontSize: 16
-    },
-    dayName: {
-        fontSize: 12,
-        marginTop: 4
-    },
-    chart: {
-        marginVertical: 8,
-        borderRadius: 12,
-        alignSelf: 'center'
-    },
-    center: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 8
-    },
-    mealItem: {
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 8
-    },
-    mealName: {
-        fontSize: 16,
-        fontWeight: '500'
-    },
-    mealInfo: {
-        fontSize: 14,
-        marginTop: 4
-    }
+    headerContainer: { padding: 16, alignItems: 'center' },
+    header: { fontSize: 24, fontWeight: 'bold' },
+    container: { padding: 16 },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    navRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+    navArrow: { fontSize: 28, padding: 8 },
+    weekLabel: { fontSize: 18, fontWeight: '600' },
+    streakContainer: { flexDirection: 'row', justifyContent: 'space-around', padding: 12, borderRadius: 12, marginBottom: 16 },
+    streakItem: { alignItems: 'center' },
+    streakCircle: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+    streakNumber: { fontSize: 14, fontWeight: '600' },
+    streakDay: { fontSize: 10 },
+    chartBox: { marginVertical: 8, padding: 16, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 6, elevation: 3 },
+    chartHeader: { fontSize: 16, fontWeight: '600', marginBottom: 8, textAlign: 'center' },
+    chartStyle: { borderRadius: 12 },
+    noDataBox: { marginVertical: 8, padding: 20, borderRadius: 12, alignItems: 'center' },
+    noDataText: { fontSize: 16 }
 });
 
 export default StatisticsScreen;

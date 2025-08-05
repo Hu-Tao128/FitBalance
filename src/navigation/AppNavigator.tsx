@@ -122,7 +122,7 @@ export default function AppNavigator() {
               name="FoodScanner"
               component={FoodScanner}
               options={{
-                title: 'Escanear Alimento',
+                title: 'Scan Food',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}
@@ -131,7 +131,7 @@ export default function AppNavigator() {
               name="FoodClassicSearch"
               component={FoodClassicSearch}
               options={{
-                title: 'Buscar por Nombre',
+                title: 'Search for Food by Text',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}
@@ -140,7 +140,7 @@ export default function AppNavigator() {
               name="CreateMealScreen"
               component={CreateMealScreen}
               options={{
-                title: 'Crear Comida Personalizada', // Ahora solo para crear
+                title: 'Create Custom Food', // Ahora solo para crear
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}
@@ -149,7 +149,7 @@ export default function AppNavigator() {
               name="optionsFood"
               component={optionsFood}
               options={{
-                title: 'Opciones de Comida',
+                title: 'Options Foods',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}
@@ -158,7 +158,7 @@ export default function AppNavigator() {
               name="ManageMeals"
               component={ManageMealsScreen}
               options={{
-                title: 'Gestionar Comidas',
+                title: 'Manage Meals',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}
@@ -168,7 +168,7 @@ export default function AppNavigator() {
               name="EditMeal"
               component={EditMealScreen}
               options={{
-                title: 'Editar Comida', // Título para la pantalla de edición
+                title: 'Edit Meals', // Título para la pantalla de edición
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
               }}
@@ -177,7 +177,7 @@ export default function AppNavigator() {
               name="ManagementDating"
               component={ManagementDatingScreen}
               options={{
-                title: 'Gestión de Citas', // Título para la cabecera
+                title: 'Appointments', // Título para la cabecera
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff'
               }}
@@ -213,7 +213,7 @@ export default function AppNavigator() {
               name="EditProfile"
               component={EditProfileScreen}
               options={{
-                title: 'Editar Perfil',
+                title: 'Edit Profile',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff'
               }}
