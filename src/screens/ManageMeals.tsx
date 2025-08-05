@@ -15,9 +15,9 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { RootStackParamList } from '../navigation/AppNavigator';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { PatientMeal } from '../types';
 
 import { API_CONFIG } from '../config/config';
@@ -207,15 +207,19 @@ export default function ManageMealsScreen() {
                 >
                     <Text style={[styles.buttonText, { color: '#fff' }]}>+ Add</Text>
                 </TouchableOpacity>
+
+                {/* --- SECCIÓN CORREGIDA --- */}
                 <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: colors.info }]}
+                    // Añadimos un color de respaldo azul para 'info'
+                    style={[styles.actionButton, { backgroundColor: colors.info || '#5AC8FA' }]}
                     onPress={() => handleEditMeal(item)}
                     disabled={loading}
                 >
                     <Text style={[styles.buttonText, { color: '#fff' }]}>Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: colors.danger }]}
+                    // Añadimos un color de respaldo rojo para 'danger'
+                    style={[styles.actionButton, { backgroundColor: colors.danger || '#FF3B30' }]}
                     onPress={() => handleDeleteMeal(item._id)}
                     disabled={loading}
                 >
