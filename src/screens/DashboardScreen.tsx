@@ -35,7 +35,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados para el podómetro
+  // States for pedometer
   const [steps, setSteps] = useState<number>(0);
   const [pastStepCount, setPastStepCount] = useState<number>(0);
   const [isPedometerAvailable, setIsPedometerAvailable] = useState<'checking' | 'available' | 'unavailable'>('checking');
@@ -44,15 +44,15 @@ const Home = () => {
     const subscribe = async () => {
       try {
         if (Platform.OS === 'android') {
-          // 1. Permiso para sensores de pasos
+          // 1. Permission for step sensors
           const pedometerPerm = await Pedometer.requestPermissionsAsync();
           if (!pedometerPerm.granted) {
             setIsPedometerAvailable('unavailable');
-            Alert.alert('Permiso requerido', 'Se necesita acceso a sensores para contar pasos.');
+            Alert.alert('Permission required', 'Access to sensors is needed to count steps.');
             return;
           }
 
-          // 2. Solo autorizar Google Fit si es necesario
+          // 2. Only authorize Google Fit if needed
           if (!GoogleFit.isAuthorized) {
             const options = {
               scopes: [
@@ -63,23 +63,23 @@ const Home = () => {
             const authResult = await GoogleFit.authorize(options);
             if (!authResult.success) {
               setIsPedometerAvailable('unavailable');
-              Alert.alert("No se pudo autorizar Google Fit", authResult.message || "");
+              Alert.alert("Could not authorize Google Fit", authResult.message || "");
               return;
             }
           }
 
-          // 3. Ya autorizado: obtener pasos
+          // 3. Already authorized: get steps
           GoogleFit.getDailyStepCountSamples({
             startDate: new Date().toISOString().split('T')[0] + "T00:00:00.000Z",
             endDate: new Date().toISOString(),
           }).then(res => {
-            // Verifica que haya fuente de pasos de Google
+            // Verify Google step source exists
             const today = new Date().toISOString().split('T')[0];
             const estimatedSource = res.find(
               entry => entry.source === "com.google.android.gms:estimated_steps"
             );
             if (!estimatedSource) {
-              console.warn("No se encontró fuente com.google.android.gms:estimated_steps");
+              console.warn("No com.google.android.gms:estimated_steps source found");
               setSteps(0);
               return;
             }
@@ -88,12 +88,12 @@ const Home = () => {
               .reduce((total, step) => total + step.value, 0);
             setSteps(stepsToday);
           }).catch(err => {
-            console.error("Error obteniendo pasos de Google Fit:", err);
+            console.error("Error getting steps from Google Fit:", err);
             setSteps(0);
           });
         }
 
-        // Verifica disponibilidad podómetro (expo-sensors)
+        // Check pedometer availability (expo-sensors)
         const isAvailable = await Pedometer.isAvailableAsync();
         setIsPedometerAvailable(isAvailable ? 'available' : 'unavailable');
 
@@ -107,13 +107,13 @@ const Home = () => {
             setPastStepCount(pastStepCountResult.steps);
           }
 
-          // Suscripción a pasos en tiempo real
+          // Subscribe to real-time steps
           return Pedometer.watchStepCount(result => {
             setSteps(result.steps);
           });
         }
       } catch (error) {
-        console.error('Error al configurar podómetro:', error);
+        console.error('Error setting up pedometer:', error);
         setIsPedometerAvailable('unavailable');
       }
     };
@@ -129,14 +129,14 @@ const Home = () => {
     };
   }, []);
 
-  // ---------- FIN GOOGLE FIT ------------
+  // ---------- END GOOGLE FIT ------------
 
-  // Calcular calorías desde pasos (fórmula simplificada)
+  // Calculate calories from steps (simplified formula)
   const estimateCaloriesFromSteps = (steps: number, weightKg: number, heightCm: number) => {
-    const MET = 3.5; // caminata moderada
-    const strideLengthKm = (heightCm * 0.415) / 100000; // cm a km
+    const MET = 3.5; // moderate walking
+    const strideLengthKm = (heightCm * 0.415) / 100000; // cm to km
     const distanceKm = steps * strideLengthKm;
-    const calories = MET * weightKg * (distanceKm / 5); // asume ritmo de 5km/h
+    const calories = MET * weightKg * (distanceKm / 5); // assumes 5km/h pace
     return Math.round(calories);
   };
 
@@ -144,7 +144,7 @@ const Home = () => {
   const heightCm = user?.height_cm || 170;
   const caloriesFromSteps = estimateCaloriesFromSteps(steps, weightKg, heightCm);
 
-  // Función para obtener datos nutricionales
+  // Function to get nutrition data
   const fetchNutritionData = async () => {
     try {
       setLoading(true);
@@ -168,34 +168,34 @@ const Home = () => {
 
     } catch (err) {
       console.error('Error fetching nutrition data:', err);
-      setError('No se pudieron cargar los datos nutricionales');
+      setError('Could not load nutrition data');
     } finally {
       setLoading(false);
     }
   };
 
-  // Obtener datos nutricionales al cargar el componente
+  // Get nutrition data when component loads
   useFocusEffect(
     React.useCallback(() => {
       fetchNutritionData();
     }, [user?.id])
   );
 
-  // Calcular valores
-  const caloriasObjetivo = nutritionData?.goals.calories || 2000;
-  const caloriasComidas = nutritionData?.consumed.calories || 0;
-  const caloriasRestantes = caloriasObjetivo - caloriasComidas;
+  // Calculate values
+  const calorieGoal = nutritionData?.goals.calories || 2000;
+  const caloriesConsumed = nutritionData?.consumed.calories || 0;
+  const caloriesRemaining = calorieGoal - caloriesConsumed;
 
-  const proteinasObjetivo = nutritionData?.goals.protein || 150;
-  const proteinasConsumidas = nutritionData?.consumed.protein || 0;
+  const proteinGoal = nutritionData?.goals.protein || 150;
+  const proteinConsumed = nutritionData?.consumed.protein || 0;
 
-  const carbohidratosObjetivo = nutritionData?.goals.carbs || 250;
-  const carbohidratosConsumidos = nutritionData?.consumed.carbs || 0;
+  const carbsGoal = nutritionData?.goals.carbs || 250;
+  const carbsConsumed = nutritionData?.consumed.carbs || 0;
 
-  const grasasObjetivo = nutritionData?.goals.fat || 70;
-  const grasasConsumidas = nutritionData?.consumed.fat || 0;
+  const fatGoal = nutritionData?.goals.fat || 70;
+  const fatConsumed = nutritionData?.consumed.fat || 0;
 
-  // Colores para las barras (usa tu paleta pro)
+  // Colors for bars (use your own palette)
   const proteinColor = colors.progressProtein || '#6DD6B1';
   const carbsColor = colors.progressCarbs || '#FED36A';
   const fatColor = colors.progressFat || '#FF6B81';
@@ -409,7 +409,7 @@ const Home = () => {
       paddingRight: 2,
     },
     statusText: {
-      color: caloriasRestantes > 0 ? colors.success : colors.danger,
+      color: caloriesRemaining > 0 ? colors.success : colors.danger,
       fontWeight: 'bold',
       marginTop: 8,
       fontSize: 16,
@@ -435,16 +435,16 @@ const Home = () => {
 
   const renderStepsCard = () => {
     if (isPedometerAvailable === 'checking') {
-      return <Text style={styles.cardText}>Cargando...</Text>;
+      return <Text style={styles.cardText}>Loading...</Text>;
     }
 
     if (isPedometerAvailable === 'unavailable') {
       return (
         <TouchableOpacity onPress={() => Alert.alert(
-          'Función no disponible',
-          'El contador de pasos no está disponible en este dispositivo o requiere permisos adicionales.'
+          'Feature not available',
+          'Step counter is not available on this device or requires additional permissions.'
         )}>
-          <Text style={[styles.cardText, { color: colors.danger }]}>No disponible</Text>
+          <Text style={[styles.cardText, { color: colors.danger }]}>Not available</Text>
         </TouchableOpacity>
       );
     }
@@ -467,10 +467,10 @@ const Home = () => {
           )}
         </AnimatedCircularProgress>
         <Text style={[styles.cardText, { marginTop: 5 }]}>
-          {Math.round((steps / 10000) * 100)}% de tu meta
+          {Math.round((steps / 10000) * 100)}% of your goal
         </Text>
         <Text style={[styles.cardText, { fontSize: 12 }]}>
-          {pastStepCount} pasos en 24h
+          {pastStepCount} steps in 24h
         </Text>
       </>
     );
@@ -480,7 +480,7 @@ const Home = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ color: colors.text, marginTop: 10 }}>Cargando datos nutricionales...</Text>
+        <Text style={{ color: colors.text, marginTop: 10 }}>Loading nutrition data...</Text>
       </View>
     );
   }
@@ -512,7 +512,7 @@ const Home = () => {
             fetchNutritionData();
           }}
         >
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>Reintentar</Text>
+          <Text style={{ color: 'white', fontWeight: 'bold' }}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -541,7 +541,7 @@ const Home = () => {
             <AnimatedCircularProgress
               size={180}
               width={16}
-              fill={(caloriasComidas / caloriasObjetivo) * 100}
+              fill={(caloriesConsumed / calorieGoal) * 100}
               tintColor={colors.primary}
               backgroundColor={colors.progressBg}
               rotation={0}
@@ -552,10 +552,10 @@ const Home = () => {
               )}
             </AnimatedCircularProgress>
             <Text style={styles.subtext}>
-              {caloriasObjetivo} calorías objetivo | {caloriasComidas} consumidas
+              {calorieGoal} calorie goal | {caloriesConsumed} consumed
             </Text>
             <Text style={styles.statusText}>
-              {Math.abs(caloriasRestantes)} cal {caloriasRestantes > 0 ? 'faltantes' : 'excedidas'}
+              {Math.abs(caloriesRemaining)} cal {caloriesRemaining > 0 ? 'remaining' : 'over'}
             </Text>
           </View>
         </TouchableOpacity>
@@ -563,28 +563,28 @@ const Home = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Macros</Text>
           <MacroBar
-            label="Proteínas"
+            label="Protein"
             icon="restaurant"
-            value={proteinasConsumidas}
-            goal={proteinasObjetivo}
+            value={proteinConsumed}
+            goal={proteinGoal}
             color={proteinColor}
             barBg={barBg}
             unit="g"
           />
           <MacroBar
-            label="Carbohidratos"
+            label="Carbs"
             icon="pizza"
-            value={carbohidratosConsumidos}
-            goal={carbohidratosObjetivo}
+            value={carbsConsumed}
+            goal={carbsGoal}
             color={carbsColor}
             barBg={barBg}
             unit="g"
           />
           <MacroBar
-            label="Grasas"
+            label="Fat"
             icon="egg"
-            value={grasasConsumidas}
-            goal={grasasObjetivo}
+            value={fatConsumed}
+            goal={fatGoal}
             color={fatColor}
             barBg={barBg}
             unit="g"
@@ -593,14 +593,14 @@ const Home = () => {
 
         <View style={styles.sectionRow}>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Pasos</Text>
+            <Text style={styles.cardTitle}>Steps</Text>
             {renderStepsCard()}
           </View>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Ejercicio</Text>
+            <Text style={styles.cardTitle}>Exercise</Text>
             <Text style={styles.cardText}>{caloriesFromSteps} cal</Text>
             <Text style={[styles.cardText, { fontSize: 12 }]}>
-              Estimado por {steps} pasos
+              Estimated from {steps} steps
             </Text>
           </View>
         </View>
@@ -610,4 +610,3 @@ const Home = () => {
 };
 
 export default Home;
-

@@ -39,11 +39,11 @@ const UserProfileCard = ({
     : null;
 
   const formatLastConsultation = () => {
-    if (!last_consultation) return 'No registrada';
+    if (!last_consultation) return 'Not registered';
     try {
       return new Date(last_consultation).toLocaleDateString();
     } catch (e) {
-      return 'Fecha inválida';
+      return 'Invalid date';
     }
   };
 
@@ -220,10 +220,10 @@ const UserProfileCard = ({
 };
 
 function getBmiCategory(bmi: number): string {
-  if (bmi < 18.5) return 'Bajo peso';
+  if (bmi < 18.5) return 'Underweight';
   if (bmi < 25) return 'Normal';
-  if (bmi < 30) return 'Sobrepeso';
-  return 'Obesidad';
+  if (bmi < 30) return 'Overweight';
+  return 'Obese';
 }
 
 export default UserProfileCard;

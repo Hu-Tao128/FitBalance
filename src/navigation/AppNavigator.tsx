@@ -74,7 +74,7 @@ export default function AppNavigator() {
               name="UserProfile"
               component={UserProfileScreen}
               options={{
-                title: 'Perfil',
+                title: 'Profile',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff'
               }}
@@ -83,7 +83,7 @@ export default function AppNavigator() {
               name="Settings"
               component={SettingsScreen}
               options={{
-                title: 'Ajustes',
+                title: 'Settings',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff'
               }}
@@ -92,7 +92,7 @@ export default function AppNavigator() {
               name="weighFood"
               component={weighFood}
               options={{
-                title: 'Registrar Alimento',
+                title: 'Register Food',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
                 headerShown: true
@@ -102,7 +102,7 @@ export default function AppNavigator() {
               name="stadistics"
               component={StatisticsScreen}
               options={{
-                title: 'Estadisticas del Usuario',
+                title: 'User Statistics',
                 headerStyle: { backgroundColor: '#1c1c1e' },
                 headerTintColor: '#fff',
                 headerShown: true

@@ -160,7 +160,7 @@ export default function WeighFoodScreen() {
     const handleUseScale = async () => {
         const ok = await reqScalePerms();
         if (!ok) {
-            Alert.alert('Permisos denegados', 'No se puede acceder a BLE');
+            Alert.alert('Permissions denied', 'Cannot access Bluetooth');
             return;
         }
         scanScaleDevices();
@@ -181,15 +181,15 @@ export default function WeighFoodScreen() {
                 meal: selectedMeal,
             });
 
-            Alert.alert('¡Éxito!', `${scaleWeight}g añadidos a tu log diario`);
+            Alert.alert('Success!', `${scaleWeight}g added to your daily log`);
             setModalVisible(false);
             setScaleModal(false);
         } catch (err: any) {
-            console.error('Error añadiendo peso:', err);
+            console.error('Error adding weight:', err);
             if (err.response && err.response.status === 400) {
-                Alert.alert('Aviso', err.response.data.error || 'Esta comida ya está registrada');
+                Alert.alert('Notice', err.response.data.error || 'This meal is already logged');
             } else {
-                Alert.alert('Error', 'No se pudo añadir el peso.');
+                Alert.alert('Error', 'Could not add weight.');
             }
         }
     };
@@ -227,14 +227,14 @@ export default function WeighFoodScreen() {
             const response = await axios.get(`${API_CONFIG.BASE_URL}/weeklyplan/daily/${user.id}`);
             
             if (!response.data?.meals || response.data.meals.length === 0) {
-                setError('No hay comidas planificadas para hoy');
+                setError('No meals planned for today');
                 setWeeklyPlan(null);
             } else {
                 setWeeklyPlan(response.data);
             }
         } catch (error) {
-            console.error('Error al cargar el plan:', error);
-            setError('No se pudo cargar el plan.');
+            console.error('Error loading plan:', error);
+            setError('Could not load meal plan.');
             setWeeklyPlan(null);
         } finally {
             setLoading(false);
@@ -256,14 +256,14 @@ export default function WeighFoodScreen() {
                 meal: selectedMeal,
             });
 
-            Alert.alert('¡Éxito!', 'La comida fue añadida a tu log diario');
+            Alert.alert('Success!', 'Meal added to your daily log');
             setModalVisible(false);
         } catch (err: any) {
-            console.error('Error añadiendo comida:', err);
+            console.error('Error adding meal:', err);
             if (err.response && err.response.status === 400) {
-                Alert.alert('Aviso', err.response.data.error || 'Esta comida ya está registrada');
+                Alert.alert('Notice', err.response.data.error || 'This meal is already logged');
             } else {
-                Alert.alert('Error', 'No se pudo añadir la comida.');
+                Alert.alert('Error', 'Could not add meal.');
             }
         }
     };
@@ -294,7 +294,7 @@ export default function WeighFoodScreen() {
                 }]}>
                     <Ionicons name="calendar-outline" size={40} color={colors.text} style={{ marginBottom: 15 }} />
                     <Text style={[styles.mealTitle, { textAlign: 'center' }]}>
-                        No tienes planes para esta semana
+                        No meal plans for this week
                     </Text>
                     <Text style={{ 
                         color: colors.text, 
@@ -302,7 +302,7 @@ export default function WeighFoodScreen() {
                         marginTop: 10,
                         maxWidth: '80%'
                     }}>
-                        Contacta a tu nutricionista para obtener tu plan alimenticio
+                        Contact your nutritionist to get your meal plan
                     </Text>
                 </View>
             </View>
@@ -341,28 +341,28 @@ export default function WeighFoodScreen() {
                 })}
             </ScrollView>
 
-            {/* Modal de opciones */}
+            {/* Options modal */}
             <Modal transparent visible={modalVisible} animationType="slide">
                 <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
                     <View style={styles.modalOverlay}>
                         <TouchableWithoutFeedback>
                             <View style={styles.modalContainer}>
                                 <Text style={styles.modalTitle}>
-                                    ¿Cómo deseas registrar esta comida?
+                                    How would you like to log this meal?
                                 </Text>
 
                                 <TouchableOpacity style={styles.optionButton} onPress={handleAddWeeklyMeal}>
                                     <MaterialCommunityIcons name="check-bold" size={22} color="#34C759" />
-                                    <Text style={styles.optionText}>Usar porción recomendada</Text>
+                                    <Text style={styles.optionText}>Use recommended portion</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity style={styles.optionButton} onPress={handleUseScale}>
                                     <MaterialCommunityIcons name="scale" size={22} color={colors.text} />
-                                    <Text style={styles.optionText}>Usar báscula</Text>
+                                    <Text style={styles.optionText}>Use food scale</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                    <Text style={styles.closeText}>Cancelar</Text>
+                                    <Text style={styles.closeText}>Cancel</Text>
                                 </TouchableOpacity>
                             </View>
                         </TouchableWithoutFeedback>
@@ -370,18 +370,18 @@ export default function WeighFoodScreen() {
                 </TouchableWithoutFeedback>
             </Modal>
 
-            {/* Modal de la báscula */}
+            {/* Scale modal */}
             <Modal transparent visible={scaleModal} animationType="slide">
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContainer}>
                         <Text style={styles.modalTitle}>
-                            {scaleConnected ? 'Peso actual' : 'Seleccione su báscula'}
+                            {scaleConnected ? 'Current weight' : 'Select your scale'}
                         </Text>
 
                         {scaleConnected && (
                             <>
                                 <Text style={styles.scaleWeightText}>
-                                    {scaleWeight != null ? `${scaleWeight} g` : 'Esperando dato...'}
+                                    {scaleWeight != null ? `${scaleWeight} g` : 'Waiting for data...'}
                                 </Text>
                                 
                                 <TouchableOpacity 
@@ -390,7 +390,7 @@ export default function WeighFoodScreen() {
                                     disabled={scaleWeight === null}
                                 >
                                     <Text style={styles.addWeightButtonText}>
-                                        Agregar {scaleWeight !== null ? `${scaleWeight}g` : 'peso'}
+                                        Add {scaleWeight !== null ? `${scaleWeight}g` : 'weight'}
                                     </Text>
                                 </TouchableOpacity>
                             </>
@@ -420,7 +420,7 @@ export default function WeighFoodScreen() {
                             setScaleModal(false);
                             disconnectScale();
                         }}>
-                            <Text style={styles.closeText}>Cancelar</Text>
+                            <Text style={styles.closeText}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
