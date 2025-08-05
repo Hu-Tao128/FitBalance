@@ -1,208 +1,220 @@
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-    TouchableWithoutFeedback,
-    Modal
+    ActivityIndicator, Alert, Image, Modal,
+    ScrollView, StyleSheet, Text, TextInput,
+    TouchableOpacity, View, TouchableWithoutFeedback
 } from 'react-native';
-import { AddFoodModal } from '../components/AddFoodModal';
-import FoodDetails from '../components/FoodDetails';
+import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { API_CONFIG } from '../config/config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import FoodDetails from '../components/FoodDetails';
 import { SERVICE_UUID, CHAR_UUID } from '../config/bluetooth';
 import { useBLEDevice } from '../components/UseBL';
 import { Device } from 'react-native-ble-plx';
 
-// Interface for API food object
 interface Food {
     food_name: string;
-    serving_qty: number;
-    serving_unit: string;
+    serving_qty:      number;
+    serving_unit:     string;
     serving_weight_grams?: number;
-    nf_calories?: number;
-    nf_protein?: number;
+    nf_calories?:     number;
+    nf_protein?:      number;
     nf_total_carbohydrate?: number;
-    nf_total_fat?: number;
-    nf_sugars?: number;
-    nf_dietary_fiber?: number;
+    nf_total_fat?:    number;
+    nf_sugars?:       number;
+    nf_dietary_fiber?:number;
     photo?: { thumb?: string };
 }
 
-// Search results list
-const SearchResultsList = ({ foods, onSelect }: { foods: Food[]; onSelect: (food: Food) => void }) => {
-    const { colors } = useTheme();
-    const styles = createStyles(colors);
-    return (
-        <View style={styles.resultsContainer}>
-        <Text style={styles.resultsTitle}>Resultados de la Búsqueda</Text>
-        {foods.slice(0, 5).map((food, i) => (
-            <TouchableOpacity key={i} style={styles.resultItem} onPress={() => onSelect(food)}>
-            {food.photo?.thumb && <Image source={{ uri: food.photo.thumb }} style={styles.resultImage} />}
-            <Text style={styles.resultText} numberOfLines={2}>{food.food_name}</Text>
-            </TouchableOpacity>
-        ))}
-        </View>
-    );
-};
-
 export default function FoodClassicSearch({ navigation }: any) {
     const { colors } = useTheme();
-    const { user } = useUser();
-    const styles = createStyles(colors);
+    const { user }   = useUser();
+    const styles     = createStyles(colors);
 
-    const [query, setQuery] = useState('');
-    const [searchResults, setSearchResults] = useState<Food[] | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [viewingFood, setViewingFood] = useState<Food | null>(null);
-    const [isModalVisible, setModalVisible] = useState(false);
-    const [foodToAdd, setFoodToAdd] = useState<Food | null>(null);
+    const [query, setQuery]           = useState('');
+    const [results, setResults]       = useState<Food[] | null>(null);
+    const [viewing, setViewing]       = useState<Food  | null>(null);
+    const [foodToAdd, setFoodToAdd]   = useState<Food  | null>(null);
+    const [manualModal, setManualModal] = useState(false);
+    const [scaleModal,  setScaleModal]  = useState(false);
+    const [loading,    setLoading]    = useState(false);
 
-    // BLE scale hook
     const {
-        requestPermissions: reqScalePerms,
-        scan: scanScaleDevices,
-        connect: connectScale,
-        disconnect: disconnectScale,
-        devices: scaleDevices,
-        connected: scaleConnected,
-        dataValue: scaleWeight,
+        requestPermissions: reqPerms,
+        scan, connect, disconnect,
+        devices, connected, dataValue: scaleWeight
     } = useBLEDevice(SERVICE_UUID, CHAR_UUID);
 
-    // Search API
+    // 1) Buscar
     const searchByQuery = async () => {
-        if (!query.trim()) { setError('Please enter the name of a meal.'); return; }
-        setLoading(true); setError(''); setSearchResults(null); setViewingFood(null);
+        if (!query.trim()) return Alert.alert('Error','Ingresa un nombre');
+        setLoading(true);
         try {
-        const res = await axios.post<{ results: Food[] }>(
-            `${API_CONFIG.BASE_URL}/search-food`, { query }
-        );
-        if (res.data.results?.length) setSearchResults(res.data.results);
-        else setError('No results found.');
-        } catch (err: any) {
-        console.error(err);
-        setError('Error connecting to server.');
+        const res = await axios.post(`${API_CONFIG.BASE_URL}/search-food`, { query });
+        setResults(res.data.results || []);
+        } catch {
+        Alert.alert('Error', 'No se pudo buscar');
         } finally {
         setLoading(false);
         }
     };
 
-    // Add manual grams
-    const handleAddFoodPress = (orig: Food, adjustedGrams: number) => {
-        const baseGrams = orig.serving_weight_grams || 100;
-        if (!baseGrams) return;
-        const ratio = adjustedGrams / baseGrams;
-        const adjusted: Food = {
+    // 2) Selección en lista
+    const onSelectFood = (food: Food) => {
+        setViewing(food);
+        setResults(null);
+    };
+
+    // 3) Ajuste manual
+    const handleAddFoodPress = (orig: Food, grams: number) => {
+        const base  = orig.serving_weight_grams || 100;
+        const ratio = grams / base;
+        setFoodToAdd({
         ...orig,
-        serving_weight_grams: adjustedGrams,
-        serving_qty: 1,
-        serving_unit: `${adjustedGrams}g`,
-        nf_calories: (orig.nf_calories || 0) * ratio,
-        nf_protein:  (orig.nf_protein   || 0) * ratio,
-        nf_total_carbohydrate: (orig.nf_total_carbohydrate||0)*ratio,
-        nf_total_fat:    (orig.nf_total_fat    || 0) * ratio,
-        nf_sugars:       (orig.nf_sugars       || 0) * ratio,
-        nf_dietary_fiber:(orig.nf_dietary_fiber|| 0) * ratio,
-        };
-        setFoodToAdd(adjusted);
-        setModalVisible(true);
-    };
-
-    // Add to log handler
-    const handleSelectMeal = async (mealType: string, time: string) => {
-        if (!foodToAdd || !user?.id) { Alert.alert('Error','No hay alimento o sesión.'); return; }
-        setModalVisible(false); setLoading(true);
-        try {
-        await axios.post(`${API_CONFIG.BASE_URL}/dailymeallogs/add-food`, {
-            patient_id: user.id, type: mealType, time, food_data: foodToAdd
+        serving_weight_grams: grams,
+        nf_calories:           (orig.nf_calories           || 0) * ratio,
+        nf_protein:            (orig.nf_protein            || 0) * ratio,
+        nf_total_carbohydrate: (orig.nf_total_carbohydrate || 0) * ratio,
+        nf_total_fat:          (orig.nf_total_fat          || 0) * ratio,
+        nf_sugars:             (orig.nf_sugars             || 0) * ratio,
+        nf_dietary_fiber:      (orig.nf_dietary_fiber      || 0) * ratio,
         });
-        Alert.alert('¡Éxito!', `${foodToAdd.food_name} añadido.`,[
-            { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
-        } catch (err: any) { console.error(err); Alert.alert('Error','No se pudo añadir.'); }
-        finally { setLoading(false); }
+        setManualModal(true);
     };
 
-    // Handler to start BLE scan & open scale modal
+    // 4) Confirmar porción manual
+    const handleConfirmManual = async () => {
+        if (!foodToAdd || !user?.id) return;
+        setManualModal(false);
+        setLoading(true);
+        try {
+        const todayWeekday = new Intl.DateTimeFormat('en-US', {
+            weekday:'long', timeZone:'America/Tijuana'
+        }).format(new Date()).toLowerCase();
+
+        const meal = {
+            day: todayWeekday,
+            type:'snack',
+            time:new Date().toTimeString().slice(0,5),
+            foods:[{
+            food_id: foodToAdd.food_name,
+            grams:   foodToAdd.serving_weight_grams!
+            }]
+        };
+
+        await axios.post(`${API_CONFIG.BASE_URL}/daily-meal-logs/add-meal`, {
+            patient_id: user.id,
+            meal
+        });
+
+        Alert.alert('¡Éxito!', `${foodToAdd.food_name} añadido.`);
+        navigation.goBack();
+        } catch {
+        Alert.alert('Error','No se pudo añadir.');
+        } finally {
+        setLoading(false);
+        }
+    };
+
+    // 5) Flujo báscula
     const handleUseScale = async () => {
-        const ok = await reqScalePerms();
-        if (!ok) { Alert.alert('Permisos denegados','No BLE'); return; }
-        scanScaleDevices();
+        if (!(await reqPerms())) return Alert.alert('Error','Permisos BLE');
+        scan();
         setScaleModal(true);
     };
-
-    const onSelectScaleDevice = async (dev: Device) => await connectScale(dev);
-
-    const handleAddScaleWeight = async () => {
-        if (!foodToAdd || scaleWeight==null) return;
-        // reuse handleSelectMeal: set foodToAdd already has grams? override
-        const adjusted = { ...foodToAdd, serving_weight_grams: scaleWeight, serving_unit: `${scaleWeight}g` };
-        setFoodToAdd(adjusted);
+    const onSelectScaleDevice = async (dev: Device) => await connect(dev);
+    const handleConfirmScale = async () => {
+        if (!foodToAdd || scaleWeight == null || !user?.id) return;
         setScaleModal(false);
-        await handleSelectMeal('Snack', new Date().toTimeString().slice(0,5));
+        setLoading(true);
+        try {
+        const todayWeekday = new Intl.DateTimeFormat('en-US', {
+            weekday:'long', timeZone:'America/Tijuana'
+        }).format(new Date()).toLowerCase();
+
+        const meal = {
+            day: todayWeekday,
+            type:'snack',
+            time:new Date().toTimeString().slice(0,5),
+            foods:[{
+            food_id: foodToAdd.food_name,
+            grams:   scaleWeight
+            }]
+        };
+
+        await axios.post(`${API_CONFIG.BASE_URL}/daily-meal-logs/add-meal`, {
+            patient_id: user.id,
+            meal,
+            weight: scaleWeight
+        });
+
+        Alert.alert('¡Éxito!', `${scaleWeight}g añadidos.`);
+        navigation.goBack();
+        } catch {
+        Alert.alert('Error','No se pudo añadir peso.');
+        } finally {
+        setLoading(false);
+        // —> Liberar BLE
+        disconnect();
+        }
     };
 
-    const [scaleModal, setScaleModal] = useState(false);
+    if (loading) return (
+        <View style={styles.center}>
+        <ActivityIndicator size="large" color={colors.primary}/>
+        </View>
+    );
 
     return (
-        <ScrollView style={styles.container} keyboardShouldPersistTaps='handled'>
-        {/* Search input */}
+        <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+        {/* Input + botón */}
         <TextInput
             style={styles.input}
-            placeholder='Ej: Apple, Pozole, Rice'
+            placeholder="Ej: Apple"
             placeholderTextColor={colors.textSecondary}
             value={query}
             onChangeText={setQuery}
             onSubmitEditing={searchByQuery}
         />
-        <TouchableOpacity style={styles.button} onPress={searchByQuery} disabled={loading}>
+        <TouchableOpacity style={styles.button} onPress={searchByQuery}>
             <Text style={styles.buttonText}>Search</Text>
         </TouchableOpacity>
 
-        {loading && <ActivityIndicator size='large' color={colors.primary} />}
-        {error && !loading && <Text style={styles.error}>{error}</Text>}
+        {/* Lista o detalle */}
+        {results && results.map((f,i)=>(
+            <TouchableOpacity key={i} style={styles.resultItem} onPress={()=>onSelectFood(f)}>
+            {f.photo?.thumb && <Image source={{uri:f.photo.thumb}} style={styles.resultImage}/>}
+            <Text style={styles.resultText}>{f.food_name}</Text>
+            </TouchableOpacity>
+        ))}
+        {viewing && <FoodDetails foods={[viewing]} onAddFood={handleAddFoodPress}/>}
 
-        {/* Results or details */}
-        {searchResults && (
-            viewingFood ? (
-            <>
-                <TouchableOpacity style={styles.backButton} onPress={() => setViewingFood(null)}>
-                <Text style={styles.backButtonText}>← Back</Text>
-                </TouchableOpacity>
-                <FoodDetails foods={[viewingFood]} onAddFood={handleAddFoodPress} />
-            </>
-            ) : (
-            <SearchResultsList foods={searchResults} onSelect={setViewingFood} />
-            )
-        )}
-
-        {/* Modal: choose manual vs scale */}
-        <Modal visible={isModalVisible} transparent animationType='slide'>
-            <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+        {/* Modal manual */}
+        <Modal visible={manualModal} transparent animationType="slide">
+            <TouchableWithoutFeedback onPress={()=>setManualModal(false)}>
             <View style={styles.modalOverlay}>
                 <TouchableWithoutFeedback>
-                <View style={[styles.modalContainer, { backgroundColor: colors.card }]}> 
-                    <Text style={[styles.modalTitle, { color: colors.text }]}>Add {foodToAdd?.food_name}</Text>
-                    <TouchableOpacity style={styles.optionButton} onPress={() => { handleSelectMeal('Snack','12:00'); }}>
-                    <Ionicons name='checkmark-circle' size={22} color='#34C759'/>
-                    <Text style={[styles.optionText,{color:colors.text}]}>Selected Portion</Text>
+                <View style={[styles.modalContainer,{backgroundColor:colors.card}]}>
+                    <Text style={[styles.modalTitle,{color:colors.text}]}>
+                    Añadir {foodToAdd?.food_name}
+                    </Text>
+                    <TouchableOpacity style={styles.optionButton} onPress={handleConfirmManual}>
+                    <Ionicons name="checkmark" size={22} color="#34C759"/>
+                    <Text style={[styles.optionText,{color:colors.text}]}>
+                        Usar porción recomendada
+                    </Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.optionButton} onPress={handleUseScale}>
-                    <MaterialCommunityIcons name='scale' size={22} color={colors.text}/>
-                    <Text style={[styles.optionText,{color:colors.text}]}>Use a scale</Text>
+                    <MaterialCommunityIcons name="scale" size={22} color={colors.text}/>
+                    <Text style={[styles.optionText,{color:colors.text}]}>
+                        Usar báscula
+                    </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setModalVisible(false)}>
-                    <Text style={[styles.closeText,{color:colors.primary}]}>Cancel</Text>
+                    <TouchableOpacity onPress={()=>setManualModal(false)}>
+                    <Text style={[styles.closeText,{color:colors.primary}]}>Cancelar</Text>
                     </TouchableOpacity>
                 </View>
                 </TouchableWithoutFeedback>
@@ -210,32 +222,47 @@ export default function FoodClassicSearch({ navigation }: any) {
             </TouchableWithoutFeedback>
         </Modal>
 
-        {/* Modal: scale devices */}
-        <Modal visible={scaleModal} transparent animationType='slide'>
+        {/* Modal báscula */}
+        <Modal visible={scaleModal} transparent animationType="slide">
             <View style={styles.modalOverlay}>
-            <View style={[styles.modalContainer,{ backgroundColor: colors.card }]}> 
+            <View style={[styles.modalContainer,{backgroundColor:colors.card}]}>
                 <Text style={[styles.modalTitle,{color:colors.text}]}>
-                {scaleConnected ? 'Current weight' : 'Select Scale'}
+                {connected ? 'Peso actual' : 'Seleccione la báscula'}
                 </Text>
-                {scaleConnected ? (
-                <>  
+                {connected
+                ? <>
                     <Text style={[styles.scaleWeightText,{color:colors.primary}]}>
-                    {scaleWeight!=null?`${scaleWeight} g`:'Waiting...'}
+                        {scaleWeight!=null?`${scaleWeight} g`:'Esperando…'}
                     </Text>
-                    <TouchableOpacity style={[styles.addWeightButton,{backgroundColor:colors.primary}]} onPress={handleAddScaleWeight} disabled={scaleWeight==null}>
-                    <Text style={styles.addWeightButtonText}>Add {scaleWeight}g</Text>
+                    <TouchableOpacity
+                        style={[styles.addWeightButton,{backgroundColor:colors.primary}]}
+                        onPress={handleConfirmScale}
+                        disabled={scaleWeight==null}
+                    >
+                        <Text style={styles.addWeightButtonText}>
+                        Añadir {scaleWeight}g
+                        </Text>
                     </TouchableOpacity>
-                </>
-                ) : (
-                scaleDevices.length===0 ? <ActivityIndicator/> :
-                scaleDevices.map(dev=> (
-                    <TouchableOpacity key={dev.id} style={styles.optionButton} onPress={()=>onSelectScaleDevice(dev)}>
-                    <Text style={[styles.optionText,{color:colors.text}]}>{dev.name||dev.id}</Text>
-                    </TouchableOpacity>
-                ))
-                )}
-                <TouchableOpacity onPress={()=>{setScaleModal(false);disconnectScale();}}>
-                <Text style={[styles.closeText,{color:colors.primary}]}>Cancel</Text>
+                    </>
+                : devices.length===0
+                    ? <ActivityIndicator/>
+                    : devices.map(dev => (
+                        <TouchableOpacity
+                        key={dev.id}
+                        style={styles.optionButton}
+                        onPress={()=>onSelectScaleDevice(dev)}
+                        >
+                        <Text style={[styles.optionText,{color:colors.text}]}>
+                            {dev.name||dev.id}
+                        </Text>
+                        </TouchableOpacity>
+                    ))
+                }
+                <TouchableOpacity onPress={()=>{
+                setScaleModal(false);
+                disconnect();
+                }}>
+                <Text style={[styles.closeText,{color:colors.primary}]}>Cancelar</Text>
                 </TouchableOpacity>
             </View>
             </View>
@@ -244,28 +271,22 @@ export default function FoodClassicSearch({ navigation }: any) {
     );
 }
 
-// Styles factory
-const createStyles = (colors: any) => StyleSheet.create({
-    container: { flex:1, backgroundColor:colors.background, padding:20 },
-    input: { borderWidth:1, borderColor:colors.border, padding:12, borderRadius:10, marginBottom:10, color:colors.text, backgroundColor:colors.card },
-    button: { backgroundColor:colors.primary, padding:12, borderRadius:10, marginBottom:20 },
-    buttonText: { color:'#fff', textAlign:'center', fontWeight:'bold' },
-    error: { color:'red', textAlign:'center', marginVertical:10 },
-    resultsContainer: { marginTop:10 },
-    resultsTitle: { fontSize:18, fontWeight:'bold', color:colors.text, marginBottom:10 },
-    resultItem: { flexDirection:'row', alignItems:'center', backgroundColor:colors.card, padding:12, borderRadius:10, marginBottom:10, borderWidth:1, borderColor:colors.border },
-    resultImage: { width:40, height:40, borderRadius:8, marginRight:12 },
-    resultText: { flex:1, color:colors.text },
-    backButton: { marginBottom:15 },
-    backButtonText: { color:colors.primary, fontSize:16, fontWeight:'500' },
-    // modal
-    modalOverlay: { flex:1, justifyContent:'flex-end', backgroundColor:'rgba(0,0,0,0.5)' },
-    modalContainer: { padding:20, borderTopLeftRadius:20, borderTopRightRadius:20 },
-    modalTitle: { fontSize:18, fontWeight:'bold', marginBottom:20 },
-    optionButton: { flexDirection:'row', alignItems:'center', paddingVertical:12, gap:10 },
-    optionText: { fontSize:16 },
-    closeText: { textAlign:'center', marginTop:20 },
-    scaleWeightText: { fontSize:24, textAlign:'center', fontWeight:'bold', marginVertical:20 },
-    addWeightButton: { padding:12, borderRadius:8, justifyContent:'center', marginTop:10 },
-    addWeightButtonText: { color:'#fff', textAlign:'center', fontWeight:'bold' }
+const createStyles = (colors:any)=>StyleSheet.create({
+    container:     { flex:1, backgroundColor:colors.background, padding:20 },
+    center:        { flex:1, justifyContent:'center', alignItems:'center' },
+    input:         { borderWidth:1, borderColor:colors.border, borderRadius:10, padding:12, marginBottom:10, backgroundColor:colors.card, color:colors.text },
+    button:        { backgroundColor:colors.primary, padding:12, borderRadius:10, marginBottom:20 },
+    buttonText:    { color:'#fff', textAlign:'center', fontWeight:'bold' },
+    resultItem:    { flexDirection:'row', padding:12, backgroundColor:colors.card, borderRadius:10, marginBottom:10, borderWidth:1, borderColor:colors.border },
+    resultImage:   { width:40, height:40, borderRadius:6, marginRight:12 },
+    resultText:    { flex:1, color:colors.text },
+    modalOverlay:  { flex:1, justifyContent:'flex-end', backgroundColor:'rgba(0,0,0,0.5)' },
+    modalContainer:{ padding:20, borderTopLeftRadius:20, borderTopRightRadius:20 },
+    modalTitle:    { fontSize:18, fontWeight:'bold', marginBottom:20 },
+    optionButton:  { flexDirection:'row', alignItems:'center', paddingVertical:12, gap:10 },
+    optionText:    { fontSize:16 },
+    closeText:     { textAlign:'center', marginTop:20 },
+    scaleWeightText:{ fontSize:24, textAlign:'center', fontWeight:'bold', marginVertical:20 },
+    addWeightButton:{ padding:12, borderRadius:8, justifyContent:'center', marginTop:10 },
+    addWeightButtonText:{ color:'#fff', textAlign:'center', fontWeight:'bold' },
 });

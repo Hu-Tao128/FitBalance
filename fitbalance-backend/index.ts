@@ -848,55 +848,55 @@ interface PopulatedPatientMeal extends Omit<IPatientMeal, 'ingredients'> {
   ingredients: PopulatedIngredient[];
 }
 
-// 👉 Endpoint para añadir una comida personalizada al DailyMealLog 
+// 👉 Endpoint corregido para añadir una comida personalizada al DailyMealLog
 app.post("/DailyMealLogs/add-custom-meal", async (req: Request, res: Response) => {
   const { patient_id, meal_id, type, time } = req.body;
-
   if (!patient_id || !meal_id || !type || !time) {
     return res.status(400).json({ error: "Faltan campos obligatorios" });
   }
 
   try {
+    // 1) Cargamos la comida personalizada
     const patientMeal = await PatientMeal
       .findById(meal_id)
       .populate("ingredients.food_id", "name nutrients portion_size_g")
-      .lean() as PopulatedPatientMeal | null;
+      .lean<PopulatedPatientMeal>();
 
     if (!patientMeal) {
       return res.status(404).json({ message: "Comida personalizada no encontrada." });
     }
-
     if (String(patientMeal.patient_id) !== patient_id) {
       return res.status(403).json({ message: "No puedes usar una comida que no te pertenece." });
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // 2) Calculamos inicio y fin de “hoy” en Tijuana
+    const todayStart = todayStartInTijuana(); // 00:00 Tijuana
+    const todayEnd   = todayEndInTijuana();   // 23:59:59.999 Tijuana
 
-    let dailyLog = await DailyMealLog.findOne({ patient_id, date: today });
-
+    // 3) Buscamos o creamos el registro diario
+    let dailyLog = await DailyMealLog.findOne({
+      patient_id: new Types.ObjectId(patient_id),
+      date: { $gte: todayStart, $lte: todayEnd }
+    });
     if (!dailyLog) {
       dailyLog = new DailyMealLog({
-        patient_id,
-        date: today,
+        patient_id: new Types.ObjectId(patient_id),
+        date: todayStart,
         meals: [],
         totalCalories: 0,
         totalProtein: 0,
         totalFat: 0,
         totalCarbs: 0,
-        caloriesConsumed: 0, // obligatorio según tu JSON schema
+        caloriesConsumed: 0,
       });
     }
 
-    function getTodayWeekday(): string {
-      return new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    }
-
+    // 4) Añadimos la comida
     dailyLog.meals.push({
-      day: getTodayWeekday(),
+      day: nowInTijuana().weekdayLong!.toLowerCase(),
       type,
       time,
-      foods: patientMeal.ingredients.map((ing) => ({
+      foods: patientMeal.ingredients.map(ing => ({
         food_id: ing.food_id._id,
         grams: Math.round(ing.amount_g),
       })),
@@ -904,6 +904,7 @@ app.post("/DailyMealLogs/add-custom-meal", async (req: Request, res: Response) =
       notes: `Comida personalizada: ${patientMeal.name}`,
     });
 
+    // 5) Recalculamos totales y guardamos
     await calculateDailyTotals(dailyLog);
     await dailyLog.save();
 
@@ -970,7 +971,7 @@ app.get('/daily-meal-logs/all/:patient_id', async (req: Request, res: Response) 
   }
 });
 
-// Endpoint unificado para obtener/crear registro diario
+// Endpoint unificado para obtener/crear registro diario en hora de Tijuana
 app.get('/daily-meal-logs/today/:patient_id', async (req: Request, res: Response) => {
   const { patient_id } = req.params;
 
@@ -980,17 +981,16 @@ app.get('/daily-meal-logs/today/:patient_id', async (req: Request, res: Response
 
   try {
     const pid = new Types.ObjectId(patient_id);
-    const nowTz     = DateTime.now().setZone('America/Tijuana');
-    const todayStart= nowTz.startOf('day').toJSDate();   // 00:00 Tijuana
-    const todayEnd  = nowTz.endOf('day').toJSDate();     // 23:59:59.999 Tijuana
+    const todayStart = todayStartInTijuana(); // 00:00 Tijuana
+    const todayEnd   = todayEndInTijuana();   // 23:59:59.999 Tijuana
 
-    // 2. Buscar registro existente
+    // 1) Buscar registro existente en el rango de hoy (Tijuana)
     let log = await DailyMealLog.findOne({
       patient_id: pid,
       date: { $gte: todayStart, $lte: todayEnd }
     });
 
-    // 3. Si no existe, crear uno nuevo 
+    // 2) Si no existe, crear uno nuevo con date = inicio de hoy (Tijuana)
     if (!log) {
       log = new DailyMealLog({
         patient_id: pid,
@@ -1005,14 +1005,14 @@ app.get('/daily-meal-logs/today/:patient_id', async (req: Request, res: Response
       await log.save();
     }
 
-    // 4. Calcular totales si faltan (por si acaso)
+    // 3) Asegurar totales calculados (por si vienen indefinidos)
     if (log.totalCalories === undefined) {
       await calculateDailyTotals(log);
       await log.save();
     }
 
-    // 5. Formatear respuesta
-    const response = {
+    // 4) Respuesta
+    res.json({
       date: log.date,
       totals: {
         calories: log.totalCalories || 0,
@@ -1022,9 +1022,7 @@ app.get('/daily-meal-logs/today/:patient_id', async (req: Request, res: Response
       },
       meals: log.meals,
       notes: log.notes
-    };
-
-    res.json(response);
+    });
 
   } catch (error: any) {
     console.error('❌ Error en /daily-meal-logs/today:', error);
@@ -1032,6 +1030,121 @@ app.get('/daily-meal-logs/today/:patient_id', async (req: Request, res: Response
       error: 'Error al obtener/crear registro diario',
       details: error.message
     });
+  }
+});
+
+// POST /daily-meal-logs/add-weekly-meal
+app.post('/daily-meal-logs/add-weekly-meal', async (req, res) => {
+  const { patient_id, meal, weight } = req.body;
+  if (!patient_id || !meal) {
+    return res.status(400).json({ error: 'patient_id y meal son obligatorios.' });
+  }
+
+  try {
+    // 1) Rango de hoy en Tijuana
+    const start = todayStartInTijuana();
+    const end   = todayEndInTijuana();
+
+    // 2) Busca o crea el log de hoy
+    let log = await DailyMealLog.findOne({
+      patient_id: new Types.ObjectId(patient_id),
+      date: { $gte: start, $lte: end }
+    });
+    if (!log) {
+      log = new DailyMealLog({ patient_id, date: start, meals: [], totalCalories: 0, totalProtein: 0, totalFat: 0, totalCarbs: 0, caloriesConsumed: 0 });
+    }
+
+    // 3) Calcula el ratio si llega weight
+    const originalTotal = meal.foods.reduce((s: number, f: any) => s + f.grams, 0) || 1;
+    const ratio = weight != null ? weight / originalTotal : 1;
+
+    // 4) Prepara subdocumento
+    const foods = meal.foods.map((f: any) => ({
+      food_id: new Types.ObjectId(f.food_id),
+      grams:   Math.round(f.grams * ratio),
+    }));
+
+    log.meals.push({
+      day: nowInTijuana().weekdayLong!.toLowerCase(),
+      type: meal.type,
+      time: meal.time,
+      foods,
+      consumed: true,
+      notes: weight != null
+        ? `Porción pesada: ${Math.round(ratio * originalTotal)}g`
+        : `Porción recomendada`,
+    });
+
+    // 5) Recalcula totales y guarda
+    await calculateDailyTotals(log);
+    await log.save();
+
+    return res.json({ message: 'Comida añadida al log diario', dailyLog: log });
+  } catch (err) {
+    console.error('Error en add-weekly-meal:', err);
+    return res.status(500).json({ error: 'Error al añadir la comida.' });
+  }
+});
+
+// 📌 POST /daily-meal-logs/add-meal
+app.post('/daily-meal-logs/add-meal', async (req: Request, res: Response) => {
+  const { patient_id, meal, weight } = req.body;
+  if (!patient_id || !meal) {
+    return res.status(400).json({ error: 'patient_id y meal son obligatorios.' });
+  }
+
+  try {
+    // 1) Rango de hoy en Tijuana
+    const start = todayStartInTijuana();
+    const end   = todayEndInTijuana();
+
+    // 2) Busca o crea el log de hoy
+    let log = await DailyMealLog.findOne({
+      patient_id: new Types.ObjectId(patient_id),
+      date: { $gte: start, $lte: end }
+    });
+    if (!log) {
+      log = new DailyMealLog({
+        patient_id: new Types.ObjectId(patient_id),
+        date: start,
+        meals: [],
+        totalCalories: 0,
+        totalProtein: 0,
+        totalFat: 0,
+        totalCarbs: 0,
+        caloriesConsumed: 0,
+      });
+    }
+
+    // 3) Calcula el ratio si llega weight
+    const originalTotal = meal.foods.reduce((s: number, f: any) => s + f.grams, 0) || 1;
+    const ratio = weight != null ? weight / originalTotal : 1;
+
+    // 4) Prepara subdocumento
+    const foods = meal.foods.map((f: any) => ({
+      food_id: new Types.ObjectId(f.food_id),
+      grams:   Math.round(f.grams * ratio),
+    }));
+
+    log.meals.push({
+      day:   nowInTijuana().weekdayLong!.toLowerCase(),
+      type:  meal.type,
+      time:  meal.time,
+      foods,
+      consumed: true,
+      notes: weight != null
+        ? `Porción pesada: ${Math.round(weight)}g`
+        : `Porción recomendada`,
+    });
+
+    // 5) Recalcula totales y guarda
+    await calculateDailyTotals(log);
+    await log.save();
+
+    return res.json({ message: 'Comida añadida al log diario', dailyLog: log });
+  } catch (err) {
+    console.error('Error en add-meal:', err);
+    return res.status(500).json({ error: 'Error al añadir la comida.' });
   }
 });
 
@@ -1044,7 +1157,7 @@ app.post("/DailyMealLogs/add-weekly-meal", async (req: Request, res: Response) =
   }
 
   try {
-    const today = new Date();
+    const today = todayStartInTijuana();
     today.setHours(0, 0, 0, 0);
 
     // Buscar o crear el log diario
@@ -1125,7 +1238,7 @@ app.post('/dailymeallogs/add-food', async (req: Request, res: Response) => {
       { new: true, upsert: true, runValidators: true }
     );
 
-    const today = new Date();
+    const today = todayStartInTijuana();
     today.setHours(0, 0, 0, 0);
 
     let dailyLog = await DailyMealLog.findOne({
@@ -1364,7 +1477,6 @@ app.get('/nutritionist/:id', async (req: Request, res: Response) => {
 
 app.get('/daily-meal-logs/by-date', async (req: Request, res: Response) => {
   const { patient_id, date } = req.query;
-
   if (!patient_id || !date) {
     return res.status(400).json({ error: 'patient_id and date are required query parameters.' });
   }
@@ -1373,10 +1485,12 @@ app.get('/daily-meal-logs/by-date', async (req: Request, res: Response) => {
   }
 
   try {
-    const searchDate = new Date(date as string);
-    const startOfDay = new Date(searchDate.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(searchDate.setHours(23, 59, 59, 999));
+    // 1) Parsear la fecha en zona Tijuana y sacar inicio/fin de día
+    const dt = DateTime.fromISO(date as string, { zone: 'America/Tijuana' });
+    const startOfDay = dt.startOf('day').toJSDate();
+    const endOfDay   = dt.endOf('day').toJSDate();
 
+    // 2) Buscar el log dentro de ese rango
     const log = await DailyMealLog.findOne({
       patient_id: new Types.ObjectId(patient_id as string),
       date: { $gte: startOfDay, $lte: endOfDay }
@@ -1384,26 +1498,25 @@ app.get('/daily-meal-logs/by-date', async (req: Request, res: Response) => {
 
     if (!log) {
       return res.json({
-        _id: null, // Para días sin registro, el _id es null (y el botón no aparecerá)
-        date: startOfDay,
-        meals: [],
+        _id:    null,
+        date:   startOfDay,
+        meals:  [],
         totals: { calories: 0, protein: 0, fat: 0, carbs: 0 }
       });
     }
 
-    // ✅ ASEGÚRATE DE QUE TU RESPUESTA INCLUYA EL _id DEL LOG
+    // 3) Devolver resultado con _id
     res.json({
-      _id: log._id, // <-- ¡ESTA LÍNEA ES LA MÁS IMPORTANTE!
-      date: log.date,
-      meals: log.meals,
+      _id:    log._id,
+      date:   log.date,
+      meals:  log.meals,
       totals: {
         calories: log.totalCalories || 0,
-        protein: log.totalProtein || 0,
-        fat: log.totalFat || 0,
-        carbs: log.totalCarbs || 0,
+        protein:  log.totalProtein   || 0,
+        fat:      log.totalFat       || 0,
+        carbs:    log.totalCarbs     || 0,
       }
     });
-
   } catch (error) {
     console.error('❌ Error in /daily-meal-logs/by-date:', error);
     res.status(500).json({ error: 'Server error fetching daily log.' });
@@ -1411,55 +1524,6 @@ app.get('/daily-meal-logs/by-date', async (req: Request, res: Response) => {
 });
 
 // 1.B: Endpoint to delete a specific meal from a DailyMealLog
-
-
-app.get('/daily-meal-logs/by-date', async (req: Request, res: Response) => {
-  const { patient_id, date } = req.query;
-
-  if (!patient_id || !date) {
-    return res.status(400).json({ error: 'patient_id and date are required query parameters.' });
-  }
-  if (!mongoose.Types.ObjectId.isValid(patient_id as string)) {
-    return res.status(400).json({ error: 'Invalid patient ID.' });
-  }
-
-  try {
-    const searchDate = new Date(date as string);
-    const startOfDay = new Date(searchDate.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(searchDate.setHours(23, 59, 59, 999));
-
-    const log = await DailyMealLog.findOne({
-      patient_id: new Types.ObjectId(patient_id as string),
-      date: { $gte: startOfDay, $lte: endOfDay }
-    }).populate('meals.foods.food_id', 'name');
-
-    if (!log) {
-      return res.json({
-        _id: null,
-        date: startOfDay,
-        meals: [],
-        totals: { calories: 0, protein: 0, fat: 0, carbs: 0 }
-      });
-    }
-
-    // ✅ CORRECCIÓN FINAL: Se añade el _id del log a la respuesta.
-    res.json({
-      _id: log._id, // <-- ¡LA LÍNEA QUE FALTABA!
-      date: log.date,
-      meals: log.meals,
-      totals: {
-        calories: log.totalCalories || 0,
-        protein: log.totalProtein || 0,
-        fat: log.totalFat || 0,
-        carbs: log.totalCarbs || 0,
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ Error in /daily-meal-logs/by-date:', error);
-    res.status(500).json({ error: 'Server error fetching daily log.' });
-  }
-});
 
 // En tu backend index.ts
 

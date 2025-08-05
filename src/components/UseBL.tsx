@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 import { BleError, BleManager, Characteristic, Device } from "react-native-ble-plx";
 import * as ExpoDevice from "expo-device";
@@ -8,101 +8,86 @@ export function useBLEDevice(serviceUUID: string, charUUID: string) {
     const manager = useMemo(() => new BleManager(), []);
     const [devices, setDevices] = useState<Device[]>([]);
     const [connected, setConnected] = useState<Device | null>(null);
-    const [dataValue, setDataValue] = useState<number | null>(null);
+    const [dataValue, setDataValue] = useState<number | null>(null); // en gramos
 
     type BLERationale = {
-    title: string;
-    message: string;
-    buttonPositive: string;
-    buttonNegative?: string;
-    buttonNeutral?: string;
+        title: string;
+        message: string;
+        buttonPositive: string;
+        buttonNegative?: string;
+        buttonNeutral?: string;
     };
 
     const rationale: BLERationale = {
-    title: "Permiso de Ubicación",
-    message: "Bluetooth Low Energy necesita permiso de ubicación para escanear dispositivos",
-    buttonPositive: "Aceptar",
-    buttonNegative: "Cancelar",
-    buttonNeutral: "Preguntar luego"
+        title: "Permiso de Ubicación",
+        message: "Bluetooth Low Energy necesita permiso de ubicación para escanear dispositivos",
+        buttonPositive: "Aceptar",
+        buttonNegative: "Cancelar",
+        buttonNeutral: "Preguntar luego",
     };
 
     async function requestAndroidLegacy() {
-    // Android < API 31
-    const granted = await PermissionsAndroid.request(
+        const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         rationale
-    );
-    return granted === PermissionsAndroid.RESULTS.GRANTED;
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
     }
 
     async function requestAndroid31Permissions() {
-    // Android >= API 31
-    const scan = await PermissionsAndroid.request(
+        const scan = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
         rationale
-    );
-    const connect = await PermissionsAndroid.request(
+        );
+        const connect = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
         rationale
-    );
-    const fineLoc = await PermissionsAndroid.request(
+        );
+        const fineLoc = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         rationale
-    );
-    return (
+        );
+        return (
         scan === PermissionsAndroid.RESULTS.GRANTED &&
         connect === PermissionsAndroid.RESULTS.GRANTED &&
         fineLoc === PermissionsAndroid.RESULTS.GRANTED
-    );
+        );
     }
 
     async function requestPermissions() {
-    if (Platform.OS === "android") {
+        if (Platform.OS === "android") {
         if ((ExpoDevice.platformApiLevel ?? -1) < 31) {
-        return await requestAndroidLegacy();
+            return await requestAndroidLegacy();
         } else {
-        return await requestAndroid31Permissions();
+            return await requestAndroid31Permissions();
         }
-    }
-    return true;
+        }
+        return true;
     }
 
     function scan() {
-    setDevices([]);  // limpia lista al inicio
-    manager.startDeviceScan(
-        [serviceUUID],
-        null,
-        (error, device) => {
+        setDevices([]);
+        manager.startDeviceScan([serviceUUID], null, (error, device) => {
         if (error) {
             console.warn(error);
             return;
         }
         if (device) {
-            setDevices(prev => {
-            // si ya existe ese id, devolver el array sin cambios
-            if (prev.some(d => d.id === device.id)) {
-                return prev;
-            }
-            // si no, agregarlo
-            return [...prev, device];
-            });
+            setDevices((prev) =>
+            prev.some((d) => d.id === device.id) ? prev : [...prev, device]
+            );
         }
-        }
-    );
+        });
     }
 
     async function connect(deviceOrId: Device | string) {
         try {
-        const id = typeof deviceOrId === 'string' ? deviceOrId : deviceOrId.id;
+        const id = typeof deviceOrId === "string" ? deviceOrId : deviceOrId.id;
         const conn = await manager.connectToDevice(id);
         setConnected(conn);
         await conn.discoverAllServicesAndCharacteristics();
         manager.stopDeviceScan();
-        conn.monitorCharacteristicForService(
-            serviceUUID,
-            charUUID,
-            onUpdate
-        );
+        conn.monitorCharacteristicForService(serviceUUID, charUUID, onUpdate);
         } catch (e) {
         console.error("Error conectando:", e);
         }
@@ -116,24 +101,19 @@ export function useBLEDevice(serviceUUID: string, charUUID: string) {
     }
 
     function onUpdate(error: BleError | null, ch: Characteristic | null) {
-        if (error || !ch?.value) {
-        console.warn(error || "No data");
-        return;
-        }
-        // Decodifica base64 y parsea número
+        if (error || !ch?.value) return console.warn(error || "No data");
         const raw = base64.decode(ch.value);
-        // aquí depende de cómo envíe tu Arduino: asumo un entero en el primer byte
-        const weight = raw.charCodeAt(0);
-        setDataValue(weight);
+        const weight = parseInt(raw, 10);
+        if (!isNaN(weight)) setDataValue(weight);
     }
 
-    return {
-        requestPermissions,
-        scan,
-        connect,
-        disconnect,
-        devices,
-        connected,
-        dataValue,
-    };
-}
+    // === Limpieza automática al desmontar ===
+    useEffect(() => {
+        return () => {
+        manager.stopDeviceScan();
+        if (connected) manager.cancelDeviceConnection(connected.id);
+        };
+    }, [manager, connected]);
+
+    return { requestPermissions, scan, connect, disconnect, devices, connected, dataValue };
+    }
