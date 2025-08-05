@@ -157,6 +157,7 @@ const Home = () => {
       ]);
       setNutritionData({
         consumed: consumedRes.data.totals,
+        meals:    consumedRes.data.meals,
         goals: {
           calories: goalsRes.data?.dailyCalories || 2000,
           protein: goalsRes.data?.protein || 150,

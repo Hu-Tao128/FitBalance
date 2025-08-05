@@ -4,12 +4,23 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { RootStackParamList } from '../../App'; // Asegúrate que la ruta sea correcta
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { useTheme } from '../context/ThemeContext';
 
 type OptionsFoodScreenNavigationProp = StackNavigationProp<RootStackParamList, 'optionsFood'>;
 
-const buttonsConfig = [
+type ButtonConfig = {
+    name: string;
+    lib: typeof FontAwesome5 | typeof MaterialCommunityIcons;
+    label: string;
+    sub: string;
+    color: string;
+    bg: string;
+    screen: keyof RootStackParamList;
+    size: number;
+};
+
+const buttonsConfig: ButtonConfig[] = [
     {
         name: 'plus-circle', // Icono para "Nueva comida"
         lib: FontAwesome5, // O puedes usar MaterialIcons si prefieres
@@ -47,7 +58,7 @@ export default function OptionsFood() {
                             key={btn.label}
                             style={[styles.cardShadow, { backgroundColor: btn.bg }]}
                             activeOpacity={0.88}
-                            onPress={() => navigation.navigate(btn.screen as keyof RootStackParamList)}
+                            onPress={() => navigation.navigate(btn.screen as any)}
                         >
                             <View style={styles.row}>
                                 <View style={[styles.iconCircle, { backgroundColor: btn.bg }]}>

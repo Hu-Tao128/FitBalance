@@ -15,7 +15,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { RootStackParamList } from '../../App';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { useUser } from '../context/UserContext';
 
 import { API_CONFIG } from '../config/config';
@@ -57,7 +57,7 @@ export default function EditMealScreen() {
         if (mealToEdit) {
             setMealName(mealToEdit.name);
             setInstructions(mealToEdit.instructions || '');
-            const loadedIngredients: Ingredient[] = mealToEdit.ingredients.map(ing => ({
+            const loadedIngredients: Ingredient[] = mealToEdit.ingredients.map((ing: any) => ({
                 food_id: getObjectIdFromMongoDoc(ing.food_id._id),
                 food_data: {
                     _id: getObjectIdFromMongoDoc(ing.food_id._id),
