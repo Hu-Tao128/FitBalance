@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from "./src/context/ThemeContext";
 import { UserProvider } from "./src/context/UserContext";
 import AppNavigator from './src/navigation/AppNavigator';
+import { BleProvider } from './src/context/BleContext';
 
 import {
   setupNotifications,
@@ -30,7 +31,7 @@ useEffect(() => {
     await Notifications.scheduleNotificationAsync({
       content: {
         title: '🗓 Recordatorio especial',
-        body: '¡Es 4 de agosto de 2025 a las 07:00! Tu app con notificaciones está funcionando.',
+        body: '¡Es 5 de agosto de 2025 a las 07:00! Tienes Exposicion y tus notificaciones está funcionando.',
       },
       trigger: {
         type: 'date',
@@ -43,11 +44,13 @@ useEffect(() => {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <UserProvider>
-          <AppNavigator />
-        </UserProvider>
-      </ThemeProvider>
+      <BleProvider>
+        <ThemeProvider>
+          <UserProvider>
+            <AppNavigator />
+          </UserProvider>
+        </ThemeProvider>
+      </BleProvider>
     </SafeAreaProvider>
   );
 }
