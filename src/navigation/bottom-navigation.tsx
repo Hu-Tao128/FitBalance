@@ -82,7 +82,7 @@ export const BottomNavigation = () => {
                     component={UserProfileScreen}
                     options={({ route }) => ({
                         headerShown: true,
-                        headerTitle: 'Perfil',
+                        headerTitle: 'Profile',
                         headerTintColor: colors.primary,
                         headerStyle: {
                             backgroundColor: colors.background,

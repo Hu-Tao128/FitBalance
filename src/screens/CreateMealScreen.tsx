@@ -218,6 +218,8 @@ export default function CreateMealScreen() {
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
                 <FlatList
+                    keyboardShouldPersistTaps="handled"
+                    nestedScrollEnabled
                     data={ingredients}
                     keyExtractor={(_, i) => i.toString()}
                     renderItem={({ item, index }) => <IngredientItem item={item} index={index} />}
@@ -246,22 +248,27 @@ export default function CreateMealScreen() {
                             {loadingFoods && <ActivityIndicator style={styles.activityIndicator} size="small" color="#67AE6E" />}
 
                             {/* Lista de alimentos sugeridos */}
-                            {searchFood.trim().length >= 2 && filteredFoods.length > 0 && !selectedFood && (
-                                <View style={styles.list}>
-                                    {filteredFoods.map(item => (
-                                        <TouchableOpacity
-                                            key={getObjectIdFromMongoDoc(item._id)}
-                                            style={styles.foodItem}
-                                            onPress={() => setSelectedFood(item)}
-                                        >
-                                            <Text style={styles.foodName}>{item.name}</Text>
-                                            <Text style={styles.foodInfo}>
-                                                {item.nutrients?.energy_kcal || 0} kcal · {item.portion_size_g || 100} g
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
+                            {searchFood.trim().length >= 2 && !selectedFood && (
+                            <FlatList
+                                style={styles.suggestionsList}          // máx-alto y borde
+                                data={filteredFoods}
+                                keyExtractor={item => getObjectIdFromMongoDoc(item._id)}
+                                renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={styles.foodItem}
+                                    onPress={() => setSelectedFood(item)}
+                                >
+                                    <Text style={styles.foodName}>{item.name}</Text>
+                                    <Text style={styles.foodInfo}>
+                                    {item.nutrients?.energy_kcal || 0} kcal · {item.portion_size_g || 100} g
+                                    </Text>
+                                </TouchableOpacity>
+                                )}
+                                nestedScrollEnabled           // permite scroll dentro de otro scroll
+                                keyboardShouldPersistTaps="handled" // evita que se cierre el teclado al tocar
+                            />
                             )}
+
                             {searchFood.trim().length >= 2 && filteredFoods.length === 0 && !loadingFoods && !selectedFood && (
                                 <Text style={styles.noResultsText}>No food was found.</Text>
                             )}
@@ -516,4 +523,11 @@ const styles = StyleSheet.create({
         color: '#333',
         fontSize: 16,
     },
+    suggestionsList: {
+        maxHeight: 260,
+        borderRadius: 10,
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+    }
 });
