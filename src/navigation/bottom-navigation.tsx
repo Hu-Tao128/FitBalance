@@ -16,7 +16,7 @@ const Tab = createBottomTabNavigator();
 
 export const BottomNavigation = () => {
     const insets = useSafeAreaInsets();
-    const { darkMode, colors } = useTheme();  // Usamos el hook para obtener los colores del tema
+    const { darkMode, colors } = useTheme();
     const [modalVisible, setModalVisible] = useState(false);
 
     return (

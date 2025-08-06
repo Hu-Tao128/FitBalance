@@ -52,13 +52,13 @@ export default function FoodClassicSearch({ navigation }: any) {
 
     // BLE scale hook
     const { 
-        devices,
-        connectedDevice: connected,
+        devices: scaleDevices,
+        connectedDevice: scaleConnected,
         weight: scaleWeight,
-        scanDevices: scan,
-        connectDevice: connect,
-        disconnectDevice: disconnect,
-        requestPermissions: reqPerms
+        scanDevices: scanScaleDevices,
+        connectDevice: connectScale,
+        disconnectDevice: disconnectScale,
+        requestPermissions: reqScalePerms
     } = useBle();
 
     // 1) Buscar alimentos
@@ -136,13 +136,13 @@ export default function FoodClassicSearch({ navigation }: any) {
 
     // 5) Abrir flujo de báscula
     const handleUseScale = async () => {
-        const ok = await reqPerms();
+        const ok = await reqScalePerms();
         if (!ok) { Alert.alert('Error', 'Permisos BLE denegados'); return; }
-        scan();
+        scanScaleDevices();
         setScaleModal(true);
     };
     const onSelectScaleDevice = async (dev: Device) => {
-        await connect(dev);
+        await connectScale(dev);
     };
     const handleConfirmScale = async () => {
         if (!foodToAdd || scaleWeight == null || !user?.id) return;
@@ -241,48 +241,65 @@ export default function FoodClassicSearch({ navigation }: any) {
         </Modal>
 
         {/* Modal báscula */}
-        <Modal visible={scaleModal} transparent animationType="slide">
-            <View style={styles.modalOverlay}>
-            <View style={[styles.modalContainer, {backgroundColor: colors.card}]}>
-                <Text style={[styles.modalTitle,{color:colors.text}]}>
-                {connected ? 'Peso Actual' : 'Selecciona báscula'}
-                </Text>
-                {connected ? (
-                <>
-                    <Text style={[styles.scaleWeightText,{color: colors.primary}]}>
-                    {scaleWeight!=null ? `${scaleWeight} g` : 'Esperando...'}
-                    </Text>
-                    <TouchableOpacity
-                    style={[styles.addWeightButton,{backgroundColor:colors.primary}]}
-                    onPress={handleConfirmScale}
-                    disabled={scaleWeight==null}
-                    >
-                    <Text style={styles.addWeightButtonText}>
-                        Añadir {scaleWeight}g
-                    </Text>
-                    </TouchableOpacity>
-                </>
-                ) : (
-                devices.length===0
-                    ? <ActivityIndicator/>
-                    : devices.map(dev=>(
-                        <TouchableOpacity
-                        key={dev.id}
-                        style={styles.optionButton}
-                        onPress={()=>onSelectScaleDevice(dev)}
-                        >
-                        <Text style={[styles.optionText,{color:colors.text}]}>
-                            {dev.name || dev.id}
+         {/* Scale modal */}
+            <Modal transparent visible={scaleModal} animationType="slide">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContainer}>
+                        <Text style={styles.modalTitle}>
+                            {scaleConnected ? 'Current weight' : 'Select your scale'}
                         </Text>
+
+                        {scaleConnected && (
+                            <>
+                                <Text style={styles.scaleWeightText}>
+                                    {scaleWeight != null ? `${scaleWeight} g` : 'Waiting for data...'}
+                                </Text>
+                                
+                                <TouchableOpacity 
+                                    style={styles.addWeightButton}
+                                    onPress={handleUseScale}
+                                    disabled={scaleWeight === null}
+                                >
+                                    <Text style={styles.addWeightButtonText}>
+                                        Add {scaleWeight !== null ? `${scaleWeight}g` : 'weight'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </>
+                        )}
+
+                        {/* Dentro de tu Modal de selección de báscula */}
+                        {!scaleConnected && (
+                        <ScrollView 
+                            style={{ maxHeight: 300, marginBottom: 10 }}
+                            contentContainerStyle={{ paddingVertical: 8 }}
+                        >
+                            {scaleDevices.length === 0 ? (
+                            <ActivityIndicator />
+                            ) : (
+                            scaleDevices.map(dev => (
+                                <TouchableOpacity
+                                key={dev.id}
+                                style={styles.optionButton}
+                                onPress={() => onSelectScaleDevice(dev)}
+                                >
+                                <Text style={styles.optionText}>
+                                    {dev.name || dev.id}
+                                </Text>
+                                </TouchableOpacity>
+                            ))
+                            )}
+                        </ScrollView>
+                        )}
+
+                        <TouchableOpacity onPress={() => {
+                            setScaleModal(false);
+                            disconnectScale();
+                        }}>
+                            <Text style={styles.closeText}>Cancel</Text>
                         </TouchableOpacity>
-                    ))
-                )}
-                <TouchableOpacity onPress={()=>{ setScaleModal(false); disconnect(); }}>
-                <Text style={[styles.closeText,{color:colors.primary}]}>Cancelar</Text>
-                </TouchableOpacity>
-            </View>
-            </View>
-        </Modal>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     );
 }
@@ -297,13 +314,56 @@ const createStyles = (colors: any) => StyleSheet.create({
     resultItem:{ flexDirection:'row', padding:12, backgroundColor:colors.card, borderRadius:10, marginBottom:10, borderWidth:1, borderColor:colors.border },
     resultImage:{ width:40, height:40, borderRadius:6, marginRight:12 },
     resultText:{ flex:1, color:colors.text },
-    modalOverlay:{ flex:1, justifyContent:'flex-end', backgroundColor:'rgba(0,0,0,0.5)' },
-    modalContainer:{ padding:20, borderTopLeftRadius:20, borderTopRightRadius:20 },
-    modalTitle:   { fontSize:18, fontWeight:'bold', marginBottom:20 },
-    optionButton:{ flexDirection:'row', alignItems:'center', paddingVertical:12, gap:10 },
-    optionText:  { fontSize:16 },
-    closeText:   { textAlign:'center', marginTop:20 },
-    scaleWeightText:{ fontSize:24, textAlign:'center', fontWeight:'bold', marginVertical:20 },
-    addWeightButton:{ padding:12, borderRadius:8, justifyContent:'center', marginTop:10 },
-    addWeightButtonText:{ color:'#fff', textAlign:'center', fontWeight:'bold' },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContainer: {
+        backgroundColor: colors.card,
+        padding: 20,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: colors.text,
+        marginBottom: 20,
+        textAlign: 'center'
+    },
+    optionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        gap: 10,
+    },
+    optionText: {
+        color: colors.text,
+        fontSize: 16,
+    },
+    closeText: {
+        color: colors.primary,
+        marginTop: 20,
+        textAlign: 'center',
+    },
+    scaleWeightText: {
+        fontSize: 24,
+        color: colors.primary,
+        textAlign: 'center',
+        marginVertical: 20,
+        fontWeight: 'bold'
+    },
+    addWeightButton: {
+        justifyContent: 'center',
+        backgroundColor: colors.primary,
+        borderRadius: 8,
+        padding: 12,
+        marginTop: 10
+    },
+    addWeightButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center'
+    }
 });
