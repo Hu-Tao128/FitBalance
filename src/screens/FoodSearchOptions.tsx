@@ -1,146 +1,158 @@
-// FoodSearchOptions.tsx
-import { FontAwesome5, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 
-const iconConfig = [
+interface OptionCard {
+    icon: string;
+    iconType: 'ionicons' | 'material';
+    label: string;
+    sub: string;
+    screen: string;
+}
+
+const options: OptionCard[] = [
     {
-        name: 'barcode-scan',
-        lib: MaterialCommunityIcons,
-        label: 'Search with barcode',
-        sub: 'Scan food packaging',
-        color: '#7CB342',
-        bg: '#ECF9E4',
+        icon: 'barcode-scan',
+        iconType: 'material',
+        label: 'Escanear Código',
+        sub: 'Escanea el código de barras del alimento',
         screen: 'FoodScanner',
-        size: 38,
     },
     {
-        name: 'search',
-        lib: MaterialIcons,
-        label: 'Search by name or description',
-        sub: 'Find food with text',
-        color: '#1976D2',
-        bg: '#E7F0FB',
+        icon: 'search',
+        iconType: 'ionicons',
+        label: 'Buscar por Nombre',
+        sub: 'Encuentra alimentos por nombre o descripción',
         screen: 'FoodClassicSearch',
-        size: 38,
     },
     {
-        name: 'utensils',
-        lib: FontAwesome5,
-        label: 'Create your own dish',
-        sub: 'Create recipes and save combinations',
-        color: '#FA3E44',
-        bg: '#FDE5E7',
+        icon: 'restaurant-outline',
+        iconType: 'ionicons',
+        label: 'Crear Comida',
+        sub: 'Crea recetas y guarda combinaciones',
         screen: 'optionsFood',
-        size: 33,
     },
 ];
 
 export default function FoodSearchOptions({ navigation }: any) {
     const { colors } = useTheme();
+    const insets = useSafeAreaInsets();
 
-    const styles = StyleSheet.create({
-        container: {
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingHorizontal: 18,
-            paddingTop: 40,
-            paddingBottom: 30,
-        },
-        title: {
-            fontSize: 23,
-            fontWeight: 'bold',
-            color: colors.text,
-            marginBottom: 35,
-            letterSpacing: 0.2,
-            textAlign: 'center',
-            opacity: 0.96,
-        },
-        cards: {
-            width: '100%',
-            gap: 22,
-        },
-        cardShadow: {
-            width: '100%',
-            borderRadius: 22,
-            marginBottom: 6,
-            paddingVertical: 22,
-            paddingHorizontal: 16,
-            shadowColor: '#B6D0B533',
-            shadowOpacity: 0.20,
-            shadowOffset: { width: 0, height: 7 },
-            shadowRadius: 16,
-            elevation: 7,
-            ...Platform.select({
-                android: {
-                    borderWidth: 1,
-                    borderColor: '#F3F6ED',
-                },
-            }),
-        },
-        row: {
-            flexDirection: 'row',
-            alignItems: 'center',
-        },
-        iconCircle: {
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: 15,
-            backgroundColor: '#fff',
-            shadowColor: '#8ec47e44',
-            shadowOpacity: 0.18,
-            shadowRadius: 18,
-            shadowOffset: { width: 0, height: 3 },
-            elevation: 2,
-        },
-        textContainer: {
-            flex: 1,
-            justifyContent: 'center',
-        },
-        cardLabel: {
-            fontSize: 17.5,
-            fontWeight: 'bold',
-            letterSpacing: 0.3,
-            marginBottom: 4,
-        },
-        cardSub: {
-            fontSize: 14,
-            color: '#444',
-            opacity: 0.80,
-            flexWrap: 'wrap',
-        },
-    });
-    return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <Text style={styles.title}>How do you want to search for or create food?</Text>
-            <View style={styles.cards}>
-                {iconConfig.map((btn, idx) => {
-                    const IconLib = btn.lib;
-                    return (
-                        <TouchableOpacity
-                            key={btn.label}
-                            style={[styles.cardShadow, { backgroundColor: btn.bg }]}
-                            activeOpacity={0.88}
-                            onPress={() => navigation.navigate(btn.screen)}
-                        >
-                            <View style={styles.row}>
-                                <View style={[styles.iconCircle, { backgroundColor: btn.bg }]}>
-                                    <IconLib name={btn.name} size={btn.size} color={btn.color} />
-                                </View>
-                                <View style={styles.textContainer}>
-                                    <Text style={[styles.cardLabel, { color: btn.color }]}>{btn.label}</Text>
-                                    <Text style={styles.cardSub}>{btn.sub}</Text>
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    );
-                })}
+    const renderIcon = (option: OptionCard, iconColor: string, iconBg: string) => {
+        const iconSize = 28;
+        if (option.iconType === 'material') {
+            return (
+                <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
+                    <MaterialCommunityIcons name={option.icon as any} size={iconSize} color={iconColor} />
+                </View>
+            );
+        }
+        return (
+            <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
+                <Ionicons name={option.icon as any} size={iconSize} color={iconColor} />
             </View>
+        );
+    };
+
+    const getCardColors = (index: number) => {
+        const colorPairs = [
+            { bg: colors.primaryContainer || '#e8f5e9', text: colors.onPrimaryContainer || '#1b5e20' },
+            { bg: colors.secondaryContainer || '#e3f2fd', text: colors.onSecondaryContainer || '#1565c0' },
+            { bg: colors.tertiaryContainer || '#e8f5e9', text: colors.onTertiaryContainer || '#2e7d32' },
+        ];
+        return colorPairs[index % colorPairs.length];
+    };
+
+    return (
+        <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={[styles.headerTitle, { color: colors.onSurface }]}>¿Qué quieres hacer?</Text>
+                    <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+                        Selecciona una opción para buscar o crear alimentos
+                    </Text>
+                </View>
+
+                {/* Options */}
+                <View style={styles.optionsContainer}>
+                    {options.map((option, index) => {
+                        const { bg, text } = getCardColors(index);
+                        return (
+                            <TouchableOpacity
+                                key={option.label}
+                                style={[styles.optionCard, { backgroundColor: colors.card }]}
+                                activeOpacity={0.8}
+                                onPress={() => navigation.navigate(option.screen)}
+                            >
+                                <View style={styles.optionContent}>
+                                    {renderIcon(option, colors.primary, bg)}
+                                    <View style={styles.textContent}>
+                                        <Text style={[styles.optionLabel, { color: colors.onSurface }]}>
+                                            {option.label}
+                                        </Text>
+                                        <Text style={[styles.optionSub, { color: colors.textSecondary }]}>
+                                            {option.sub}
+                                        </Text>
+                                    </View>
+                                </View>
+                                <Ionicons name="chevron-forward" size={24} color={colors.outlineVariant} />
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+
+                {/* Quick Actions */}
+                <View style={styles.quickActions}>
+                    <TouchableOpacity
+                        style={[styles.quickActionCard, { backgroundColor: colors.primaryContainer }]}
+                        onPress={() => navigation.navigate('ManageMeals')}
+                    >
+                        <Ionicons name="list" size={24} color={colors.onPrimaryContainer} />
+                        <Text style={[styles.quickActionText, { color: colors.onPrimaryContainer }]}>
+                            Ver mis comidas guardadas
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+            </ScrollView>
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: { flex: 1 },
+    scrollContent: { padding: 20, paddingBottom: 120 },
+    header: { marginBottom: 28, marginTop: 8 },
+    headerTitle: { fontSize: 26, fontWeight: '800', marginBottom: 8, letterSpacing: -0.5 },
+    headerSubtitle: { fontSize: 15, lineHeight: 22 },
+    optionsContainer: { gap: 14 },
+    optionCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 18,
+        padding: 18,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    optionContent: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    iconContainer: { width: 56, height: 56, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+    textContent: { flex: 1 },
+    optionLabel: { fontSize: 17, fontWeight: '700', marginBottom: 4 },
+    optionSub: { fontSize: 13, lineHeight: 18 },
+    quickActions: { marginTop: 28 },
+    quickActionCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 16,
+        padding: 18,
+        gap: 14,
+    },
+    quickActionText: { fontSize: 15, fontWeight: '600', flex: 1 },
+});

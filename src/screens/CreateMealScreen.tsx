@@ -7,17 +7,19 @@ import {
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useUser } from '../context/UserContext';
+import { useTheme } from '../context/ThemeContext';
 
 import { API_CONFIG } from '../config/config';
 
-// ---------- TIPOS (Comunes para Create y Edit, podrías moverlos a un archivo types/index.ts) ----------
 type Nutrients = {
     energy_kcal?: number;
     protein_g?: number;
@@ -40,7 +42,6 @@ type Ingredient = {
     amount_g: number;
 };
 
-// ---------- UTILIDADES (Comunes para Create y Edit) ----------
 function getObjectIdFromMongoDoc(id: any) {
     if (typeof id === 'object' && id?.$oid) return id.$oid;
     return String(id);
@@ -49,21 +50,21 @@ function isValidObjectId(id: any) {
     return typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id);
 }
 
-// ---------- COMPONENTE CreateMealScreen ----------
 export default function CreateMealScreen() {
     const { user } = useUser();
+    const { colors, darkMode } = useTheme();
+    const styles = createDynamicStyles(colors, darkMode);
 
-    // --- ESTADO LOCAL ---
-    const [foods, setFoods] = useState<Food[]>([]); // Alimentos disponibles para buscar
-    const [searchFood, setSearchFood] = useState(''); // Texto de búsqueda de alimentos
-    const [ingredients, setIngredients] = useState<Ingredient[]>([]); // Ingredientes de la comida actual
-    const [selectedFood, setSelectedFood] = useState<Food | null>(null); // Alimento seleccionado para añadir
-    const [amount, setAmount] = useState(''); // Cantidad en gramos del alimento seleccionado
-    const [mealName, setMealName] = useState(''); // Nombre de la comida
-    const [instructions, setInstructions] = useState(''); // Instrucciones de la comida
-    const [loading, setLoading] = useState(false); // Estado de carga al guardar la comida
-    const [loadingFoods, setLoadingFoods] = useState(false); // Estado de carga al buscar alimentos
-    const [totals, setTotals] = useState({ // Totales nutricionales de la comida
+    const [foods, setFoods] = useState<Food[]>([]);
+    const [searchFood, setSearchFood] = useState('');
+    const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+    const [selectedFood, setSelectedFood] = useState<Food | null>(null);
+    const [amount, setAmount] = useState('');
+    const [mealName, setMealName] = useState('');
+    const [instructions, setInstructions] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [loadingFoods, setLoadingFoods] = useState(false);
+    const [totals, setTotals] = useState({
         energy_kcal: 0,
         protein_g: 0,
         carbohydrates_g: 0,
@@ -72,7 +73,6 @@ export default function CreateMealScreen() {
         sugar_g: 0,
     });
 
-    // --- EFECTO: CARGAR ALIMENTOS AL INICIAR ---
     useEffect(() => {
         let mounted = true;
         (async () => {
@@ -87,12 +87,9 @@ export default function CreateMealScreen() {
                 if (mounted) setLoadingFoods(false);
             }
         })();
-        return () => {
-            mounted = false;
-        };
+        return () => { mounted = false; };
     }, []);
 
-    // --- EFECTO: RECALCULAR TOTALES CUANDO CAMBIAN LOS INGREDIENTES ---
     useEffect(() => {
         const t: any = { energy_kcal: 0, protein_g: 0, carbohydrates_g: 0, fat_g: 0, fiber_g: 0, sugar_g: 0 };
         ingredients.forEach(ing => {
@@ -116,7 +113,6 @@ export default function CreateMealScreen() {
         });
     }, [ingredients]);
 
-    // --- LÓGICA DE FILTRADO DE ALIMENTOS ---
     const filteredFoods =
         searchFood.trim().length < 2
             ? []
@@ -124,7 +120,6 @@ export default function CreateMealScreen() {
                 .filter(f => (f.name || '').toLowerCase().includes(searchFood.trim().toLowerCase()))
                 .slice(0, 10);
 
-    // --- MANEJADORES DE EVENTOS ---
     const handleAddIngredient = () => {
         const grams = Number(amount);
         if (!selectedFood) return Alert.alert('Error', 'Selecciona un alimento válido.');
@@ -135,13 +130,13 @@ export default function CreateMealScreen() {
             return Alert.alert('Error', 'Este alimento ya está agregado a la lista.');
 
         setIngredients(prev => [...prev, { food_id: _id, food_data: selectedFood, amount_g: grams }]);
-        setSelectedFood(null); // Limpiar selección
-        setSearchFood(''); // Limpiar búsqueda
-        setAmount(''); // Limpiar cantidad
+        setSelectedFood(null);
+        setSearchFood('');
+        setAmount('');
     };
 
     const handleRemoveIngredient = (indexToRemove: number) =>
-        Alert.alert('Eliminar Ingrediente', '¿Estás seguro de que quieres eliminar este ingrediente?', [
+        Alert.alert('Eliminar Ingrediente', '¿Eliminar este ingrediente?', [
             { text: 'Cancelar', style: 'cancel' },
             {
                 text: 'Eliminar',
@@ -152,12 +147,11 @@ export default function CreateMealScreen() {
 
     const handleCreateNewMeal = async () => {
         if (!mealName.trim()) return Alert.alert('Error', 'Debes ponerle un nombre a la comida.');
-        if (ingredients.length === 0) return Alert.alert('Error', 'Agrega al menos un ingrediente para crear la comida.');
+        if (ingredients.length === 0) return Alert.alert('Error', 'Agrega al menos un ingrediente.');
 
         const patientId = getObjectIdFromMongoDoc(user?.id);
         if (!isValidObjectId(patientId)) {
-            console.error('ID de paciente no válido:', patientId);
-            return Alert.alert('Error', 'No se pudo obtener la información de tu usuario. Intenta reiniciar la app.');
+            return Alert.alert('Error', 'No se pudo obtener la información de tu usuario.');
         }
 
         setLoading(true);
@@ -174,13 +168,11 @@ export default function CreateMealScreen() {
                 instructions: instructions.trim(),
             };
 
-            // ✅ Siempre POST para crear una nueva comida
             await axios.post(`${API_CONFIG.BASE_URL}/PatientMeals`, mealData, {
                 headers: { 'Content-Type': 'application/json' },
             });
 
             Alert.alert('¡Éxito!', 'Comida creada correctamente.');
-            // Limpiar el formulario después de crear
             setMealName('');
             setIngredients([]);
             setInstructions('');
@@ -188,346 +180,252 @@ export default function CreateMealScreen() {
             setSearchFood('');
             setAmount('');
         } catch (err: any) {
-            console.error('ERROR al crear comida:', err.response?.status, err.response?.data || err.message);
-            Alert.alert('Error', err.response?.data?.error || 'No se pudo crear la comida. Inténtalo de nuevo.');
+            console.error('ERROR al crear comida:', err.response?.data || err.message);
+            Alert.alert('Error', err.response?.data?.error || 'No se pudo crear la comida.');
         } finally {
             setLoading(false);
         }
     };
 
-    // --- RENDERIZADO DE UN ELEMENTO DE INGREDIENTE ---
     const IngredientItem = ({ item, index }: { item: Ingredient; index: number }) => (
         <View style={styles.ingredientItem}>
-            <View style={styles.ingredientNameBox}>
-                <Text style={styles.ingredientName} numberOfLines={2} ellipsizeMode="tail">
-                    {item.food_data.name}
-                </Text>
+            <View style={styles.ingredientIconBox}>
+                <Ionicons name="nutrition" size={18} color={colors.primary} />
             </View>
-            <Text style={styles.ingredientAmount}>{item.amount_g} g</Text>
-            <TouchableOpacity style={styles.removeBox} onPress={() => handleRemoveIngredient(index)}>
-                <Text style={styles.remove}>×</Text>
+            <View style={styles.ingredientNameBox}>
+                <Text style={styles.ingredientName} numberOfLines={2}>{item.food_data.name}</Text>
+                <Text style={styles.ingredientMeta}>{item.amount_g}g • {Math.round((item.food_data.nutrients?.energy_kcal || 0) * (item.amount_g / (item.food_data.portion_size_g || 100)))} kcal</Text>
+            </View>
+            <TouchableOpacity style={styles.removeButton} onPress={() => handleRemoveIngredient(index)}>
+                <Ionicons name="trash-outline" size={20} color={colors.error} />
             </TouchableOpacity>
         </View>
     );
 
-    // ---------- JSX (Interfaz de Usuario) ----------
     return (
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
-                <FlatList
+                <ScrollView 
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
-                    nestedScrollEnabled
-                    data={ingredients}
-                    keyExtractor={(_, i) => i.toString()}
-                    renderItem={({ item, index }) => <IngredientItem item={item} index={index} />}
-                    ListHeaderComponent={
-                        <View style={styles.contentPadding}>
-                            <Text style={styles.title}>Create Customized Meals</Text>
+                >
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <Text style={styles.headerSubtitle}>Nueva Entrada</Text>
+                        <Text style={styles.headerTitle}>Crear Comida</Text>
+                        <Text style={styles.headerDescription}>
+                            Diseña tu comida personalizada. Calcularemos los macros precisos.
+                        </Text>
+                    </View>
 
-                            <Text style={styles.label}>Name of food *</Text>
+                    {/* Name Input */}
+                    <View style={styles.inputCard}>
+                        <Text style={styles.inputLabel}>Nombre de la comida</Text>
+                        <View style={styles.inputWrapper}>
+                            <Ionicons name="restaurant-outline" size={20} color={colors.outline} />
                             <TextInput
                                 style={styles.input}
                                 value={mealName}
                                 onChangeText={setMealName}
-                                placeholder="Example. Fresh Chicken Salad"
-                                placeholderTextColor="#999"
+                                placeholder="Ej. Ensalada del Huerto"
+                                placeholderTextColor={colors.outline}
                             />
+                        </View>
+                    </View>
 
-                            <Text style={styles.label}>Search and add ingredients *</Text>
+                    {/* Search Section */}
+                    <View style={styles.inputCard}>
+                        <View style={styles.sectionHeaderRow}>
+                            <Text style={styles.inputLabel}>Ingredientes</Text>
+                            {ingredients.length > 0 && (
+                                <Text style={styles.itemsCount}>{ingredients.length} añadidos</Text>
+                            )}
+                        </View>
+                        
+                        <View style={styles.searchWrapper}>
+                            <Ionicons name="search" size={20} color={colors.outline} />
                             <TextInput
-                                style={styles.input}
+                                style={styles.searchInput}
                                 value={searchFood}
                                 onChangeText={setSearchFood}
-                                placeholder="Min. 2 characters to search..."
-                                placeholderTextColor="#999"
+                                placeholder="Buscar ingredientes..."
+                                placeholderTextColor={colors.outline}
                             />
+                        </View>
 
-                            {loadingFoods && <ActivityIndicator style={styles.activityIndicator} size="small" color="#67AE6E" />}
+                        {loadingFoods && <ActivityIndicator style={styles.loader} size="small" color={colors.primary} />}
 
-                            {/* Lista de alimentos sugeridos */}
-                            {searchFood.trim().length >= 2 && !selectedFood && (
-                            <FlatList
-                                style={styles.suggestionsList}          // máx-alto y borde
-                                data={filteredFoods}
-                                keyExtractor={item => getObjectIdFromMongoDoc(item._id)}
-                                renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={styles.foodItem}
-                                    onPress={() => setSelectedFood(item)}
-                                >
-                                    <Text style={styles.foodName}>{item.name}</Text>
-                                    <Text style={styles.foodInfo}>
-                                    {item.nutrients?.energy_kcal || 0} kcal · {item.portion_size_g || 100} g
-                                    </Text>
-                                </TouchableOpacity>
+                        {/* Food Suggestions */}
+                        {searchFood.trim().length >= 2 && !selectedFood && (
+                            <View style={styles.suggestionsBox}>
+                                {filteredFoods.map(item => (
+                                    <TouchableOpacity 
+                                        key={getObjectIdFromMongoDoc(item._id)} 
+                                        style={styles.foodSuggestion}
+                                        onPress={() => setSelectedFood(item)}
+                                    >
+                                        <View style={styles.foodSuggestionIcon}>
+                                            <Ionicons name="nutrition" size={16} color={colors.primary} />
+                                        </View>
+                                        <View style={styles.foodSuggestionInfo}>
+                                            <Text style={styles.foodSuggestionName}>{item.name}</Text>
+                                            <Text style={styles.foodSuggestionMeta}>
+                                                {item.nutrients?.energy_kcal || 0} kcal • {item.portion_size_g || 100}g
+                                            </Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+                                {filteredFoods.length === 0 && !loadingFoods && (
+                                    <Text style={styles.noResults}>No se encontraron alimentos.</Text>
                                 )}
-                                nestedScrollEnabled           // permite scroll dentro de otro scroll
-                                keyboardShouldPersistTaps="handled" // evita que se cierre el teclado al tocar
-                            />
-                            )}
+                            </View>
+                        )}
 
-                            {searchFood.trim().length >= 2 && filteredFoods.length === 0 && !loadingFoods && !selectedFood && (
-                                <Text style={styles.noResultsText}>No food was found.</Text>
-                            )}
-
-                            {/* Sección para añadir cantidad del alimento seleccionado */}
-                            {selectedFood && (
-                                <View style={styles.addBox}>
-                                    <View style={styles.selectedFoodNameContainer}>
-                                        <Text style={styles.boldText} numberOfLines={2} ellipsizeMode="tail">
-                                            {selectedFood.name}
-                                        </Text>
-                                    </View>
+                        {/* Selected Food Add */}
+                        {selectedFood && (
+                            <View style={styles.selectedFoodBox}>
+                                <View style={styles.selectedFoodInfo}>
+                                    <Text style={styles.selectedFoodName}>{selectedFood.name}</Text>
+                                    <Text style={styles.selectedFoodMeta}>{selectedFood.nutrients?.energy_kcal || 0} kcal</Text>
+                                </View>
+                                <View style={styles.amountRow}>
                                     <TextInput
                                         style={styles.amountInput}
                                         value={amount}
                                         onChangeText={setAmount}
-                                        placeholder="Grams"
+                                        placeholder="g"
                                         keyboardType="numeric"
-                                        placeholderTextColor="#999"
+                                        placeholderTextColor={colors.outline}
                                     />
-                                    <TouchableOpacity style={styles.addButton} onPress={handleAddIngredient}>
-                                        <Text style={styles.addButtonText}>Add</Text>
+                                    <TouchableOpacity style={styles.addIngredientBtn} onPress={handleAddIngredient}>
+                                        <Ionicons name="add-circle" size={24} color={colors.onPrimary} />
                                     </TouchableOpacity>
                                 </View>
-                            )}
+                            </View>
+                        )}
 
-                            {ingredients.length > 0 && (
-                                <Text style={styles.label}>Added ingredients</Text>
-                            )}
-                        </View>
-                    }
-                    ListFooterComponent={
-                        <View style={styles.contentPadding}>
-                            {ingredients.length > 0 && (
-                                <View style={styles.totalsBox}>
-                                    <Text style={styles.boldText}>Totals: {totals.energy_kcal} kcal</Text>
-                                    <Text style={styles.totalsText}>
-                                        Prot {totals.protein_g}g · Carb {totals.carbohydrates_g}g · Fats {totals.fat_g}g
-                                    </Text>
+                        {/* Added Ingredients */}
+                        {ingredients.map((item, index) => (
+                            <IngredientItem key={`${item.food_id}-${index}`} item={item} index={index} />
+                        ))}
+                    </View>
+
+                    {/* Instructions */}
+                    <View style={styles.inputCard}>
+                        <Text style={styles.inputLabel}>Instrucciones (opcional)</Text>
+                        <TextInput
+                            style={styles.textArea}
+                            value={instructions}
+                            onChangeText={setInstructions}
+                            placeholder="Describe cómo preparar esta comida..."
+                            multiline
+                            numberOfLines={4}
+                            placeholderTextColor={colors.outline}
+                        />
+                    </View>
+
+                    {/* Macro Preview */}
+                    {ingredients.length > 0 && (
+                        <View style={styles.macrosGrid}>
+                            <View style={styles.macroCard}>
+                                <Text style={styles.macroLabel}>Energía Total</Text>
+                                <View style={styles.macroValueRow}>
+                                    <Text style={styles.macroValue}>{totals.energy_kcal}</Text>
+                                    <Text style={styles.macroUnit}>kcal</Text>
                                 </View>
-                            )}
-
-                            <Text style={styles.label}>Instructions (opcional)</Text>
-                            <TextInput
-                                style={[styles.input, styles.instructionsInput]}
-                                value={instructions}
-                                onChangeText={setInstructions}
-                                placeholder="Describes the steps to prepare the meal...."
-                                multiline
-                                placeholderTextColor="#999"
-                            />
-
-                            <TouchableOpacity
-                                style={[styles.mainButton, loading && { opacity: 0.6 }]}
-                                disabled={loading}
-                                onPress={handleCreateNewMeal}
-                            >
-                                {loading ? (
-                                    <ActivityIndicator color="#fff" />
-                                ) : (
-                                    <Text style={styles.mainButtonText}>Create Food</Text>
-                                )}
-                            </TouchableOpacity>
+                            </View>
+                            <View style={styles.macroCardSecondary}>
+                                <Text style={styles.macroLabel}>Balance de Macros</Text>
+                                <View style={styles.macroBars}>
+                                    <View style={[styles.macroBar, styles.proteinBar, { flex: totals.protein_g || 0.5 }]} />
+                                    <View style={[styles.macroBar, styles.carbsBar, { flex: totals.carbohydrates_g || 1 }]} />
+                                    <View style={[styles.macroBar, styles.fatBar, { flex: totals.fat_g || 0.2 }]} />
+                                </View>
+                                <Text style={styles.macroBalance}>Óptimo para crecimiento</Text>
+                            </View>
                         </View>
-                    }
-                    contentContainerStyle={{ paddingHorizontal: 0, paddingTop: 0 }}
-                />
+                    )}
+                </ScrollView>
+
+                {/* Bottom Action */}
+                <View style={styles.bottomAction}>
+                    <TouchableOpacity
+                        style={[styles.createButton, loading && styles.createButtonDisabled]}
+                        disabled={loading}
+                        onPress={handleCreateNewMeal}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color={colors.onPrimary} />
+                        ) : (
+                            <View style={styles.buttonContent}>
+                                <Text style={styles.createButtonText}>Crear Comida</Text>
+                                <Ionicons name="flash" size={22} color={colors.onPrimary} />
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                </View>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
 
-// ---------- ESTILOS (Usa colores fijos o tus `colors` del tema si quieres que cambien con el tema) ----------
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E1EEBC', // Color de fondo claro por defecto
-    },
-    contentPadding: {
-        paddingHorizontal: 20,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 25,
-        marginTop: 10,
-        textAlign: 'center',
-        color: '#333',
-    },
-    label: {
-        fontWeight: '600',
-        marginTop: 20,
-        marginBottom: 8,
-        color: '#555',
-        fontSize: 16,
-    },
-    input: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 14,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        fontSize: 16,
-        color: '#333',
-    },
-    activityIndicator: {
-        marginVertical: 10,
-    },
-    list: {
-        maxHeight: 200,
-        marginVertical: 10,
-        borderRadius: 10,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        overflow: 'hidden', // Para asegurar que el borderRadius se aplique
-    },
-    foodItem: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderColor: '#F0F0F0',
-    },
-    foodName: {
-        fontWeight: 'bold',
-        color: '#333',
-        fontSize: 15,
-    },
-    foodInfo: {
-        fontSize: 12,
-        color: '#888',
-        marginTop: 4,
-    },
-    noResultsText: {
-        textAlign: 'center',
-        marginTop: 15,
-        fontSize: 14,
-        color: '#888',
-    },
-    addBox: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#E6F3FF', // Fondo claro para la caja de añadir
-        borderRadius: 10,
-        padding: 10,
-        borderWidth: 1,
-        borderColor: '#B3D9FF',
-        marginTop: 15,
-        marginBottom: 10,
-    },
-    selectedFoodNameContainer: {
-        flex: 1,
-        marginRight: 10,
-    },
-    amountInput: {
-        width: 80,
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-        borderWidth: 1,
-        borderColor: '#D0D0D0',
-        fontSize: 15,
-        color: '#333',
-        textAlign: 'center',
-        marginRight: 10,
-    },
-    addButton: {
-        backgroundColor: '#007AFF', // Azul para el botón Añadir
-        borderRadius: 8,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        alignItems: 'center',
-    },
-    addButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 15,
-    },
-    ingredientItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff', // Fondo blanco para cada ingrediente
-        padding: 15,
-        marginBottom: 8,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        marginHorizontal: 20, // Ajuste para el padding del FlatList
-    },
-    ingredientNameBox: {
-        flex: 1,
-        marginRight: 10,
-    },
-    ingredientName: {
-        fontSize: 15,
-        color: '#333',
-        fontWeight: '500',
-    },
-    ingredientAmount: {
-        fontSize: 15,
-        color: '#666',
-        fontWeight: '500',
-        marginRight: 10,
-    },
-    removeBox: {
-        padding: 5,
-        backgroundColor: '#FFEBEE', // Rojo muy claro
-        borderRadius: 15,
-        width: 30,
-        height: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    remove: {
-        color: '#FF3B30', // Rojo vibrante
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    totalsBox: {
-        backgroundColor: '#EAF7EB',
-        padding: 18,
-        borderRadius: 12,
-        marginVertical: 20,
-        borderWidth: 1,
-        borderColor: '#C8E6C9',
-        alignItems: 'center',
-    },
-    totalsText: {
-        fontSize: 15,
-        color: '#555',
-        marginTop: 5,
-    },
-    instructionsInput: {
-        height: 100, // Altura predeterminada para el campo de instrucciones
-        textAlignVertical: 'top', // Alinea el texto al inicio en Android
-    },
-    mainButton: {
-        backgroundColor: '#34C759', // Verde principal para el botón grande
-        borderRadius: 10,
-        paddingVertical: 18,
-        alignItems: 'center',
-        marginTop: 25,
-        marginBottom: 30,
-    },
-    mainButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 18,
-    },
-    boldText: {
-        fontWeight: 'bold',
-        color: '#333',
-        fontSize: 16,
-    },
-    suggestionsList: {
-        maxHeight: 260,
-        borderRadius: 10,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-    }
+const createDynamicStyles = (colors: any, darkMode: boolean) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    scrollContent: { padding: 20, paddingBottom: 100 },
+    header: { marginBottom: 24 },
+    headerSubtitle: { fontSize: 12, fontWeight: '700', color: colors.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
+    headerTitle: { fontSize: 28, fontWeight: '800', color: colors.onSurface, letterSpacing: -0.5, marginBottom: 8 },
+    headerDescription: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
+    inputCard: { backgroundColor: colors.card, borderRadius: 20, padding: 18, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+    inputLabel: { fontSize: 13, fontWeight: '600', color: colors.secondary, marginBottom: 10 },
+    inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surfaceContainerHighest, borderRadius: 14, paddingHorizontal: 16, height: 50 },
+    input: { flex: 1, fontSize: 16, color: colors.onSurface, marginLeft: 10 },
+    sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+    itemsCount: { fontSize: 12, fontWeight: '600', color: colors.primary },
+    searchWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surfaceContainerHighest, borderRadius: 14, paddingHorizontal: 16, height: 50 },
+    searchInput: { flex: 1, fontSize: 16, color: colors.onSurface, marginLeft: 10 },
+    loader: { marginTop: 12 },
+    suggestionsBox: { backgroundColor: colors.surfaceContainerHighest, borderRadius: 14, marginTop: 10, overflow: 'hidden' },
+    foodSuggestion: { flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: colors.border },
+    foodSuggestionIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: colors.primaryContainer, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+    foodSuggestionInfo: { flex: 1 },
+    foodSuggestionName: { fontSize: 14, fontWeight: '600', color: colors.onSurface },
+    foodSuggestionMeta: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+    noResults: { textAlign: 'center', padding: 20, fontSize: 14, color: colors.textSecondary },
+    selectedFoodBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.secondaryContainer, borderRadius: 14, padding: 14, marginTop: 12 },
+    selectedFoodInfo: { flex: 1 },
+    selectedFoodName: { fontSize: 14, fontWeight: '600', color: colors.onSecondaryContainer },
+    selectedFoodMeta: { fontSize: 12, color: colors.onSecondaryFixedVariant, marginTop: 2 },
+    amountRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    amountInput: { width: 70, backgroundColor: colors.surfaceContainerLowest, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 16, color: colors.onSurface, textAlign: 'center' },
+    addIngredientBtn: { padding: 4 },
+    ingredientItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: 14, padding: 12, marginTop: 10 },
+    ingredientIconBox: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.surfaceContainerHighest, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+    ingredientNameBox: { flex: 1 },
+    ingredientName: { fontSize: 14, fontWeight: '600', color: colors.onSurface },
+    ingredientMeta: { fontSize: 11, color: colors.textSecondary, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
+    removeButton: { padding: 8 },
+    textArea: { backgroundColor: colors.surfaceContainerHighest, borderRadius: 14, padding: 16, fontSize: 16, color: colors.onSurface, minHeight: 100, textAlignVertical: 'top' },
+    macrosGrid: { flexDirection: 'row', gap: 12 },
+    macroCard: { flex: 1, backgroundColor: colors.primaryContainer, borderRadius: 16, padding: 16, alignItems: 'center', justifyContent: 'center', minHeight: 100 },
+    macroCardSecondary: { flex: 1, backgroundColor: colors.secondaryContainer, borderRadius: 16, padding: 16 },
+    macroLabel: { fontSize: 10, fontWeight: '700', color: colors.primary, textTransform: 'uppercase', letterSpacing: 1 },
+    macroValueRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 8 },
+    macroValue: { fontSize: 28, fontWeight: '800', color: colors.onPrimaryContainer },
+    macroUnit: { fontSize: 12, color: colors.onPrimaryContainer, marginLeft: 4, opacity: 0.7 },
+    macroBars: { flexDirection: 'row', gap: 4, marginTop: 12 },
+    macroBar: { height: 6, borderRadius: 3 },
+    proteinBar: { backgroundColor: colors.progressProtein },
+    carbsBar: { backgroundColor: colors.progressCarbs },
+    fatBar: { backgroundColor: colors.progressFat },
+    macroBalance: { fontSize: 10, fontWeight: '600', color: colors.onSecondaryContainer, marginTop: 8 },
+    bottomAction: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 8 },
+    createButton: { backgroundColor: colors.primary, borderRadius: 28, paddingVertical: 18, alignItems: 'center', shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
+    createButtonDisabled: { opacity: 0.7 },
+    buttonContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+    createButtonText: { fontSize: 17, fontWeight: '700', color: colors.onPrimary, marginRight: 8 },
 });

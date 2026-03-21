@@ -122,10 +122,6 @@ export default function BarCodeScanner({ onBarCodeScanned }: BarCodeScannerProps
                 }}
                 onBarcodeScanned={onBarCodeScanned}
             >
-                {/* Mensaje y guía */}
-                <Text style={styles.scanMsg}>Grant permissionLine up the barcode inside the box</Text>
-                <View style={styles.guideBox} />
-
                 {/* Botón girar cámara */}
                 <TouchableOpacity
                     style={styles.fabFlip}

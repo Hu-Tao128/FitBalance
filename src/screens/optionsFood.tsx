@@ -1,152 +1,186 @@
-// src/screens/optionsFood.tsx
-import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 
-type OptionsFoodScreenNavigationProp = StackNavigationProp<RootStackParamList, 'optionsFood'>;
-
-type ButtonConfig = {
-    name: string;
-    lib: typeof FontAwesome5 | typeof MaterialCommunityIcons;
+interface ActionCard {
+    icon: string;
     label: string;
     sub: string;
+    screen: string;
     color: string;
-    bg: string;
-    screen: keyof RootStackParamList;
-    size: number;
-};
+}
 
-const buttonsConfig: ButtonConfig[] = [
+const mainActions: ActionCard[] = [
     {
-        name: 'plus-circle', // Icono para "Nueva comida"
-        lib: FontAwesome5, // O puedes usar MaterialIcons si prefieres
-        label: 'New food',
-        sub: 'Create a new dish from scratch',
-        color: '#34C759', // Verde vibrante
-        bg: '#EAF7EB', // Fondo suave para el botón
+        icon: 'add-circle-outline',
+        label: 'Nueva Comida',
+        sub: 'Crea un plato desde cero',
         screen: 'CreateMealScreen',
-        size: 33,
+        color: 'primary',
     },
     {
-        name: 'food-fork-drink', // Icono para "Gestionar comidas"
-        lib: MaterialCommunityIcons, // O puedes usar FontAwesome5 si prefieres
-        label: 'Manage meals',
-        sub: 'Edit or delete your saved dishes',
-        color: '#FF9500', // Naranja
-        bg: '#FFF3E0', // Fondo suave para el botón
+        icon: 'list-outline',
+        label: 'Mis Comidas',
+        sub: 'Ver, editar o eliminar comidas guardadas',
         screen: 'ManageMeals',
-        size: 38,
+        color: 'secondary',
     },
 ];
 
-export default function OptionsFood() {
+export default function OptionsFood({ navigation }: any) {
     const { colors } = useTheme();
-    const navigation = useNavigation<OptionsFoodScreenNavigationProp>(); // Hook de navegación
+    const insets = useSafeAreaInsets();
+
+    const getColorScheme = (colorName: string) => {
+        switch (colorName) {
+            case 'primary':
+                return { bg: colors.primaryContainer, text: colors.onPrimaryContainer, icon: colors.primary };
+            case 'secondary':
+                return { bg: colors.secondaryContainer, text: colors.onSecondaryContainer, icon: colors.secondary };
+            case 'tertiary':
+                return { bg: colors.tertiaryContainer, text: colors.onTertiaryContainer, icon: colors.tertiary };
+            default:
+                return { bg: colors.surfaceContainerHighest, text: colors.onSurfaceVariant, icon: colors.outline };
+        }
+    };
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <Text style={[styles.title, { color: colors.text }]}>What do you want to do with your meals?</Text>
-            <View style={styles.cards}>
-                {buttonsConfig.map((btn) => {
-                    const IconLib = btn.lib;
-                    return (
-                        <TouchableOpacity
-                            key={btn.label}
-                            style={[styles.cardShadow, { backgroundColor: btn.bg }]}
-                            activeOpacity={0.88}
-                            onPress={() => navigation.navigate(btn.screen as any)}
-                        >
-                            <View style={styles.row}>
-                                <View style={[styles.iconCircle, { backgroundColor: btn.bg }]}>
-                                    <IconLib name={btn.name} size={btn.size} color={btn.color} />
+        <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
+                        Gestión de Comidas
+                    </Text>
+                    <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+                        Crea y administra tus propias comidas y recetas
+                    </Text>
+                </View>
+
+                {/* Main Actions */}
+                <View style={styles.actionsContainer}>
+                    {mainActions.map((action) => {
+                        const scheme = getColorScheme(action.color);
+                        return (
+                            <TouchableOpacity
+                                key={action.screen}
+                                style={[styles.actionCard, { backgroundColor: colors.card }]}
+                                activeOpacity={0.8}
+                                onPress={() => navigation.navigate(action.screen)}
+                            >
+                                <View style={[styles.actionIconBox, { backgroundColor: scheme.bg }]}>
+                                    <Ionicons name={action.icon as any} size={32} color={scheme.icon} />
                                 </View>
-                                <View style={styles.textContainer}>
-                                    <Text style={[styles.cardLabel, { color: btn.color }]}>{btn.label}</Text>
-                                    <Text style={[styles.cardSub, { color: colors.textSecondary }]}>{btn.sub}</Text>
+                                <View style={styles.actionTextContent}>
+                                    <Text style={[styles.actionLabel, { color: colors.onSurface }]}>
+                                        {action.label}
+                                    </Text>
+                                    <Text style={[styles.actionSub, { color: colors.textSecondary }]}>
+                                        {action.sub}
+                                    </Text>
                                 </View>
+                                <Ionicons name="chevron-forward" size={24} color={colors.outlineVariant} />
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+
+                {/* Tips Section */}
+                <View style={styles.tipsSection}>
+                    <Text style={[styles.tipsTitle, { color: colors.onSurface }]}>
+                        Consejos
+                    </Text>
+                    <View style={[styles.tipCard, { backgroundColor: colors.card }]}>
+                        <View style={styles.tipRow}>
+                            <View style={[styles.tipIcon, { backgroundColor: colors.primaryContainer }]}>
+                                <Ionicons name="bulb-outline" size={20} color={colors.primary} />
                             </View>
-                        </TouchableOpacity>
-                    );
-                })}
-            </View>
+                            <View style={styles.tipContent}>
+                                <Text style={[styles.tipLabel, { color: colors.onSurface }]}>
+                                    Incluye todos los ingredientes
+                                </Text>
+                                <Text style={[styles.tipText, { color: colors.textSecondary }]}>
+                                    Añade cada ingrediente con su cantidad para un cálculo preciso de macros.
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                    <View style={[styles.tipCard, { backgroundColor: colors.card }]}>
+                        <View style={styles.tipRow}>
+                            <View style={[styles.tipIcon, { backgroundColor: colors.secondaryContainer }]}>
+                                <Ionicons name="nutrition-outline" size={20} color={colors.secondary} />
+                            </View>
+                            <View style={styles.tipContent}>
+                                <Text style={[styles.tipLabel, { color: colors.onSurface }]}>
+                                    Guarda tus recetas
+                                </Text>
+                                <Text style={[styles.tipText, { color: colors.textSecondary }]}>
+                                    Crea tus recetas favoritas y úsalas rápidamente en tu registro diario.
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 18,
-        paddingTop: 40,
-        paddingBottom: 30,
-    },
-    title: {
-        fontSize: 23,
-        fontWeight: 'bold',
-        marginBottom: 35,
-        letterSpacing: 0.2,
-        textAlign: 'center',
-        opacity: 0.96,
-    },
-    cards: {
-        width: '100%',
-        gap: 22,
-    },
-    cardShadow: {
-        width: '100%',
-        borderRadius: 22,
-        marginBottom: 6,
-        paddingVertical: 22,
-        paddingHorizontal: 16,
-        shadowColor: '#B6D0B533',
-        shadowOpacity: 0.20,
-        shadowOffset: { width: 0, height: 7 },
-        shadowRadius: 16,
-        elevation: 7,
-        ...Platform.select({
-            android: {
-                borderWidth: 1,
-                borderColor: '#F3F6ED',
-            },
-        }),
-    },
-    row: {
+    container: { flex: 1 },
+    scrollContent: { padding: 20, paddingBottom: 120 },
+    header: { marginBottom: 28 },
+    headerTitle: { fontSize: 26, fontWeight: '800', marginBottom: 8, letterSpacing: -0.5 },
+    headerSubtitle: { fontSize: 15, lineHeight: 22 },
+    actionsContainer: { gap: 14, marginBottom: 32 },
+    actionCard: {
         flexDirection: 'row',
         alignItems: 'center',
-    },
-    iconCircle: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 15,
-        backgroundColor: '#fff',
-        shadowColor: '#8ec47e44',
-        shadowOpacity: 0.18,
-        shadowRadius: 18,
-        shadowOffset: { width: 0, height: 3 },
+        borderRadius: 18,
+        padding: 18,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
         elevation: 2,
     },
-    textContainer: {
-        flex: 1,
+    actionIconBox: {
+        width: 64,
+        height: 64,
+        borderRadius: 18,
         justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
     },
-    cardLabel: {
-        fontSize: 17.5,
-        fontWeight: 'bold',
-        letterSpacing: 0.3,
-        marginBottom: 4,
+    actionTextContent: { flex: 1 },
+    actionLabel: { fontSize: 18, fontWeight: '700', marginBottom: 4 },
+    actionSub: { fontSize: 13, lineHeight: 18 },
+    tipsSection: {},
+    tipsTitle: { fontSize: 18, fontWeight: '700', marginBottom: 16 },
+    tipCard: {
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 4,
+        elevation: 1,
     },
-    cardSub: {
-        fontSize: 14,
-        opacity: 0.80,
-        flexWrap: 'wrap',
+    tipRow: { flexDirection: 'row', alignItems: 'flex-start' },
+    tipIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
     },
+    tipContent: { flex: 1 },
+    tipLabel: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
+    tipText: { fontSize: 13, lineHeight: 18 },
 });
