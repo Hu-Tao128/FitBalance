@@ -1,44 +1,71 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import AppointmentCard, { Appointment } from '../components/AppointmentCard';
+import { ActivityIndicator, FlatList, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import axios from 'axios';
 import { API_CONFIG } from '../config/config';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
+export interface Appointment {
+    _id: string;
+    patient_id: string;
+    nutritionist_id: string;
+    appointment_date: string;
+    appointment_time: string;
+    type: 'virtual' | 'in-person';
+    status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+    notes?: string;
+}
+
+interface Nutritionist {
+    _id: string;
+    name: string;
+    lastName: string;
+    secondLastName?: string;
+    email?: string;
+    specialization?: string;
+    photo?: string;
+}
+
 const ManagementDatingScreen = () => {
-    const { colors } = useTheme();
-    const { user } = useUser(); // Se vuelve a activar para usar el usuario del contexto
+    const { colors, darkMode } = useTheme();
+    const { user } = useUser();
 
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [upcoming, setUpcoming] = useState<Appointment[]>([]);
     const [past, setPast] = useState<Appointment[]>([]);
+    const [nutritionist, setNutritionist] = useState<Nutritionist | null>(null);
+
+    const styles = createDynamicStyles(colors, darkMode);
 
     useEffect(() => {
-        // 1. Se vuelve a añadir la validación. Si no hay usuario o id, no hace nada.
-        // Esto es crucial para evitar errores cuando la app se inicia.
         if (!user?.id) {
-            setLoading(false); // Detenemos la carga si no hay usuario
+            setLoading(false);
             return;
         }
 
-        const fetchAppointments = async () => {
+        const fetchData = async () => {
             setLoading(true);
             setError(null);
 
-            // 2. Se construye la URL usando el `user.id` del contexto.
-            const url = `${API_CONFIG.BASE_URL}/appointments/${user.id}`;
-            console.log("Requesting user appointments:", user.id);
-
             try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    const errorData = await response.text(); // Intenta leer el cuerpo del error
-                    throw new Error(`Error ${response.status}: ${errorData || 'Appointments could not be uploaded.'}`);
+                const [appointmentsRes, nutritionistRes] = await Promise.all([
+                    fetch(`${API_CONFIG.BASE_URL}/appointments/${user.id}`),
+                    user.nutritionist_id ? axios.get(`${API_CONFIG.BASE_URL}/nutritionist/${user.nutritionist_id}`) : Promise.resolve({ data: null })
+                ]);
+
+                if (!appointmentsRes.ok) {
+                    const errorData = await appointmentsRes.text();
+                    throw new Error(`Error ${appointmentsRes.status}: ${errorData || 'Appointments could not be uploaded.'}`);
                 }
-                const data: Appointment[] = await response.json();
-                setAppointments(data);
+
+                const appointmentsData: Appointment[] = await appointmentsRes.json();
+                setAppointments(appointmentsData);
+
+                if (nutritionistRes.data) {
+                    setNutritionist(nutritionistRes.data);
+                }
             } catch (err) {
                 console.error("ERROR EN FETCH:", err);
                 setError(err instanceof Error ? err.message : 'An unknown error occurred.');
@@ -47,11 +74,9 @@ const ManagementDatingScreen = () => {
             }
         };
 
-        fetchAppointments();
-        // 3. El efecto depende del objeto 'user'. Se ejecutará de nuevo si el usuario cambia (ej. al iniciar sesión).
+        fetchData();
     }, [user]);
 
-    // Este segundo useEffect para filtrar las citas se mantiene igual
     useEffect(() => {
         const now = new Date();
         const upcomingAppointments = appointments.filter(appt => new Date(appt.appointment_date) >= now);
@@ -61,58 +86,463 @@ const ManagementDatingScreen = () => {
         setPast(pastAppointments.sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime()));
     }, [appointments]);
 
-    // Lógica de renderizado para los estados de carga y error
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        return {
+            month: months[date.getMonth()],
+            day: date.getDate()
+        };
+    };
+
+    const getAppointmentTitle = (type: string) => {
+        switch (type) {
+            case 'virtual': return 'Consulta Virtual';
+            case 'in-person': return 'Consulta Presencial';
+            default: return 'Consulta Nutricional';
+        }
+    };
+
+    const getAppointmentSubtitle = (appointment: Appointment) => {
+        if (appointment.nutritionist_id) {
+            return 'Dra. Elena Martínez';
+        }
+        return appointment.type === 'virtual' ? 'Videollamada' : 'Sede Central';
+    };
+
     if (loading) {
         return (
-            <View style={[styles.centeredContainer, { backgroundColor: colors.background }]}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={[styles.infoText, { color: colors.text }]}>Loading your appointments...</Text>
-            </View>
+            <SafeAreaView style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                    <Text style={styles.loadingText}>Cargando tus citas...</Text>
+                </View>
+            </SafeAreaView>
         );
     }
 
     if (error) {
         return (
-            <View style={[styles.centeredContainer, { backgroundColor: colors.background }]}>
-                <Text style={[styles.infoText, { color: colors.danger }]}>{error}</Text>
-            </View>
+            <SafeAreaView style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
+                </View>
+            </SafeAreaView>
         );
     }
 
-    // Lógica para renderizar las secciones de la lista
-    const renderSection = ({ title, data, emptyText }: { title: string, data: Appointment[], emptyText: string }) => (
-        <View style={{ width: '100%' }}>
-            <Text style={[styles.header, { color: colors.text }]}>{title}</Text>
-            {data.length > 0 ? (
-                data.map(item => <AppointmentCard key={item._id} appointment={item} />)
-            ) : (
-                <Text style={[styles.infoText, { color: colors.textSecondary }]}>{emptyText}</Text>
-            )}
-        </View>
-    );
-
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <FlatList
-                data={[{ key: 'upcoming' }, { key: 'past' }]}
-                renderItem={({ item }) => {
-                    if (item.key === 'upcoming') return renderSection({ title: 'Pending Appointments', data: upcoming, emptyText: 'You have no scheduled appointments.' });
-                    if (item.key === 'past') return renderSection({ title: 'History', data: past, emptyText: 'You have no appointments on your record.' });
-                    return null;
-                }}
-                keyExtractor={(item) => item.key}
-                contentContainerStyle={styles.listContent}
-            />
+        <SafeAreaView style={styles.container}>
+            <ScrollView 
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Header Section */}
+                <View style={styles.headerSection}>
+                    <Text style={styles.headerSubtitle}>Agenda Central</Text>
+                    <Text style={styles.headerTitle}>Mis Citas</Text>
+                    <Text style={styles.headerDescription}>
+                        Gestiona tus consultas de nutrición y entrenamientos personalizados desde un solo lugar.
+                    </Text>
+                </View>
+
+                {/* Upcoming Appointments Section */}
+                <View style={styles.sectionHeader}>
+                    <View style={styles.sectionTitleRow}>
+                        <Text style={styles.sectionIcon}>📅</Text>
+                        <Text style={styles.sectionTitle}>Próximas Sesiones</Text>
+                    </View>
+                    {upcoming.length > 0 && (
+                        <View style={styles.badge}>
+                            <Text style={styles.badgeText}>{upcoming.length} Pendientes</Text>
+                        </View>
+                    )}
+                </View>
+
+                {upcoming.length === 0 ? (
+                    <View style={styles.emptyCard}>
+                        <Text style={styles.emptyText}>No tienes citas programadas.</Text>
+                        <Text style={styles.emptySubtext}>Agenda una cita con tu nutricionista.</Text>
+                    </View>
+                ) : (
+                    upcoming.map(appointment => {
+                        const { month, day } = formatDate(appointment.appointment_date);
+                        return (
+                            <View key={appointment._id} style={styles.appointmentCard}>
+                                <View style={styles.cardContent}>
+                                    <View style={styles.dateBox}>
+                                        <Text style={styles.dateMonth}>{month}</Text>
+                                        <Text style={styles.dateDay}>{day}</Text>
+                                    </View>
+                                    <View style={styles.appointmentInfo}>
+                                        <Text style={styles.appointmentTitle}>
+                                            {getAppointmentTitle(appointment.type)}
+                                        </Text>
+                                        <Text style={styles.appointmentSubtitle}>
+                                            📍 {getAppointmentSubtitle(appointment)}
+                                        </Text>
+                                        <View style={styles.appointmentMeta}>
+                                            <Text style={styles.metaText}>
+                                                🕐 {appointment.appointment_time || '10:30 AM'}
+                                            </Text>
+                                            <Text style={styles.metaText}>
+                                                {appointment.type === 'virtual' ? '📹 Videollamada' : '📍 Presencial'}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+                                <View style={styles.cardActions}>
+                                    <TouchableOpacity style={styles.secondaryButton}>
+                                        <Text style={styles.secondaryButtonText}>Reagendar</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.primaryButton}>
+                                        <Text style={styles.primaryButtonText}>
+                                            {appointment.status === 'confirmed' ? 'Unirse' : 'Confirmar'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        );
+                    })
+                )}
+
+                {/* Past Appointments Section */}
+                {past.length > 0 && (
+                    <View style={styles.pastSection}>
+                        <View style={styles.sectionTitleRow}>
+                            <Text style={styles.sectionIcon}>📋</Text>
+                            <Text style={styles.sectionTitle}>Historial Reciente</Text>
+                        </View>
+                        
+                        {past.slice(0, 5).map(appointment => {
+                            const date = new Date(appointment.appointment_date);
+                            const dateStr = `${date.getDate()} de ${['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][date.getMonth()]}`;
+                            return (
+                                <View key={appointment._id} style={styles.historyItem}>
+                                    <View style={styles.historyItemLeft}>
+                                        <View style={styles.historyIconBox}>
+                                            <Text style={styles.historyIcon}>✓</Text>
+                                        </View>
+                                        <View>
+                                            <Text style={styles.historyTitle}>
+                                                {getAppointmentTitle(appointment.type)}
+                                            </Text>
+                                            <Text style={styles.historyDate}>{dateStr} • Finalizada</Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            );
+                        })}
+                    </View>
+                )}
+
+                {/* Mini Stats Card - Tu Especialista */}
+                {nutritionist && (
+                    <View style={styles.statsCard}>
+                        <Text style={styles.statsTitle}>Tu Especialista</Text>
+                        <View style={styles.nutritionistRow}>
+                            <View style={styles.nutritionistAvatar}>
+                                <Text style={styles.avatarText}>👩‍⚕️</Text>
+                            </View>
+                            <View>
+                                <Text style={styles.nutritionistName}>
+                                    {nutritionist.name} {nutritionist.lastName}
+                                </Text>
+                                <Text style={styles.nutritionistRole}>
+                                    {nutritionist.specialization || 'Nutricionista'}
+                                </Text>
+                            </View>
+                        </View>
+                        {nutritionist.email && (
+                            <Text style={styles.quoteText}>
+                                📧 {nutritionist.email}
+                            </Text>
+                        )}
+                    </View>
+                )}
+            </ScrollView>
         </SafeAreaView>
     );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1 },
-    centeredContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    listContent: { padding: 16 },
-    header: { fontSize: 24, fontWeight: 'bold', marginTop: 16, marginBottom: 8 },
-    infoText: { marginTop: 10, fontSize: 16, textAlign: 'center' },
+const createDynamicStyles = (colors: any, darkMode: boolean) => StyleSheet.create({
+    container: { 
+        flex: 1, 
+        backgroundColor: colors.background 
+    },
+    scrollContent: { 
+        padding: 20,
+        paddingBottom: 40,
+    },
+    loadingContainer: { 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        padding: 20,
+    },
+    loadingText: { 
+        marginTop: 12, 
+        fontSize: 16, 
+        color: colors.textSecondary 
+    },
+    errorText: { 
+        fontSize: 16, 
+        textAlign: 'center' 
+    },
+    headerSection: { 
+        marginBottom: 28,
+        paddingTop: 8,
+    },
+    headerSubtitle: { 
+        fontSize: 12, 
+        fontWeight: '700', 
+        color: colors.primary, 
+        letterSpacing: 2,
+        textTransform: 'uppercase',
+        marginBottom: 4,
+    },
+    headerTitle: { 
+        fontSize: 32, 
+        fontWeight: '800', 
+        color: colors.onSurface,
+        letterSpacing: -0.5,
+        marginBottom: 8,
+    },
+    headerDescription: { 
+        fontSize: 14, 
+        color: colors.textSecondary,
+        lineHeight: 20,
+        maxWidth: 320,
+    },
+    sectionHeader: { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    sectionTitleRow: { 
+        flexDirection: 'row', 
+        alignItems: 'center' 
+    },
+    sectionIcon: { 
+        fontSize: 18, 
+        marginRight: 8 
+    },
+    sectionTitle: { 
+        fontSize: 18, 
+        fontWeight: '700', 
+        color: colors.onSurface,
+    },
+    badge: { 
+        backgroundColor: `${colors.primary}20`,
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 16,
+    },
+    badgeText: { 
+        fontSize: 11, 
+        fontWeight: '700', 
+        color: colors.primary,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    emptyCard: {
+        backgroundColor: colors.card,
+        borderRadius: 16,
+        padding: 24,
+        alignItems: 'center',
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    emptyText: { 
+        fontSize: 16, 
+        fontWeight: '600', 
+        color: colors.text,
+        marginBottom: 4,
+    },
+    emptySubtext: { 
+        fontSize: 14, 
+        color: colors.textSecondary,
+    },
+    appointmentCard: {
+        backgroundColor: colors.card,
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: colors.border,
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    cardContent: { 
+        flexDirection: 'row', 
+        marginBottom: 16 
+    },
+    dateBox: {
+        width: 56,
+        height: 56,
+        borderRadius: 14,
+        backgroundColor: colors.primaryContainer,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
+    },
+    dateMonth: { 
+        fontSize: 10, 
+        fontWeight: '700', 
+        color: colors.onPrimaryContainer,
+        textTransform: 'uppercase',
+    },
+    dateDay: { 
+        fontSize: 22, 
+        fontWeight: '800', 
+        color: colors.onPrimaryContainer,
+    },
+    appointmentInfo: { 
+        flex: 1, 
+        justifyContent: 'center' 
+    },
+    appointmentTitle: { 
+        fontSize: 17, 
+        fontWeight: '700', 
+        color: colors.onSurface,
+        marginBottom: 2,
+    },
+    appointmentSubtitle: { 
+        fontSize: 13, 
+        color: colors.textSecondary,
+        marginBottom: 8,
+    },
+    appointmentMeta: { 
+        flexDirection: 'row', 
+        gap: 16 
+    },
+    metaText: { 
+        fontSize: 12, 
+        color: colors.outline,
+    },
+    cardActions: { 
+        flexDirection: 'row', 
+        justifyContent: 'flex-end', 
+        gap: 10 
+    },
+    secondaryButton: {
+        backgroundColor: colors.secondaryContainer,
+        paddingHorizontal: 18,
+        paddingVertical: 10,
+        borderRadius: 20,
+    },
+    secondaryButtonText: { 
+        fontSize: 13, 
+        fontWeight: '700', 
+        color: colors.onSecondaryContainer,
+    },
+    primaryButton: {
+        backgroundColor: colors.primary,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 20,
+    },
+    primaryButtonText: { 
+        fontSize: 13, 
+        fontWeight: '700', 
+        color: colors.onPrimary,
+    },
+    pastSection: { 
+        marginTop: 24,
+        paddingTop: 24,
+    },
+    historyItem: {
+        backgroundColor: colors.card,
+        borderRadius: 12,
+        padding: 14,
+        marginBottom: 8,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    historyItemLeft: { 
+        flexDirection: 'row', 
+        alignItems: 'center' 
+    },
+    historyIconBox: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: `${colors.success}20`,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    historyIcon: { 
+        fontSize: 16, 
+        color: colors.success,
+    },
+    historyTitle: { 
+        fontSize: 14, 
+        fontWeight: '600', 
+        color: colors.onSurface,
+        marginBottom: 2,
+    },
+    historyDate: { 
+        fontSize: 11, 
+        color: colors.textSecondary,
+    },
+    statsCard: {
+        backgroundColor: colors.card,
+        borderRadius: 16,
+        padding: 20,
+        marginTop: 24,
+        borderWidth: 1,
+        borderColor: `${colors.primary}30`,
+    },
+    statsTitle: { 
+        fontSize: 12, 
+        fontWeight: '700', 
+        color: colors.primary,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 12,
+    },
+    nutritionistRow: { 
+        flexDirection: 'row', 
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    nutritionistAvatar: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: colors.primaryContainer,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    avatarText: { 
+        fontSize: 22 
+    },
+    nutritionistName: { 
+        fontSize: 14, 
+        fontWeight: '700', 
+        color: colors.onSurface,
+    },
+    nutritionistRole: { 
+        fontSize: 11, 
+        color: colors.primary,
+        fontWeight: '500',
+    },
+    quoteText: { 
+        fontSize: 12, 
+        color: colors.textSecondary,
+        fontStyle: 'italic',
+        lineHeight: 18,
+    },
 });
 
 export default ManagementDatingScreen;
