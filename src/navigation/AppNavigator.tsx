@@ -3,25 +3,25 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ActivityIndicator, View } from 'react-native';
 import { useUser } from '../context/UserContext';
-import Login from '../screens/login';
-import SettingsScreen from '../screens/settings';
-import UserProfileScreen from '../screens/userProfileScreen';
-import weighFood from '../screens/weighFood';
+import Login from '../features/auth/screens/login';
+import SettingsScreen from '../features/settings/screens/settings';
+import UserProfileScreen from '../features/profile/screens/userProfileScreen';
+import weighFood from '../features/food/screens/weighFood';
 import { BottomNavigation } from './bottom-navigation';
 
-import ChangePasswordScreen from '../screens/ChangePasswordScreen'; // 2. Importa la pantalla
-import CreateMealScreen from '../screens/CreateMealScreen';
-import EditMealScreen from '../screens/EditMealScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
-import FoodClassicSearch from '../screens/FoodClassicSearch';
-import FoodScanner from '../screens/FoodScanner';
-import FoodSearchOptions from '../screens/FoodSearchOptions';
-import ManageMealsScreen from '../screens/ManageMeals';
-import ManagementDatingScreen from '../screens/managementDating';
-import MealLogHistoryScreen from '../screens/MealLogHistoryScreen'; // 2. Import the new screen
-import NutritionistProfileScreen from '../screens/NutritionistProfileScreen';
-import optionsFood from '../screens/optionsFood';
-import StatisticsScreen from '../screens/Stadistics';
+import ChangePasswordScreen from '../features/auth/screens/ChangePasswordScreen'; // 2. Importa la pantalla
+import CreateMealScreen from '../features/food/screens/CreateMealScreen';
+import EditMealScreen from '../features/food/screens/EditMealScreen';
+import EditProfileScreen from '../features/profile/screens/EditProfileScreen';
+import FoodSearchScreen from '../features/food/screens/FoodSearchScreen';
+import FoodScanner from '../features/food/screens/FoodScanner';
+import FoodSearchOptions from '../features/food/screens/FoodSearchOptions';
+import ManageMealsScreen from '../features/food/screens/ManageMeals';
+import ManagementDatingScreen from '../features/nutritionist/screens/managementDating';
+import MealLogHistoryScreen from '../features/food/screens/MealLogHistoryScreen'; // 2. Import the new screen
+import NutritionistProfileScreen from '../features/nutritionist/screens/NutritionistProfileScreen';
+import optionsFood from '../features/food/screens/optionsFood';
+import StatisticsScreen from '../features/statistics/screens/Stadistics';
 
 // Importa PatientMeal desde tu archivo de tipos compartido
 import { PatientMeal } from '../types'; // O la ruta correcta a tu archivo de tipos
@@ -129,7 +129,7 @@ export default function AppNavigator() {
             />
             <Stack.Screen
               name="FoodClassicSearch"
-              component={FoodClassicSearch}
+              component={FoodSearchScreen}
               options={{
                 title: 'Search for Food by Text',
                 headerStyle: { backgroundColor: '#1c1c1e' },

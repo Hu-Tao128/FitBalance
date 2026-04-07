@@ -1,10 +1,10 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import UserProfileScreen from '../screens/userProfileScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
-import ChangePasswordScreen from '../screens/ChangePasswordScreen';
-import NutritionistProfileScreen from '../screens/NutritionistProfileScreen';
-import ManagementDatingScreen from '../screens/managementDating';
+import UserProfileScreen from '../features/profile/screens/userProfileScreen';
+import EditProfileScreen from '../features/profile/screens/EditProfileScreen';
+import ChangePasswordScreen from '../features/auth/screens/ChangePasswordScreen';
+import NutritionistProfileScreen from '../features/nutritionist/screens/NutritionistProfileScreen';
+import ManagementDatingScreen from '../features/nutritionist/screens/managementDating';
 import { useTheme } from '../context/ThemeContext';
 
 const Stack = createNativeStackNavigator();

@@ -4,10 +4,10 @@ import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
-import HomeScreen from '../screens/DashboardScreen';
-import NutritionixTest from "../screens/FoodSearchOptions";
-import weighFood from '../screens/weighFood';
-import StatisticsScreen from '../screens/Stadistics';
+import HomeScreen from '../features/dashboard/screens/DashboardScreen';
+import NutritionixTest from "../features/food/screens/FoodSearchOptions";
+import weighFood from '../features/food/screens/weighFood';
+import StatisticsScreen from '../features/statistics/screens/Stadistics';
 import ProfileStackNavigator from '../navigation/SettingsStackNavigator';
 
 const Tab = createBottomTabNavigator();

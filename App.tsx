@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from "./src/context/ThemeContext";
 import { UserProvider } from "./src/context/UserContext";
 import AppNavigator from './src/navigation/AppNavigator';
-import { BleProvider } from './src/context/BleContext';
+import { BleProvider } from './src/features/ble/context/BleContext';
 
 import {
   setupNotifications,
