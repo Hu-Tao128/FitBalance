@@ -2,21 +2,12 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { foodService, Food } from '../services/food.service';
 import { useUser } from '../../../context/UserContext';
-import { useBle } from '../../ble/context/BleContext';
 
 export function useAddFood(onSuccess?: () => void) {
     const { user } = useUser();
-    
-    // BLE is kept in code but not in implementation (MVP stability)
-    const {
-        weight: scaleWeight,
-        connectedDevice: scaleConnected,
-        disconnectDevice: disconnectScale
-    } = useBle();
 
     const [foodToAdd, setFoodToAdd] = useState<Food | null>(null);
-    const [manualModalVisible, setManualModalVisible] = useState(false);
-    const [scaleModalVisible, setScaleModalVisible] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const initiateAddFood = (food: Food, grams: number) => {
@@ -33,7 +24,7 @@ export function useAddFood(onSuccess?: () => void) {
             nf_dietary_fiber: (food.nf_dietary_fiber || 0) * ratio,
         };
         setFoodToAdd(adjusted);
-        setManualModalVisible(true);
+        setModalVisible(true);
     };
 
     const getTodayWeekday = () => {
@@ -43,9 +34,9 @@ export function useAddFood(onSuccess?: () => void) {
         }).format(new Date()).toLowerCase();
     };
 
-    const handleConfirmManual = async () => {
+    const handleConfirm = async () => {
         if (!foodToAdd || !user?.id) return;
-        setManualModalVisible(false);
+        setModalVisible(false);
         setLoading(true);
         try {
             await foodService.addMealLog({
@@ -66,42 +57,12 @@ export function useAddFood(onSuccess?: () => void) {
         }
     };
 
-    const handleConfirmScale = async () => {
-        if (!foodToAdd || scaleWeight == null || !user?.id) return;
-        setScaleModalVisible(false);
-        setLoading(true);
-        try {
-            await foodService.addMealLog({
-                patient_id: user.id,
-                meal: {
-                    day: getTodayWeekday(),
-                    type: 'snack',
-                    time: new Date().toTimeString().slice(0, 5),
-                    foods: [{ food_id: foodToAdd.food_name, grams: foodToAdd.serving_weight_grams }]
-                },
-                weight: scaleWeight
-            });
-            Alert.alert('¡Éxito!', `${scaleWeight}g añadidos.`);
-            onSuccess?.();
-        } catch {
-            Alert.alert('Error', 'No se pudo añadir peso.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     return {
         foodToAdd,
-        manualModalVisible,
-        setManualModalVisible,
-        scaleModalVisible,
-        setScaleModalVisible,
+        modalVisible,
+        setModalVisible,
         loading,
         initiateAddFood,
-        handleConfirmManual,
-        handleConfirmScale,
-        scaleWeight,
-        scaleConnected,
-        disconnectScale
+        handleConfirm
     };
 }

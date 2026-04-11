@@ -18,7 +18,6 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../../context/ThemeContext';
-import { useBle } from '../../ble/context/BleContext';
 import { useFoodSearch } from '../hooks/useFoodSearch';
 import { useAddFood } from '../hooks/useAddFood';
 import { Food } from '../services/food.service';
@@ -44,9 +43,9 @@ export default function FoodSearchScreen({ navigation }: any) {
     } = useFoodSearch();
 
     const {
-        foodToAdd, manualModalVisible, setManualModalVisible,
+        foodToAdd, modalVisible, setModalVisible,
         loading: addLoading,
-        initiateAddFood, handleConfirmManual
+        initiateAddFood, handleConfirm
     } = useAddFood(() => {
         // Handle success
     });
@@ -161,17 +160,17 @@ export default function FoodSearchScreen({ navigation }: any) {
             )}
 
             {/* Confirmation Modal */}
-            <Modal visible={manualModalVisible} transparent animationType="slide">
+            <Modal visible={modalVisible} transparent animationType="slide">
                 <View style={styles.modalOverlay}>
                     <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
                         <Text style={styles.modalTitle}>Confirm Add {foodToAdd?.food_name}</Text>
                         <Text style={{ textAlign: 'center', marginBottom: 20, color: colors.outline }}>
                             {foodToAdd?.serving_weight_grams}g - {foodToAdd?.nf_calories?.toFixed(0)} kcal
                         </Text>
-                        <TouchableOpacity style={styles.addButton} onPress={handleConfirmManual} disabled={addLoading}>
+                        <TouchableOpacity style={styles.addButton} onPress={handleConfirm} disabled={addLoading}>
                             {addLoading ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.addButtonText}>Confirm</Text>}
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setManualModalVisible(false)} style={{ marginTop: 15 }}>
+                        <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 15 }}>
                             <Text style={styles.closeText}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
