@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { BarcodeScanningResult, CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 
 interface BarCodeScannerProps {
     onBarCodeScanned?: (scanningResult: BarcodeScanningResult) => void;

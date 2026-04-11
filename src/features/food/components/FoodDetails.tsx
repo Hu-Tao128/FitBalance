@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import FoodItemCard from '../features/food/components/FoodItemCard';
+import FoodItemCard from './FoodItemCard';
 
 interface Food {
     food_name: string;

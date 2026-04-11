@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState, useCallback } from 'react';
+import { DateData, Calendar } from 'react-native-calendars';
 import {
     ActivityIndicator,
     Alert,
     FlatList,
+    Modal,
     SafeAreaView,
     StyleSheet,
     Text,
@@ -112,10 +114,14 @@ export default function MealLogHistoryScreen() {
     const { user } = useUser();
     const route = useRoute<MealLogHistoryScreenRouteProp>();
 
-    const [currentDate, setCurrentDate] = useState<Date>(new Date(route.params.initialDate));
+    const initialDate = DateTime.fromISO(route.params.initialDate, { zone: 'America/Tijuana' }).isValid
+        ? DateTime.fromISO(route.params.initialDate, { zone: 'America/Tijuana' })
+        : DateTime.now().setZone('America/Tijuana');
+    const [currentDate, setCurrentDate] = useState<Date>(initialDate.toJSDate());
     const [log, setLog] = useState<DailyLog | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [isCalendarVisible, setIsCalendarVisible] = useState(false);
 
     const fetchLogForDate = useCallback(async (date: Date) => {
         if (!user?.id) return;
@@ -145,11 +151,8 @@ export default function MealLogHistoryScreen() {
         fetchLogForDate(currentDate);
     }, [currentDate, fetchLogForDate]);
 
-    const changeDate = (days: number) => {
-        const newDate = new Date(currentDate);
-        newDate.setDate(newDate.getDate() + days);
-        setCurrentDate(newDate);
-    };
+    const selectedDate = DateTime.fromJSDate(currentDate).setZone('America/Tijuana').toISODate();
+    const todayDate = DateTime.now().setZone('America/Tijuana').toISODate();
 
     const handleDeleteMeal = async (mealId: string) => {
         Alert.alert(
@@ -172,82 +175,144 @@ export default function MealLogHistoryScreen() {
 
     const renderHeader = () => (
         <View style={[styles.header, { backgroundColor: colors.surface }]}>
-        <View style={styles.dateSelector}>
-            <TouchableOpacity onPress={() => changeDate(-1)} style={styles.dateNavButton}>
-            <Ionicons name="chevron-back" size={24} color={colors.primary} />
-            </TouchableOpacity>
-            
-            <View style={styles.dateLabelContainer}>
-            <Text style={[styles.dateLabel, { color: colors.onSurface }]}>
-                {DateTime.fromJSDate(currentDate).setLocale('es').toLocaleString(DateTime.DATE_HUGE)}
-            </Text>
+            <View style={styles.dateHeaderRow}>
+                <View style={styles.dateLabelContainer}>
+                    <Text style={[styles.sectionLabel, { color: colors.outline }]}>Fecha seleccionada</Text>
+                    <Text style={[styles.dateLabel, { color: colors.onSurface }]}>
+                        {DateTime.fromJSDate(currentDate).setLocale('es').toLocaleString(DateTime.DATE_HUGE)}
+                    </Text>
+                </View>
+                <TouchableOpacity
+                    style={[styles.calendarButton, { borderColor: colors.primary }]}
+                    onPress={() => setIsCalendarVisible(true)}
+                >
+                    <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+                    <Text style={[styles.calendarButtonText, { color: colors.primary }]}>Calendario</Text>
+                </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={() => changeDate(1)} style={styles.dateNavButton}>
-            <Ionicons name="chevron-forward" size={24} color={colors.primary} />
-            </TouchableOpacity>
-        </View>
-
-        {log && log.totals && (
-            <View style={[styles.statsContainer, { backgroundColor: colors.surfaceContainerLow }]}>
-            <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: colors.primary }]}>{log.totals.calories.toFixed(0)}</Text>
-                <Text style={[styles.statLabel, { color: colors.outline }]}>kcal</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: colors.secondary }]}>{log.totals.protein.toFixed(0)}g</Text>
-                <Text style={[styles.statLabel, { color: colors.outline }]}>Proteína</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: colors.tertiary }]}>{log.totals.carbs.toFixed(0)}g</Text>
-                <Text style={[styles.statLabel, { color: colors.outline }]}>Carbs</Text>
-            </View>
-            </View>
-        )}
+            {log && log.totals && (
+                <View style={[styles.statsContainer, { backgroundColor: colors.surfaceContainerLow }]}>
+                    <View style={styles.statItem}>
+                        <Text style={[styles.statValue, { color: colors.primary }]}>{log.totals.calories.toFixed(0)}</Text>
+                        <Text style={[styles.statLabel, { color: colors.outline }]}>kcal</Text>
+                    </View>
+                    <View style={styles.statDivider} />
+                    <View style={styles.statItem}>
+                        <Text style={[styles.statValue, { color: colors.secondary }]}>{log.totals.protein.toFixed(0)}g</Text>
+                        <Text style={[styles.statLabel, { color: colors.outline }]}>Proteína</Text>
+                    </View>
+                    <View style={styles.statDivider} />
+                    <View style={styles.statItem}>
+                        <Text style={[styles.statValue, { color: colors.tertiary }]}>{log.totals.carbs.toFixed(0)}g</Text>
+                        <Text style={[styles.statLabel, { color: colors.outline }]}>Carbs</Text>
+                    </View>
+                </View>
+            )}
         </View>
     );
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        {renderHeader()}
+            {renderHeader()}
 
-        {loading ? (
-            <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        ) : error ? (
-            <View style={styles.centerContainer}>
-            <Ionicons name="alert-circle-outline" size={48} color={colors.outline} />
-            <Text style={[styles.errorText, { color: colors.outline }]}>{error}</Text>
-            <TouchableOpacity 
-                style={[styles.retryButton, { backgroundColor: colors.primary }]}
-                onPress={() => fetchLogForDate(currentDate)}
+            <Modal
+                visible={isCalendarVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setIsCalendarVisible(false)}
             >
-                <Text style={styles.retryText}>Reintentar</Text>
-            </TouchableOpacity>
-            </View>
-        ) : log && log.meals.length > 0 ? (
-            <FlatList
-            data={log.meals}
-            keyExtractor={(item) => item._id}
-            renderItem={({ item }) => (
-                <MealItem 
-                item={item} 
-                logId={log._id} 
-                onDelete={handleDeleteMeal}
-                colors={colors}
+                <View style={styles.modalBackdrop}>
+                    <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
+                        {selectedDate && (
+                            <Calendar
+                                current={selectedDate}
+                                onDayPress={(day: DateData) => {
+                                    const nextDate = DateTime.fromISO(day.dateString, { zone: 'America/Tijuana' });
+                                    if (nextDate.isValid) {
+                                        setCurrentDate(nextDate.toJSDate());
+                                    }
+                                    setIsCalendarVisible(false);
+                                }}
+                                renderArrow={(direction) => (
+                                    <Ionicons
+                                        name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
+                                        size={22}
+                                        color={colors.primary}
+                                    />
+                                )}
+                                markedDates={{
+                                    ...(todayDate ? { [todayDate]: { marked: true, dotColor: colors.secondary } } : {}),
+                                    ...(selectedDate
+                                        ? {
+                                            [selectedDate]: {
+                                                selected: true,
+                                                selectedColor: colors.primary,
+                                                marked: true,
+                                                dotColor: colors.onPrimary
+                                            }
+                                        }
+                                        : {})
+                                }}
+                                theme={{
+                                    calendarBackground: colors.surface,
+                                    monthTextColor: colors.text,
+                                    dayTextColor: colors.onSurface,
+                                    textDisabledColor: colors.outlineVariant || colors.outline,
+                                    arrowColor: colors.primary,
+                                    todayTextColor: colors.primary,
+                                    selectedDayTextColor: colors.onPrimary,
+                                    textMonthFontWeight: '700',
+                                    textDayHeaderFontWeight: '600'
+                                }}
+                                enableSwipeMonths
+                            />
+                        )}
+                        <TouchableOpacity
+                            style={[styles.closeButton, { backgroundColor: colors.primary }]}
+                            onPress={() => setIsCalendarVisible(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Cerrar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            {loading ? (
+                <View style={styles.centerContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            ) : error ? (
+                <View style={styles.centerContainer}>
+                    <Ionicons name="alert-circle-outline" size={48} color={colors.outline} />
+                    <Text style={[styles.errorText, { color: colors.outline }]}>{error}</Text>
+                    <TouchableOpacity
+                        style={[styles.retryButton, { backgroundColor: colors.primary }]}
+                        onPress={() => fetchLogForDate(currentDate)}
+                    >
+                        <Text style={styles.retryText}>Reintentar</Text>
+                    </TouchableOpacity>
+                </View>
+            ) : log && log.meals.length > 0 ? (
+                <FlatList
+                    data={log.meals}
+                    keyExtractor={(item) => item._id}
+                    renderItem={({ item }) => (
+                        <MealItem
+                            item={item}
+                            logId={log._id}
+                            onDelete={handleDeleteMeal}
+                            colors={colors}
+                        />
+                    )}
+                    contentContainerStyle={styles.listContent}
                 />
+            ) : (
+                <View style={styles.centerContainer}>
+                    <Ionicons name="restaurant-outline" size={64} color={colors.outline} />
+                    <Text style={[styles.emptyText, { color: colors.outline }]}>No hay registros para este día</Text>
+                </View>
             )}
-            contentContainerStyle={styles.listContent}
-            />
-        ) : (
-            <View style={styles.centerContainer}>
-            <Ionicons name="restaurant-outline" size={64} color={colors.outline} />
-            <Text style={[styles.emptyText, { color: colors.outline }]}>No hay registros para este día</Text>
-            </View>
-        )}
         </SafeAreaView>
     );
 };
@@ -255,10 +320,16 @@ export default function MealLogHistoryScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1 },
     header: { padding: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' },
-    dateSelector: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
-    dateNavButton: { padding: 8 },
-    dateLabelContainer: { flex: 1, alignItems: 'center' },
-    dateLabel: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
+    dateHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 12 },
+    dateLabelContainer: { flex: 1 },
+    sectionLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
+    dateLabel: { fontSize: 16, fontWeight: '700' },
+    calendarButton: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1 },
+    calendarButtonText: { fontSize: 13, fontWeight: '700' },
+    modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', padding: 16 },
+    modalCard: { borderRadius: 16, padding: 12 },
+    closeButton: { marginTop: 10, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+    closeButtonText: { color: '#FFFFFF', fontWeight: '700' },
     statsContainer: { flexDirection: 'row', borderRadius: 16, padding: 16, justifyContent: 'space-around' },
     statItem: { alignItems: 'center' },
     statValue: { fontSize: 18, fontWeight: '800' },
