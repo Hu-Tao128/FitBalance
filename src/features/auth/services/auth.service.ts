@@ -2,11 +2,11 @@ import { apiClient } from '../../../core/api/apiClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const authService = {
-    login: async (email: string, password: string) => {
-        const res = await apiClient.post('/auth/login', { email, password });
-        if (res.data.token) {
-            await AsyncStorage.setItem('token', res.data.token);
-            await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    login: async (username: string, password: string) => {
+        const res = await apiClient.post('/login', { username, password });
+        const token = res.data?.token || res.data?.accessToken || res.data?.jwt || '';
+        if (token) {
+            await AsyncStorage.setItem('token', token);
         }
         return res.data;
     },
@@ -16,8 +16,9 @@ export const authService = {
         await AsyncStorage.removeItem('user');
     },
 
-    changePassword: async (currentPassword: string, newPassword: string) => {
-        const res = await apiClient.put('/auth/change-password', {
+    changePassword: async (patient_id: string, currentPassword: string, newPassword: string) => {
+        const res = await apiClient.put('/patients/change-password', {
+            patient_id,
             currentPassword,
             newPassword
         });

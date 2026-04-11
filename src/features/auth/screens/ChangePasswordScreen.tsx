@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React, { useState } from 'react';
 import {
     ActivityIndicator,
@@ -14,9 +13,9 @@ import {
     View
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { API_CONFIG } from '../../../config/config';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
+import { authService } from '../services/auth.service';
 
 const ChangePasswordScreen = () => {
     const { colors, darkMode } = useTheme();
@@ -54,21 +53,12 @@ const ChangePasswordScreen = () => {
         setLoading(true);
 
         try {
-            const response = await axios.put(
-                `${API_CONFIG.BASE_URL}/patients/change-password`,
-                {
-                    patient_id: pid,
-                    currentPassword,
-                    newPassword
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            if (!pid) {
+                throw new Error('Paciente no identificado');
+            }
+            const response = await authService.changePassword(pid, currentPassword, newPassword);
 
-            Alert.alert('Éxito', response.data.message);
+            Alert.alert('Éxito', response.message || 'Contraseña actualizada con éxito.');
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
