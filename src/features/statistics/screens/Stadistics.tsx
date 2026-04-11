@@ -1,9 +1,11 @@
 import { useFocusEffect } from '@react-navigation/native';
-import axios from 'axios';
 import React, { useState, useCallback } from 'react';
+import { Calendar, DateData } from 'react-native-calendars';
 import {
     ActivityIndicator,
     Dimensions,
+    Modal,
+    TouchableOpacity,
     RefreshControl,
     SafeAreaView,
     ScrollView,
@@ -14,7 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-chart-kit';
-import { API_CONFIG } from '../../../config/config';
+import { apiClient } from '../../../core/api/apiClient';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
 
@@ -25,9 +27,15 @@ const parseLocalDate = (iso: string): Date => {
     return new Date(year, month - 1, day);
 };
 
-const getWeekDates = (offset: number) => {
-    const base = new Date();
-    base.setDate(base.getDate() - offset * 7);
+const toDateKey = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const getWeekDates = (baseDate: Date) => {
+    const base = new Date(baseDate);
     const dayOfWeek = base.getDay();
     const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     const start = new Date(base);
@@ -48,8 +56,8 @@ const StatisticsScreen: React.FC = () => {
     const [data, setData] = useState<Array<{ date: string; totals: { calories: number; protein: number; fat: number; carbs: number }; meals: any[] }>>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [weekOffset, setWeekOffset] = useState(0);
-    const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [isCalendarVisible, setIsCalendarVisible] = useState(false);
 
     const chartConfig = {
         backgroundGradientFrom: colors.card,
@@ -64,7 +72,7 @@ const StatisticsScreen: React.FC = () => {
 
     const fetchMealLogs = useCallback(async () => {
         try {
-            const res = await axios.get(`${API_CONFIG.BASE_URL}/daily-meal-logs/all/${user?.id}`);
+            const res = await apiClient.get(`/daily-meal-logs/all/${user?.id}`);
             const sorted = (res.data as Array<any>).sort(
                 (a, b) => parseLocalDate(a.date).getTime() - parseLocalDate(b.date).getTime()
             );
@@ -90,10 +98,11 @@ const StatisticsScreen: React.FC = () => {
         fetchMealLogs();
     }, [fetchMealLogs]);
 
-    const { startOfWeek } = getWeekDates(weekOffset);
+    const selectedDateKey = toDateKey(selectedDate);
+    const { startOfWeek, endOfWeek } = getWeekDates(selectedDate);
     const weeklyData = data.filter(e => {
         const d = parseLocalDate(e.date);
-        return d >= startOfWeek && d <= getWeekDates(weekOffset).endOfWeek;
+        return d >= startOfWeek && d <= endOfWeek;
     });
     const filledWeekData = Array.from({ length: 7 }).map((_, i) => {
         const date = new Date(startOfWeek);
@@ -108,12 +117,22 @@ const StatisticsScreen: React.FC = () => {
         };
     });
 
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const labels = filledWeekData.map(e => e.date.toLocaleDateString('en-EN', { weekday: 'short' }));
     const caloriesData = filledWeekData.map(e => e.calories);
     const proteinData = filledWeekData.map(e => e.protein);
     const fatData = filledWeekData.map(e => e.fat);
     const carbsData = filledWeekData.map(e => e.carbs);
+    const markedDates = filledWeekData.reduce<Record<string, any>>((acc, entry) => {
+        const key = toDateKey(entry.date);
+        acc[key] = {
+            marked: entry.calories > 0 || entry.protein > 0 || entry.fat > 0 || entry.carbs > 0,
+            dotColor: colors.secondary,
+            selected: key === selectedDateKey,
+            selectedColor: colors.primary
+        };
+        return acc;
+    }, {});
+    const weekRangeLabel = `${startOfWeek.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} - ${endOfWeek.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`;
 
     if (loading) {
         return (
@@ -145,37 +164,29 @@ const StatisticsScreen: React.FC = () => {
                     />
                 }
             >
-                {/* Semana + navegación */}
-                <View style={styles.navRow}>
-                    <Pressable
-                        style={styles.navButton}
-                        onPress={() => setWeekOffset(prev => prev + 1)}
-                    >
-                        <Text style={[styles.navArrow, { color: colors.primary }]}>‹</Text>
-                    </Pressable>
-                    <View style={styles.weekInfo}>
-                        <Text style={[styles.weekLabel, { color: colors.text }]}>Week</Text>
-                        {refreshing && (
-                            <ActivityIndicator size="small" color={colors.primary} style={styles.weekSpinner} />
-                        )}
+                <View style={[styles.calendarContainer, { backgroundColor: colors.card }]}>
+                    <View style={styles.calendarHeaderRow}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.weekLabel, { color: colors.text }]}>Semana seleccionada</Text>
+                            <Text style={[styles.weekRangeLabel, { color: colors.textSecondary }]}>Semana: {weekRangeLabel}</Text>
+                        </View>
+                        <TouchableOpacity
+                            style={[styles.calendarButton, { borderColor: colors.primary }]}
+                            onPress={() => setIsCalendarVisible(true)}
+                        >
+                            <Text style={[styles.calendarButtonText, { color: colors.primary }]}>Calendario</Text>
+                        </TouchableOpacity>
                     </View>
-                    <Pressable
-                        style={styles.navButton}
-                        disabled={weekOffset === 0}
-                        onPress={() => setWeekOffset(prev => Math.max(0, prev - 1))}
-                    >
-                        <Text style={[styles.navArrow, { color: weekOffset === 0 ? colors.border : colors.primary }]}>›</Text>
-                    </Pressable>
                 </View>
 
                 {/* Racha con número */}
                 <View style={[styles.streakContainer, { backgroundColor: colors.card }]}>
                     {filledWeekData.map((entry, idx) => {
                         const has = entry.calories > 0 || entry.protein > 0 || entry.fat > 0 || entry.carbs > 0;
-                        const day = days[idx];
+                        const day = entry.date.toLocaleDateString('es-ES', { weekday: 'short' });
                         const dateNum = entry.date.getDate();
                         return (
-                            <Pressable key={day} style={styles.streakItem} onPress={() => setSelectedDayIndex(idx)}>
+                            <Pressable key={`${day}-${idx}`} style={styles.streakItem} onPress={() => setSelectedDate(entry.date)}>
                                 <View style={[styles.streakCircle, { backgroundColor: has ? colors.primary : colors.border }]}>
                                     <Text style={[styles.streakNumber, { color: has ? colors.onPrimary : colors.textSecondary }]}>
                                         {dateNum}
@@ -215,6 +226,50 @@ const StatisticsScreen: React.FC = () => {
                     )
                 ))}
             </ScrollView>
+
+            <Modal
+                visible={isCalendarVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setIsCalendarVisible(false)}
+            >
+                <View style={styles.modalBackdrop}>
+                    <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+                        <Calendar
+                            current={selectedDateKey}
+                            markedDates={markedDates}
+                            onDayPress={(day: DateData) => {
+                                const [year, month, date] = day.dateString.split('-').map(Number);
+                                setSelectedDate(new Date(year, month - 1, date));
+                                setIsCalendarVisible(false);
+                            }}
+                            renderArrow={(direction) => (
+                                <Text style={{ color: colors.primary, fontSize: 20, fontWeight: '800' }}>
+                                    {direction === 'left' ? '‹' : '›'}
+                                </Text>
+                            )}
+                            theme={{
+                                calendarBackground: colors.card,
+                                monthTextColor: colors.text,
+                                dayTextColor: colors.onSurface,
+                                textDisabledColor: colors.outlineVariant || colors.outline,
+                                arrowColor: colors.primary,
+                                todayTextColor: colors.primary,
+                                selectedDayTextColor: colors.onPrimary,
+                                textMonthFontWeight: '700',
+                                textDayHeaderFontWeight: '600'
+                            }}
+                            enableSwipeMonths
+                        />
+                        <TouchableOpacity
+                            style={[styles.closeButton, { backgroundColor: colors.primary }]}
+                            onPress={() => setIsCalendarVisible(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Cerrar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 };
@@ -225,12 +280,16 @@ const styles = StyleSheet.create({
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     headerContainer: { padding: 16, alignItems: 'center' },
     header: { fontSize: 24, fontWeight: 'bold' },
-    navRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-    navButton: { padding: 8 },
-    navArrow: { fontSize: 28, fontWeight: '300' },
-    weekInfo: { flexDirection: 'row', alignItems: 'center' },
-    weekLabel: { fontSize: 18, fontWeight: '600' },
-    weekSpinner: { marginLeft: 8 },
+    calendarContainer: { borderRadius: 12, padding: 12, marginBottom: 16 },
+    calendarHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+    weekLabel: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
+    weekRangeLabel: { fontSize: 13, fontWeight: '600' },
+    calendarButton: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 },
+    calendarButtonText: { fontSize: 13, fontWeight: '700' },
+    modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', padding: 16 },
+    modalCard: { borderRadius: 16, padding: 12 },
+    closeButton: { marginTop: 10, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+    closeButtonText: { color: '#FFFFFF', fontWeight: '700' },
     streakContainer: { flexDirection: 'row', justifyContent: 'space-around', padding: 12, borderRadius: 12, marginBottom: 16 },
     streakItem: { alignItems: 'center' },
     streakCircle: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },

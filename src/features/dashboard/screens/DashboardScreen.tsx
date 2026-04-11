@@ -1,15 +1,13 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Pedometer } from 'expo-sensors';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  Platform
+  View
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,7 +27,6 @@ export default function DashboardScreen() {
 
   const [nutritionData, setNutritionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [steps, setSteps] = useState<number>(0);
 
   const fetchDashboardData = useCallback(async () => {
     if (!user?.id) return;
@@ -50,28 +47,6 @@ export default function DashboardScreen() {
     }, [fetchDashboardData])
   );
 
-  useEffect(() => {
-    let isMounted = true;
-    const subscribe = async () => {
-      try {
-        const isAvailable = await Pedometer.isAvailableAsync();
-        if (isAvailable && isMounted) {
-          return Pedometer.watchStepCount(result => {
-            if (isMounted) setSteps(result.steps);
-          });
-        }
-      } catch (err) {
-        console.log('Pedometer not available', err);
-      }
-    };
-
-    const subscription = subscribe();
-    return () => {
-      isMounted = false;
-      subscription.then(sub => sub?.remove());
-    };
-  }, []);
-
   const styles = createStyles(colors, insets);
 
   if (loading) {
@@ -83,8 +58,15 @@ export default function DashboardScreen() {
   }
 
   const consumedCalories = nutritionData?.totals?.calories || 0;
-  const targetCalories = 2000; // Placeholder target
-  const progress = (consumedCalories / targetCalories) * 100;
+  const calorieGoal = nutritionData?.goals?.calories || 2000;
+  const safeCalorieGoal = calorieGoal > 0 ? calorieGoal : 1;
+  const caloriesRemaining = calorieGoal - consumedCalories;
+  const proteinConsumed = nutritionData?.totals?.protein || 0;
+  const carbsConsumed = nutritionData?.totals?.carbs || 0;
+  const fatConsumed = nutritionData?.totals?.fat || 0;
+  const proteinColor = colors.secondary;
+  const carbsColor = colors.tertiary;
+  const fatColor = '#FF9500';
 
   return (
     <View style={styles.container}>
@@ -100,45 +82,100 @@ export default function DashboardScreen() {
         </View>
 
         <View style={[styles.mainCard, { backgroundColor: colors.card }]}>
-          <View style={styles.progressSection}>
-            <AnimatedCircularProgress
-              size={180}
-              width={15}
-              fill={progress}
-              tintColor={colors.primary}
-              backgroundColor={colors.surfaceContainer}
-              rotation={0}
-              lineCap="round"
-            >
-              {() => (
-                <View style={styles.innerProgress}>
-                  <Text style={styles.caloriesValue}>{Math.round(consumedCalories)}</Text>
-                  <Text style={styles.caloriesLabel}>kcal consumidas</Text>
-                </View>
-              )}
-            </AnimatedCircularProgress>
+          <View style={styles.heroContent}>
+            <View style={styles.heroLeft}>
+              <Text style={styles.heroLabel}>Calorías</Text>
+              <Text style={styles.heroValue}>{Math.round(consumedCalories)}</Text>
+              <Text style={styles.heroGoal}>de {Math.round(calorieGoal)} kcal</Text>
+            </View>
+            <View style={styles.heroRight}>
+              <AnimatedCircularProgress
+                size={100}
+                width={10}
+                fill={Math.min(100, (consumedCalories / safeCalorieGoal) * 100)}
+                tintColor={colors.primary}
+                backgroundColor={colors.surfaceContainerHighest}
+                rotation={0}
+                lineCap="round"
+              >
+                {(fill: number) => (
+                  <View style={styles.progressCenter}>
+                    <Text style={styles.progressPercent}>{Math.round(fill)}%</Text>
+                  </View>
+                )}
+              </AnimatedCircularProgress>
+            </View>
           </View>
 
-          <View style={styles.macrosRow}>
-            <MacroItem label="Prot" value={nutritionData?.totals?.protein || 0} unit="g" color={colors.secondary} />
-            <MacroItem label="Carbs" value={nutritionData?.totals?.carbs || 0} unit="g" color={colors.tertiary} />
-            <MacroItem label="Grasas" value={nutritionData?.totals?.fat || 0} unit="g" color="#FF9500" />
+          <View style={styles.heroBottom}>
+            <Ionicons
+              name={caloriesRemaining >= 0 ? 'checkmark-circle' : 'alert-circle'}
+              size={20}
+              color={caloriesRemaining >= 0 ? (colors.success || colors.primary) : colors.error}
+            />
+            <Text
+              style={[
+                styles.heroStatus,
+                { color: caloriesRemaining >= 0 ? (colors.success || colors.primary) : colors.error }
+              ]}
+            >
+              {Math.abs(Math.round(caloriesRemaining))} kcal {caloriesRemaining >= 0 ? 'restantes' : 'de exceso'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Macronutrientes</Text>
+          <View style={[styles.macrosCard, { backgroundColor: colors.card }]}>
+            <MacroBar
+              label="Proteína"
+              icon="food-drumstick"
+              value={proteinConsumed}
+              goal={nutritionData?.goals?.protein || 150}
+              color={proteinColor}
+              unit="g"
+              styles={styles}
+              colors={colors}
+            />
+            <MacroBar
+              label="Carbohidratos"
+              icon="bread-slice"
+              value={carbsConsumed}
+              goal={nutritionData?.goals?.carbs || 250}
+              color={carbsColor}
+              unit="g"
+              styles={styles}
+              colors={colors}
+            />
+            <MacroBar
+              label="Grasas"
+              icon="oil"
+              value={fatConsumed}
+              goal={nutritionData?.goals?.fat || 70}
+              color={fatColor}
+              unit="g"
+              styles={styles}
+              colors={colors}
+            />
           </View>
         </View>
 
         <View style={styles.activitySection}>
-          <Text style={styles.sectionTitle}>Actividad de hoy</Text>
-          <View style={styles.activityGrid}>
-            <View style={[styles.activityCard, { backgroundColor: colors.card }]}>
-              <Ionicons name="footsteps" size={24} color={colors.primary} />
-              <Text style={styles.activityValue}>{steps}</Text>
-              <Text style={styles.activityLabel}>pasos</Text>
+          <Text style={styles.sectionTitle}>Meal Log</Text>
+          <View style={[styles.activityCard, { backgroundColor: colors.card }]}>
+            <View style={styles.mealLogHeader}>
+              <Ionicons name="calendar-outline" size={22} color={colors.primary} />
+              <Text style={[styles.mealLogTitle, { color: colors.text }]}>Historial diario de comidas</Text>
             </View>
-            <View style={[styles.activityCard, { backgroundColor: colors.card }]}>
-              <Ionicons name="water" size={24} color="#007AFF" />
-              <Text style={styles.activityValue}>--</Text>
-              <Text style={styles.activityLabel}>vasos agua</Text>
-            </View>
+            <Text style={[styles.mealLogDescription, { color: colors.outline }]}>
+              Consulta tu registro diario y ve tus comidas por día.
+            </Text>
+            <TouchableOpacity
+              style={[styles.mealLogButton, { backgroundColor: colors.primary }]}
+              onPress={() => navigation.navigate('MealLogHistory', { initialDate: new Date().toISOString() })}
+            >
+              <Text style={styles.mealLogButtonText}>Abrir Meal Log</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -154,13 +191,26 @@ export default function DashboardScreen() {
   );
 }
 
-const MacroItem = ({ label, value, unit, color }: any) => (
-  <View style={styles.macroItem}>
-    <View style={[styles.macroDot, { backgroundColor: color }]} />
-    <Text style={styles.macroValueText}>{Math.round(value)}{unit}</Text>
-    <Text style={styles.macroLabelText}>{label}</Text>
-  </View>
-);
+const MacroBar = ({ label, icon, value, goal, color, unit, styles, colors }: any) => {
+  const safeGoal = goal > 0 ? goal : 1;
+  const progress = Math.max(0, Math.min(100, (value / safeGoal) * 100));
+  return (
+    <View style={styles.macroRow}>
+      <View style={styles.macroRowHeader}>
+        <View style={styles.macroRowLeft}>
+          <MaterialCommunityIcons name={icon} size={18} color={color} />
+          <Text style={[styles.macroRowLabel, { color: colors.text }]}>{label}</Text>
+        </View>
+        <Text style={[styles.macroRowValue, { color: colors.text }]}>
+          {Math.round(value)} / {Math.round(goal)} {unit}
+        </Text>
+      </View>
+      <View style={[styles.macroTrack, { backgroundColor: colors.surfaceContainerHighest }]}>
+        <View style={[styles.macroFill, { width: `${progress}%`, backgroundColor: color }]} />
+      </View>
+    </View>
+  );
+};
 
 const createStyles = (colors: any, insets: any) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
@@ -169,29 +219,43 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
   greeting: { fontSize: 24, fontWeight: '800', color: colors.text },
   dateText: { fontSize: 14, color: colors.outline, textTransform: 'capitalize' },
-  mainCard: { borderRadius: 30, padding: 25, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 10 },
-  progressSection: { alignItems: 'center', marginBottom: 25 },
-  innerProgress: { alignItems: 'center' },
-  caloriesValue: { fontSize: 32, fontWeight: '900', color: colors.text },
-  caloriesLabel: { fontSize: 14, color: colors.outline, fontWeight: '600' },
-  macrosRow: { flexDirection: 'row', justifyContent: 'space-around', borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)', paddingTop: 20 },
-  macroItem: { alignItems: 'center' },
-  macroDot: { width: 8, height: 8, borderRadius: 4, marginBottom: 4 },
-  macroValueText: { fontSize: 16, fontWeight: '700', color: colors.text },
-  macroLabelText: { fontSize: 12, color: colors.outline, fontWeight: '600' },
-  activitySection: { marginTop: 30 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: 15 },
-  activityGrid: { flexDirection: 'row', justifyContent: 'space-between' },
-  activityCard: { width: '47%', padding: 20, borderRadius: 20, alignItems: 'center', elevation: 2 },
-  activityValue: { fontSize: 20, fontWeight: '800', color: colors.text, marginTop: 8 },
-  activityLabel: { fontSize: 14, color: colors.outline, fontWeight: '600' },
+  mainCard: {
+    borderRadius: 24,
+    padding: 20,
+    backgroundColor: colors.surfaceContainerLowest || colors.card,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8
+  },
+  heroContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  heroLeft: { flex: 1 },
+  heroLabel: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, marginBottom: 6 },
+  heroValue: { fontSize: 38, fontWeight: '900', color: colors.text, lineHeight: 44 },
+  heroGoal: { fontSize: 14, color: colors.outline, marginTop: 2, fontWeight: '500' },
+  heroRight: { marginLeft: 14 },
+  progressCenter: { alignItems: 'center', justifyContent: 'center' },
+  progressPercent: { fontSize: 18, fontWeight: '800', color: colors.text },
+  heroBottom: { flexDirection: 'row', alignItems: 'center', marginTop: 16, gap: 8 },
+  heroStatus: { fontSize: 14, fontWeight: '700' },
+  section: { marginTop: 18 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: 12 },
+  macrosCard: { borderRadius: 20, padding: 16, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6 },
+  macroRow: { marginBottom: 14 },
+  macroRowHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  macroRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  macroRowLabel: { fontSize: 14, fontWeight: '700' },
+  macroRowValue: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
+  macroTrack: { height: 8, borderRadius: 8, overflow: 'hidden' },
+  macroFill: { height: '100%', borderRadius: 8 },
+  activitySection: { marginTop: 26 },
+  activityCard: { padding: 20, borderRadius: 20, elevation: 2 },
+  mealLogHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  mealLogTitle: { fontSize: 16, fontWeight: '700' },
+  mealLogDescription: { fontSize: 14, lineHeight: 20, marginBottom: 14 },
+  mealLogButton: { paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  mealLogButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
   actionButton: { flexDirection: 'row', height: 60, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginTop: 30, elevation: 4, gap: 8 },
   actionButtonText: { color: 'white', fontSize: 18, fontWeight: 'bold' }
-});
-
-const styles = StyleSheet.create({
-    macroItem: { alignItems: 'center' },
-    macroDot: { width: 8, height: 8, borderRadius: 4, marginBottom: 4 },
-    macroValueText: { fontSize: 16, fontWeight: '700' },
-    macroLabelText: { fontSize: 12, fontWeight: '600' },
 });
