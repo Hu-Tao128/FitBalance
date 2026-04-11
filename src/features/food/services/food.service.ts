@@ -57,15 +57,5 @@ export const foodService = {
 
     addMealLog: async (params: AddMealParams): Promise<void> => {
         await apiClient.post('/daily-meal-logs/add-meal', params);
-    },
-
-    searchRecipes: async (query: string) => {
-        const res = await apiClient.get('/api/recipes/search', { params: { query } });
-        return res.data.results || [];
-    },
-
-    getRecipeDetails: async (id: number) => {
-        const res = await apiClient.get(`/api/recipes/${id}`);
-        return res.data;
     }
 };
