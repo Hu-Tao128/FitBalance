@@ -1,30 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import axios from 'axios';
-import { API_CONFIG } from '../../../config/config';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
-
-export interface Appointment {
-    _id: string;
-    patient_id: string;
-    nutritionist_id: string;
-    appointment_date: string;
-    appointment_time: string;
-    type: 'virtual' | 'in-person';
-    status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-    notes?: string;
-}
-
-interface Nutritionist {
-    _id: string;
-    name: string;
-    lastName: string;
-    secondLastName?: string;
-    email?: string;
-    specialization?: string;
-    photo?: string;
-}
+import { Appointment, Nutritionist, nutritionistService } from '../services/nutritionist.service';
 
 const ManagementDatingScreen = () => {
     const { colors, darkMode } = useTheme();
@@ -50,21 +28,14 @@ const ManagementDatingScreen = () => {
             setError(null);
 
             try {
-                const [appointmentsRes, nutritionistRes] = await Promise.all([
-                    fetch(`${API_CONFIG.BASE_URL}/appointments/${user.id}`),
-                    user.nutritionist_id ? axios.get(`${API_CONFIG.BASE_URL}/nutritionist/${user.nutritionist_id}`) : Promise.resolve({ data: null })
+                const [appointmentsData, nutritionistData] = await Promise.all([
+                    nutritionistService.getAppointmentsByPatientId(user.id),
+                    user.nutritionist_id ? nutritionistService.getById(user.nutritionist_id) : Promise.resolve(null)
                 ]);
-
-                if (!appointmentsRes.ok) {
-                    const errorData = await appointmentsRes.text();
-                    throw new Error(`Error ${appointmentsRes.status}: ${errorData || 'Appointments could not be uploaded.'}`);
-                }
-
-                const appointmentsData: Appointment[] = await appointmentsRes.json();
                 setAppointments(appointmentsData);
 
-                if (nutritionistRes.data) {
-                    setNutritionist(nutritionistRes.data);
+                if (nutritionistData) {
+                    setNutritionist(nutritionistData);
                 }
             } catch (err) {
                 console.error("ERROR EN FETCH:", err);
