@@ -1,24 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { API_CONFIG } from '../../../config/config';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
-
-interface Nutritionist {
-    _id: string;
-    name: string;
-    lastName: string;
-    secondLastName?: string;
-    email: string;
-    city: string;
-    street: string;
-    neighborhood: string;
-    streetNumber: string;
-    licenseNumber?: string;
-    specialization?: string;
-}
+import { Nutritionist, nutritionistService } from '../services/nutritionist.service';
 
 const NutritionistProfileScreen = () => {
     const { colors, darkMode } = useTheme();
@@ -31,7 +16,8 @@ const NutritionistProfileScreen = () => {
     const styles = createDynamicStyles(colors, darkMode);
 
     useEffect(() => {
-        if (!user || !user.nutritionist_id) {
+        const nutritionistId = user?.nutritionist_id;
+        if (!nutritionistId) {
             setError('No tienes un nutricionista asignado.');
             setLoading(false);
             return;
@@ -41,8 +27,8 @@ const NutritionistProfileScreen = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await axios.get(`${API_CONFIG.BASE_URL}/nutritionist/${user.nutritionist_id}`);
-                setNutritionist(response.data);
+                const nutritionistData = await nutritionistService.getById(nutritionistId);
+                setNutritionist(nutritionistData);
             } catch (err: any) {
                 console.error("Failed to fetch nutritionist:", err);
                 setError(err.response?.data?.message || 'No se pudieron cargar los detalles del nutricionista.');
@@ -80,7 +66,9 @@ const NutritionistProfileScreen = () => {
     }
 
     const fullName = `${nutritionist.name} ${nutritionist.lastName} ${nutritionist.secondLastName || ''}`;
-    const fullAddress = `${nutritionist.street} #${nutritionist.streetNumber}, ${nutritionist.neighborhood}, ${nutritionist.city}`;
+    const fullAddress = [nutritionist.street, nutritionist.streetNumber ? `#${nutritionist.streetNumber}` : '', nutritionist.neighborhood, nutritionist.city]
+        .filter(Boolean)
+        .join(', ');
 
     return (
         <SafeAreaView style={styles.container}>
@@ -92,7 +80,7 @@ const NutritionistProfileScreen = () => {
                 <View style={styles.heroCard}>
                     <View style={styles.avatarContainer}>
                         <Image
-                            source={require('../../assets/image.png')}
+                            source={require('../../../../assets/image.png')}
                             style={styles.avatarImage}
                         />
                     </View>
@@ -114,7 +102,7 @@ const NutritionistProfileScreen = () => {
                         <InfoRow 
                             icon="mail-outline" 
                             label="Correo Electrónico" 
-                            value={nutritionist.email}
+                            value={nutritionist.email || 'Sin correo disponible'}
                         />
                         <InfoRow 
                             icon="location-outline" 
