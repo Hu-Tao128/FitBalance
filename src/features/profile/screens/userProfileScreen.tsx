@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
-    ActivityIndicator,
     Alert,
     Image,
     SafeAreaView,
@@ -16,7 +15,7 @@ import {
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
 import { RootStackParamList } from '../../../navigation/AppNavigator';
-import { profileService, UserProfile } from '../services/profile.service';
+import { UserProfile } from '../services/profile.service';
 
 type ProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'UserProfile'>;
 
@@ -24,27 +23,16 @@ export default function UserProfileScreen() {
     const { user, logout } = useUser();
     const { colors } = useTheme();
     const navigation = useNavigation<ProfileScreenNavigationProp>();
-    
-    const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    const fetchProfile = async () => {
-        if (!user?.id) return;
-        setLoading(true);
-        try {
-            const data = await profileService.getProfile(user.id);
-            setProfile(data);
-        } catch (error) {
-            console.error('Error fetching profile:', error);
-            Alert.alert('Error', 'No se pudo cargar la información del perfil.');
-        } finally {
-            setLoading(false);
+    const profile: UserProfile | null = user
+        ? {
+            id: user.id,
+            name: user.name || user.username || 'Usuario',
+            email: user.email || '',
+            photo: undefined,
+            height: user.height_cm,
+            weight: user.weight_kg,
         }
-    };
-
-    useEffect(() => {
-        fetchProfile();
-    }, [user?.id]);
+        : null;
 
     const handleLogout = () => {
         Alert.alert(
@@ -56,14 +44,6 @@ export default function UserProfileScreen() {
             ]
         );
     };
-
-    if (loading) {
-        return (
-            <View style={[styles.center, { backgroundColor: colors.background }]}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
