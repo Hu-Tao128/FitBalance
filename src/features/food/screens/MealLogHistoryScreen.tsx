@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { DateData, Calendar } from 'react-native-calendars';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -49,12 +50,14 @@ const MealItem = React.memo(({
     item, 
     logId, 
     onDelete, 
-    colors 
+    colors,
+    t
     }: { 
     item: Meal, 
     logId: string | null, 
     onDelete: (mealId: string) => void, 
-    colors: any 
+    colors: any,
+    t: any
 }) => (
     <View style={[styles.mealCard, { backgroundColor: colors.card }]}>
         <View style={styles.mealHeader}>
@@ -67,7 +70,7 @@ const MealItem = React.memo(({
             color={colors.primary} 
             />
             <Text style={[styles.mealType, { color: colors.primary }]}>
-            {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+            {t(`food.meals.${item.type}`, { defaultValue: item.type })}
             </Text>
         </View>
         <View style={styles.mealHeaderRight}>
@@ -110,6 +113,7 @@ const MealItem = React.memo(({
 ));
 
 export default function MealLogHistoryScreen() {
+    const { t, i18n } = useTranslation();
     const { colors } = useTheme();
     const { user } = useUser();
     const route = useRoute<MealLogHistoryScreenRouteProp>();
@@ -141,11 +145,11 @@ export default function MealLogHistoryScreen() {
             }
         } catch (err: any) {
             console.error('Error fetching log:', err);
-            setError('No se pudo cargar el historial');
+            setError(t('food.loadPlanError'));
         } finally {
             setLoading(false);
         }
-    }, [user?.id]);
+    }, [user?.id, t]);
 
     useEffect(() => {
         fetchLogForDate(currentDate);
@@ -156,17 +160,17 @@ export default function MealLogHistoryScreen() {
 
     const handleDeleteMeal = async (mealId: string) => {
         Alert.alert(
-            "Eliminar registro",
-            "¿Estás seguro de que deseas eliminar este registro de comida?",
+            t('food.deleteTitle'),
+            t('food.deleteMessage'),
             [
-                { text: "Cancelar", style: "cancel" },
+                { text: t('common.cancel'), style: "cancel" },
                 { 
-                    text: "Eliminar", 
+                    text: t('food.deleteConfirm'), 
                     style: "destructive",
                     onPress: async () => {
                         // Logic to delete meal would go here, 
                         // for now just alert
-                        Alert.alert("Info", "Funcionalidad de eliminación pendiente de migración a servicio.");
+                        Alert.alert("Info", t('food.deletePending'));
                     }
                 }
             ]
@@ -177,9 +181,9 @@ export default function MealLogHistoryScreen() {
         <View style={[styles.header, { backgroundColor: colors.surface }]}>
             <View style={styles.dateHeaderRow}>
                 <View style={styles.dateLabelContainer}>
-                    <Text style={[styles.sectionLabel, { color: colors.outline }]}>Fecha seleccionada</Text>
+                    <Text style={[styles.sectionLabel, { color: colors.outline }]}>{t('food.selectedDate')}</Text>
                     <Text style={[styles.dateLabel, { color: colors.onSurface }]}>
-                        {DateTime.fromJSDate(currentDate).setLocale('es').toLocaleString(DateTime.DATE_HUGE)}
+                        {DateTime.fromJSDate(currentDate).setLocale(i18n.language).toLocaleString(DateTime.DATE_HUGE)}
                     </Text>
                 </View>
                 <TouchableOpacity
@@ -187,7 +191,7 @@ export default function MealLogHistoryScreen() {
                     onPress={() => setIsCalendarVisible(true)}
                 >
                     <Ionicons name="calendar-outline" size={18} color={colors.primary} />
-                    <Text style={[styles.calendarButtonText, { color: colors.primary }]}>Calendario</Text>
+                    <Text style={[styles.calendarButtonText, { color: colors.primary }]}>{t('statistics.calendar')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -200,12 +204,12 @@ export default function MealLogHistoryScreen() {
                     <View style={styles.statDivider} />
                     <View style={styles.statItem}>
                         <Text style={[styles.statValue, { color: colors.secondary }]}>{log.totals.protein.toFixed(0)}g</Text>
-                        <Text style={[styles.statLabel, { color: colors.outline }]}>Proteína</Text>
+                        <Text style={[styles.statLabel, { color: colors.outline }]}>{t('dashboard.protein')}</Text>
                     </View>
                     <View style={styles.statDivider} />
                     <View style={styles.statItem}>
                         <Text style={[styles.statValue, { color: colors.tertiary }]}>{log.totals.carbs.toFixed(0)}g</Text>
-                        <Text style={[styles.statLabel, { color: colors.outline }]}>Carbs</Text>
+                        <Text style={[styles.statLabel, { color: colors.outline }]}>{t('dashboard.carbs')}</Text>
                     </View>
                 </View>
             )}
@@ -272,7 +276,7 @@ export default function MealLogHistoryScreen() {
                             style={[styles.closeButton, { backgroundColor: colors.primary }]}
                             onPress={() => setIsCalendarVisible(false)}
                         >
-                            <Text style={styles.closeButtonText}>Cerrar</Text>
+                            <Text style={styles.closeButtonText}>{t('common.cancel')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -290,7 +294,7 @@ export default function MealLogHistoryScreen() {
                         style={[styles.retryButton, { backgroundColor: colors.primary }]}
                         onPress={() => fetchLogForDate(currentDate)}
                     >
-                        <Text style={styles.retryText}>Reintentar</Text>
+                        <Text style={styles.retryText}>{t('food.retry')}</Text>
                     </TouchableOpacity>
                 </View>
             ) : log && log.meals.length > 0 ? (
@@ -303,6 +307,7 @@ export default function MealLogHistoryScreen() {
                             logId={log._id}
                             onDelete={handleDeleteMeal}
                             colors={colors}
+                            t={t}
                         />
                     )}
                     contentContainerStyle={styles.listContent}
@@ -310,7 +315,7 @@ export default function MealLogHistoryScreen() {
             ) : (
                 <View style={styles.centerContainer}>
                     <Ionicons name="restaurant-outline" size={64} color={colors.outline} />
-                    <Text style={[styles.emptyText, { color: colors.outline }]}>No hay registros para este día</Text>
+                    <Text style={[styles.emptyText, { color: colors.outline }]}>{t('food.noRecords')}</Text>
                 </View>
             )}
         </SafeAreaView>

@@ -2,6 +2,7 @@ import { Entypo, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Image,
     KeyboardAvoidingView,
@@ -23,6 +24,7 @@ import { authService } from '../services/auth.service';
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
+    const { t } = useTranslation();
     const { login } = useUser();
     const navigation = useNavigation<NavigationProp>();
     const { colors } = useTheme();
@@ -30,7 +32,7 @@ export default function LoginScreen() {
     const styles = StyleSheet.create({
         container: {
             flex: 1,
-            backgroundColor: '#fff'
+            backgroundColor: colors.background
         },
         scrollContent: {
             flexGrow: 1,
@@ -115,7 +117,7 @@ export default function LoginScreen() {
             right: 0,
             height: 130,
             zIndex: 100,
-            backgroundColor: '#fff',
+            backgroundColor: colors.background,
         },
         footerImage: {
             width: '100%',
@@ -131,7 +133,7 @@ export default function LoginScreen() {
 
     const handleLogin = async () => {
         if (!username || !password) {
-            setMessage('Please complete your username and password.');
+            setMessage(t('auth.completeCredentials', 'Please complete your username and password.'));
             return;
         }
 
@@ -162,15 +164,15 @@ export default function LoginScreen() {
                 isActive: res.data.patient.isActive
             });
 
-            setMessage(`✅ Welcome, ${res.data.patient.name}`);
+            setMessage(`✅ ${t('auth.welcomeUser', { name: res.data.patient.name, defaultValue: 'Welcome, {{name}}' })}`);
             navigation.navigate('Root');
         } catch (error: any) {
             if (error.response && error.response.data && error.response.data.message) {
                 setMessage('❌ ' + error.response.data.message);
             } else if (error.response && error.response.status === 401) {
-                setMessage('❌ Incorrect username or password');
+                setMessage('❌ ' + t('auth.incorrectCredentials', 'Incorrect username or password'));
             } else {
-                setMessage('❌ Network or server error');
+                setMessage('❌ ' + t('auth.networkError', 'Network or server error'));
             }
             console.error('Login error:', error);
         }
@@ -202,7 +204,7 @@ export default function LoginScreen() {
                         <View style={styles.inputWrapper}>
                             <Ionicons name="person-outline" size={20} color="#999" />
                             <TextInput
-                                placeholder="Username"
+                                placeholder={t('auth.username', 'Username')}
                                 placeholderTextColor="#999"
                                 style={styles.input}
                                 value={username}
@@ -214,7 +216,7 @@ export default function LoginScreen() {
                         <View style={styles.inputWrapper}>
                             <Entypo name="lock" size={20} color="#999" />
                             <TextInput
-                                placeholder="Password"
+                                placeholder={t('auth.password', 'Password')}
                                 placeholderTextColor="#999"
                                 secureTextEntry={secureTextEntry}
                                 style={styles.input}
@@ -241,7 +243,7 @@ export default function LoginScreen() {
 
 
                         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                            <Text style={styles.loginText}>Login</Text>
+                            <Text style={styles.loginText}>{t('common.login')}</Text>
                         </TouchableOpacity>
 
                         {message ? (
@@ -249,7 +251,7 @@ export default function LoginScreen() {
                         ) : null}
 
                         <Text style={styles.signUpText}>
-                            Be your best version.
+                            {t('auth.bestVersion', 'Be your best version.')}
                         </Text>
                     </View>
                 </ScrollView>

@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../../context/ThemeContext';
@@ -12,33 +13,34 @@ interface OptionCard {
     screen: string;
 }
 
-const options: OptionCard[] = [
-    {
-        icon: 'barcode-scan',
-        iconType: 'material',
-        label: 'Escanear Código',
-        sub: 'Escanea el código de barras del alimento',
-        screen: 'FoodScanner',
-    },
-    {
-        icon: 'search',
-        iconType: 'ionicons',
-        label: 'Buscar por Nombre',
-        sub: 'Encuentra alimentos por nombre o descripción',
-        screen: 'FoodClassicSearch',
-    },
-    {
-        icon: 'restaurant-outline',
-        iconType: 'ionicons',
-        label: 'Crear Comida',
-        sub: 'Crea recetas y guarda combinaciones',
-        screen: 'optionsFood',
-    },
-];
-
 export default function FoodSearchOptions({ navigation }: any) {
+    const { t } = useTranslation();
     const { colors } = useTheme();
     const insets = useSafeAreaInsets();
+
+    const options: OptionCard[] = [
+        {
+            icon: 'barcode-scan',
+            iconType: 'material',
+            label: t('food.scanCode'),
+            sub: t('food.scanCodeSub'),
+            screen: 'FoodScanner',
+        },
+        {
+            icon: 'search',
+            iconType: 'ionicons',
+            label: t('food.searchByName'),
+            sub: t('food.searchByNameSub'),
+            screen: 'FoodClassicSearch',
+        },
+        {
+            icon: 'restaurant-outline',
+            iconType: 'ionicons',
+            label: t('food.createMeal'),
+            sub: t('food.createMealSub'),
+            screen: 'optionsFood',
+        },
+    ];
 
     const renderIcon = (option: OptionCard, iconColor: string, iconBg: string) => {
         const iconSize = 28;
@@ -71,9 +73,9 @@ export default function FoodSearchOptions({ navigation }: any) {
                 
                 {/* Header */}
                 <View style={styles.header}>
-                    <Text style={[styles.headerTitle, { color: colors.onSurface }]}>¿Qué quieres hacer?</Text>
+                    <Text style={[styles.headerTitle, { color: colors.onSurface }]}>{t('food.searchOptionsTitle')}</Text>
                     <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-                        Selecciona una opción para buscar o crear alimentos
+                        {t('food.searchOptionsSub')}
                     </Text>
                 </View>
 
@@ -113,7 +115,7 @@ export default function FoodSearchOptions({ navigation }: any) {
                     >
                         <Ionicons name="list" size={24} color={colors.onPrimaryContainer} />
                         <Text style={[styles.quickActionText, { color: colors.onPrimaryContainer }]}>
-                            Ver mis comidas guardadas
+                            {t('food.viewSavedMeals')}
                         </Text>
                     </TouchableOpacity>
                 </View>

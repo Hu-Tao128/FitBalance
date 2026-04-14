@@ -2,9 +2,11 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 
 export function usePushNotifications() {
+    const { t } = useTranslation();
     const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
     const notificationListener = useRef<ReturnType<typeof Notifications.addNotificationReceivedListener> | null>(null);
     const responseListener = useRef<ReturnType<typeof Notifications.addNotificationResponseReceivedListener> | null>(null);
@@ -12,7 +14,7 @@ export function usePushNotifications() {
     useEffect(() => {
         const registerForPushNotificationsAsync = async () => {
             if (!Device.isDevice) {
-                alert('Debe usar un dispositivo físico para recibir notificaciones push');
+                alert(t('notifications.deviceError'));
                 return;
             }
 
@@ -25,7 +27,7 @@ export function usePushNotifications() {
             }
 
             if (finalStatus !== 'granted') {
-                alert('No se otorgaron permisos para notificaciones');
+                alert(t('notifications.permissionError'));
                 return;
             }
 

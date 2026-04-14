@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
@@ -13,6 +14,7 @@ import ProfileStackNavigator from '../navigation/SettingsStackNavigator';
 const Tab = createBottomTabNavigator();
 
 export const BottomNavigation = () => {
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const { colors } = useTheme();
 
@@ -65,11 +67,11 @@ export const BottomNavigation = () => {
             }}
             screenOptions={{ headerShown: false }}
         >
-            <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('common.dashboard') }} />
             <Tab.Screen name="Test" component={NutritionixTest} />
             <Tab.Screen name="WeighFood" component={weighFood} />
             <Tab.Screen name="Stadistics" component={StatisticsScreen}/>
-            <Tab.Screen name="Profile" component={ProfileStackNavigator} />
+            <Tab.Screen name="Profile" component={ProfileStackNavigator} options={{ tabBarLabel: t('common.profile') }} />
         </Tab.Navigator>
     );
 };

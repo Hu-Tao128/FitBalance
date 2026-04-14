@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   ScrollView,
@@ -20,6 +21,7 @@ import { dashboardService } from '../services/dashboard.service';
 type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Root'>;
 
 export default function DashboardScreen() {
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const { user } = useUser();
   const insets = useSafeAreaInsets();
@@ -68,13 +70,19 @@ export default function DashboardScreen() {
   const carbsColor = colors.tertiary;
   const fatColor = '#FF9500';
 
+  const formattedDate = new Date().toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { 
+    weekday: 'long', 
+    day: 'numeric', 
+    month: 'long' 
+  });
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hola, {user?.name || 'Usuario'}</Text>
-            <Text style={styles.dateText}>{new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
+            <Text style={styles.greeting}>{t('common.greeting', { name: user?.name || 'Usuario' })}</Text>
+            <Text style={styles.dateText}>{formattedDate}</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('UserProfile')}>
             <Ionicons name="person-circle-outline" size={45} color={colors.primary} />
@@ -84,9 +92,9 @@ export default function DashboardScreen() {
         <View style={[styles.mainCard, { backgroundColor: colors.card }]}>
           <View style={styles.heroContent}>
             <View style={styles.heroLeft}>
-              <Text style={styles.heroLabel}>Calorías</Text>
+              <Text style={styles.heroLabel}>{t('dashboard.calories')}</Text>
               <Text style={styles.heroValue}>{Math.round(consumedCalories)}</Text>
-              <Text style={styles.heroGoal}>de {Math.round(calorieGoal)} kcal</Text>
+              <Text style={styles.heroGoal}>{t('dashboard.of')} {Math.round(calorieGoal)} kcal</Text>
             </View>
             <View style={styles.heroRight}>
               <AnimatedCircularProgress
@@ -119,16 +127,16 @@ export default function DashboardScreen() {
                 { color: caloriesRemaining >= 0 ? (colors.success || colors.primary) : colors.error }
               ]}
             >
-              {Math.abs(Math.round(caloriesRemaining))} kcal {caloriesRemaining >= 0 ? 'restantes' : 'de exceso'}
+              {Math.abs(Math.round(caloriesRemaining))} kcal {caloriesRemaining >= 0 ? t('dashboard.remaining') : t('dashboard.excess')}
             </Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Macronutrientes</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.macronutrients')}</Text>
           <View style={[styles.macrosCard, { backgroundColor: colors.card }]}>
             <MacroBar
-              label="Proteína"
+              label={t('dashboard.protein')}
               icon="food-drumstick"
               value={proteinConsumed}
               goal={nutritionData?.goals?.protein || 150}
@@ -138,7 +146,7 @@ export default function DashboardScreen() {
               colors={colors}
             />
             <MacroBar
-              label="Carbohidratos"
+              label={t('dashboard.carbs')}
               icon="bread-slice"
               value={carbsConsumed}
               goal={nutritionData?.goals?.carbs || 250}
@@ -148,7 +156,7 @@ export default function DashboardScreen() {
               colors={colors}
             />
             <MacroBar
-              label="Grasas"
+              label={t('dashboard.fat')}
               icon="oil"
               value={fatConsumed}
               goal={nutritionData?.goals?.fat || 70}
@@ -161,20 +169,20 @@ export default function DashboardScreen() {
         </View>
 
         <View style={styles.activitySection}>
-          <Text style={styles.sectionTitle}>Meal Log</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.mealLog')}</Text>
           <View style={[styles.activityCard, { backgroundColor: colors.card }]}>
             <View style={styles.mealLogHeader}>
               <Ionicons name="calendar-outline" size={22} color={colors.primary} />
-              <Text style={[styles.mealLogTitle, { color: colors.text }]}>Historial diario de comidas</Text>
+              <Text style={[styles.mealLogTitle, { color: colors.text }]}>{t('dashboard.mealLogHistory')}</Text>
             </View>
             <Text style={[styles.mealLogDescription, { color: colors.outline }]}>
-              Consulta tu registro diario y ve tus comidas por día.
+              {t('dashboard.mealLogDesc')}
             </Text>
             <TouchableOpacity
               style={[styles.mealLogButton, { backgroundColor: colors.primary }]}
               onPress={() => navigation.navigate('MealLogHistory', { initialDate: new Date().toISOString() })}
             >
-              <Text style={styles.mealLogButtonText}>Abrir Meal Log</Text>
+              <Text style={styles.mealLogButtonText}>{t('dashboard.openMealLog')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -184,7 +192,7 @@ export default function DashboardScreen() {
             onPress={() => navigation.navigate('FoodSearchOptions')}
         >
             <Ionicons name="add" size={24} color="white" />
-            <Text style={styles.actionButtonText}>Registrar Comida</Text>
+            <Text style={styles.actionButtonText}>{t('dashboard.registerFood')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

@@ -4,21 +4,14 @@ import {
     Modal, ScrollView, StyleSheet, Text,
     TouchableOpacity, View, ActivityIndicator, Alert
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
 import { TouchableWithoutFeedback } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { mealService } from '../services/meal.service';
 
-type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
 type RawMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
-
-const mealLabels: Record<RawMealType, MealType> = {
-    breakfast: 'Breakfast',
-    lunch: 'Lunch',
-    dinner: 'Dinner',
-    snack: 'Snack'
-};
 
 const makeStyles = (colors: any) => StyleSheet.create({
     container: {
@@ -85,6 +78,7 @@ const makeStyles = (colors: any) => StyleSheet.create({
 });
 
 export default function WeighFoodScreen() {
+    const { t, i18n } = useTranslation();
     const { user } = useUser();
     const { colors } = useTheme();
     const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -96,7 +90,7 @@ export default function WeighFoodScreen() {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedMeal, setSelectedMeal] = useState<any>(null);
 
-    const today = new Intl.DateTimeFormat('en-US', {
+    const today = new Intl.DateTimeFormat(i18n.language === 'es' ? 'es-ES' : 'en-US', {
         weekday: 'long',
         timeZone: 'America/Tijuana'
     }).format(new Date()).toLowerCase();
@@ -113,19 +107,19 @@ export default function WeighFoodScreen() {
             const data = await mealService.getWeeklyPlan(String(user.id));
             
             if (!data?.meals || data.meals.length === 0) {
-                setError('No meals planned for today');
+                setError(t('food.noPlannedMeals'));
                 setWeeklyPlan(null);
             } else {
                 setWeeklyPlan(data);
             }
         } catch (err) {
             console.error('Error loading plan:', err);
-            setError('Could not load meal plan.');
+            setError(t('food.loadPlanError'));
             setWeeklyPlan(null);
         } finally {
             setLoading(false);
         }
-    }, [user?.id]);
+    }, [user?.id, t]);
 
     useFocusEffect(
         useCallback(() => {
@@ -142,14 +136,14 @@ export default function WeighFoodScreen() {
                 meal: selectedMeal,
             });
 
-            Alert.alert('Success!', 'Meal added to your daily log');
+            Alert.alert(t('food.addMealSuccess'), t('food.addMealSuccessMsg'));
             setModalVisible(false);
         } catch (err: any) {
             console.error('Error adding meal:', err);
             if (err.response && err.response.status === 400) {
-                Alert.alert('Notice', err.response?.data?.error || 'This meal is already logged');
+                Alert.alert(t('food.notice'), err.response?.data?.error || t('food.alreadyLogged'));
             } else {
-                Alert.alert('Error', 'Could not add meal.');
+                Alert.alert(t('food.error'), t('food.addMealError'));
             }
         }
     };
@@ -169,8 +163,8 @@ export default function WeighFoodScreen() {
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <View style={[styles.mealSection, { backgroundColor: colors.card, alignItems: 'center', paddingVertical: 30, width: '100%' }]}>
                     <Ionicons name="calendar-outline" size={40} color={colors.text} style={{ marginBottom: 15 }} />
-                    <Text style={[styles.mealTitle, { textAlign: 'center' }]}>No meal plans for today</Text>
-                    <Text style={{ color: colors.text, textAlign: 'center', marginTop: 10 }}>Contact your nutritionist to get your meal plan</Text>
+                    <Text style={[styles.mealTitle, { textAlign: 'center' }]}>{t('food.noPlannedMeals')}</Text>
+                    <Text style={{ color: colors.text, textAlign: 'center', marginTop: 10 }}>{t('food.contactNutritionist')}</Text>
                 </View>
             </View>
         );
@@ -180,7 +174,7 @@ export default function WeighFoodScreen() {
         <View style={styles.container}>
             <ScrollView style={styles.scroll}>
                 {todayMeals.map((meal: any, index: number) => {
-                    const label = mealLabels[meal.type as RawMealType] || meal.type;
+                    const label = t(`food.meals.${meal.type as RawMealType}`, { defaultValue: meal.type });
                     const color =
                         meal.type === 'breakfast' ? '#FFEB99' :
                         meal.type === 'lunch' ? '#C3FBD8' :
@@ -213,15 +207,15 @@ export default function WeighFoodScreen() {
                     <View style={styles.modalOverlay}>
                         <TouchableWithoutFeedback>
                             <View style={styles.modalContainer}>
-                                <Text style={styles.modalTitle}>How would you like to log this meal?</Text>
+                                <Text style={styles.modalTitle}>{t('food.logMealQuestion')}</Text>
 
                                 <TouchableOpacity style={styles.optionButton} onPress={handleAddWeeklyMeal}>
                                     <MaterialCommunityIcons name="check-bold" size={22} color="#34C759" />
-                                    <Text style={styles.optionText}>Use recommended portion</Text>
+                                    <Text style={styles.optionText}>{t('food.useRecommended')}</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                    <Text style={styles.closeText}>Cancel</Text>
+                                    <Text style={styles.closeText}>{t('common.cancel')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </TouchableWithoutFeedback>

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
 import { Appointment, Nutritionist, nutritionistService } from '../services/nutritionist.service';
 
 const ManagementDatingScreen = () => {
+    const { t, i18n } = useTranslation();
     const { colors, darkMode } = useTheme();
     const { user } = useUser();
 
@@ -39,7 +41,7 @@ const ManagementDatingScreen = () => {
                 }
             } catch (err) {
                 console.error("ERROR EN FETCH:", err);
-                setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+                setError(err instanceof Error ? err.message : t('auth.networkError'));
             } finally {
                 setLoading(false);
             }
@@ -59,26 +61,26 @@ const ManagementDatingScreen = () => {
 
     const formatDate = (dateStr: string) => {
         const date = new Date(dateStr);
-        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const locale = i18n.language === 'es' ? 'es-ES' : 'en-US';
         return {
-            month: months[date.getMonth()],
+            month: date.toLocaleDateString(locale, { month: 'short' }),
             day: date.getDate()
         };
     };
 
     const getAppointmentTitle = (type: string) => {
         switch (type) {
-            case 'virtual': return 'Consulta Virtual';
-            case 'in-person': return 'Consulta Presencial';
-            default: return 'Consulta Nutricional';
+            case 'virtual': return t('appointments.virtual');
+            case 'in-person': return t('appointments.inPerson');
+            default: return t('appointments.default');
         }
     };
 
     const getAppointmentSubtitle = (appointment: Appointment) => {
-        if (appointment.nutritionist_id) {
-            return 'Dra. Elena Martínez';
+        if (appointment.nutritionist_id && nutritionist) {
+            return `${nutritionist.name} ${nutritionist.lastName}`;
         }
-        return appointment.type === 'virtual' ? 'Videollamada' : 'Sede Central';
+        return appointment.type === 'virtual' ? t('appointments.videoCall') : t('appointments.mainOffice');
     };
 
     if (loading) {
@@ -86,7 +88,7 @@ const ManagementDatingScreen = () => {
             <SafeAreaView style={styles.container}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
-                    <Text style={styles.loadingText}>Cargando tus citas...</Text>
+                    <Text style={styles.loadingText}>{t('appointments.loading')}</Text>
                 </View>
             </SafeAreaView>
         );
@@ -110,10 +112,10 @@ const ManagementDatingScreen = () => {
             >
                 {/* Header Section */}
                 <View style={styles.headerSection}>
-                    <Text style={styles.headerSubtitle}>Agenda Central</Text>
-                    <Text style={styles.headerTitle}>Mis Citas</Text>
+                    <Text style={styles.headerSubtitle}>{t('appointments.subtitle')}</Text>
+                    <Text style={styles.headerTitle}>{t('appointments.title')}</Text>
                     <Text style={styles.headerDescription}>
-                        Gestiona tus consultas de nutrición y entrenamientos personalizados desde un solo lugar.
+                        {t('appointments.description')}
                     </Text>
                 </View>
 
@@ -121,19 +123,19 @@ const ManagementDatingScreen = () => {
                 <View style={styles.sectionHeader}>
                     <View style={styles.sectionTitleRow}>
                         <Text style={styles.sectionIcon}>📅</Text>
-                        <Text style={styles.sectionTitle}>Próximas Sesiones</Text>
+                        <Text style={styles.sectionTitle}>{t('appointments.upcoming')}</Text>
                     </View>
                     {upcoming.length > 0 && (
                         <View style={styles.badge}>
-                            <Text style={styles.badgeText}>{upcoming.length} Pendientes</Text>
+                            <Text style={styles.badgeText}>{upcoming.length} {t('appointments.pending')}</Text>
                         </View>
                     )}
                 </View>
 
                 {upcoming.length === 0 ? (
                     <View style={styles.emptyCard}>
-                        <Text style={styles.emptyText}>No tienes citas programadas.</Text>
-                        <Text style={styles.emptySubtext}>Agenda una cita con tu nutricionista.</Text>
+                        <Text style={styles.emptyText}>{t('appointments.noAppointments')}</Text>
+                        <Text style={styles.emptySubtext}>{t('appointments.noAppointmentsSub')}</Text>
                     </View>
                 ) : (
                     upcoming.map(appointment => {
@@ -157,18 +159,18 @@ const ManagementDatingScreen = () => {
                                                 🕐 {appointment.appointment_time || '10:30 AM'}
                                             </Text>
                                             <Text style={styles.metaText}>
-                                                {appointment.type === 'virtual' ? '📹 Videollamada' : '📍 Presencial'}
+                                                {appointment.type === 'virtual' ? `📹 ${t('appointments.videoCall')}` : `📍 ${t('appointments.inPerson')}`}
                                             </Text>
                                         </View>
                                     </View>
                                 </View>
                                 <View style={styles.cardActions}>
                                     <TouchableOpacity style={styles.secondaryButton}>
-                                        <Text style={styles.secondaryButtonText}>Reagendar</Text>
+                                        <Text style={styles.secondaryButtonText}>{t('appointments.reschedule')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity style={styles.primaryButton}>
                                         <Text style={styles.primaryButtonText}>
-                                            {appointment.status === 'confirmed' ? 'Unirse' : 'Confirmar'}
+                                            {appointment.status === 'confirmed' ? t('appointments.join') : t('appointments.confirm')}
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
@@ -182,12 +184,13 @@ const ManagementDatingScreen = () => {
                     <View style={styles.pastSection}>
                         <View style={styles.sectionTitleRow}>
                             <Text style={styles.sectionIcon}>📋</Text>
-                            <Text style={styles.sectionTitle}>Historial Reciente</Text>
+                            <Text style={styles.sectionTitle}>{t('appointments.history')}</Text>
                         </View>
                         
                         {past.slice(0, 5).map(appointment => {
                             const date = new Date(appointment.appointment_date);
-                            const dateStr = `${date.getDate()} de ${['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][date.getMonth()]}`;
+                            const locale = i18n.language === 'es' ? 'es-ES' : 'en-US';
+                            const dateStr = date.toLocaleDateString(locale, { day: 'numeric', month: 'long' });
                             return (
                                 <View key={appointment._id} style={styles.historyItem}>
                                     <View style={styles.historyItemLeft}>
@@ -198,7 +201,7 @@ const ManagementDatingScreen = () => {
                                             <Text style={styles.historyTitle}>
                                                 {getAppointmentTitle(appointment.type)}
                                             </Text>
-                                            <Text style={styles.historyDate}>{dateStr} • Finalizada</Text>
+                                            <Text style={styles.historyDate}>{dateStr} • {t('appointments.finished')}</Text>
                                         </View>
                                     </View>
                                 </View>
@@ -210,7 +213,7 @@ const ManagementDatingScreen = () => {
                 {/* Mini Stats Card - Tu Especialista */}
                 {nutritionist && (
                     <View style={styles.statsCard}>
-                        <Text style={styles.statsTitle}>Tu Especialista</Text>
+                        <Text style={styles.statsTitle}>{t('appointments.yourSpecialist')}</Text>
                         <View style={styles.nutritionistRow}>
                             <View style={styles.nutritionistAvatar}>
                                 <Text style={styles.avatarText}>👩‍⚕️</Text>
@@ -220,7 +223,7 @@ const ManagementDatingScreen = () => {
                                     {nutritionist.name} {nutritionist.lastName}
                                 </Text>
                                 <Text style={styles.nutritionistRole}>
-                                    {nutritionist.specialization || 'Nutricionista'}
+                                    {nutritionist.specialization || t('appointments.nutritionist')}
                                 </Text>
                             </View>
                         </View>

@@ -13,11 +13,13 @@ import {
     View
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
 import { authService } from '../services/auth.service';
 
 const ChangePasswordScreen = () => {
+    const { t } = useTranslation();
     const { colors, darkMode } = useTheme();
     const { user } = useUser();
 

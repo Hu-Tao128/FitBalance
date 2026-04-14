@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Alert,
     Image,
@@ -20,13 +21,14 @@ import { UserProfile } from '../services/profile.service';
 type ProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'UserProfile'>;
 
 export default function UserProfileScreen() {
+    const { t } = useTranslation();
     const { user, logout } = useUser();
     const { colors } = useTheme();
     const navigation = useNavigation<ProfileScreenNavigationProp>();
     const profile: UserProfile | null = user
         ? {
             id: user.id,
-            name: user.name || user.username || 'Usuario',
+            name: user.name || user.username || t('profile.defaultUser'),
             email: user.email || '',
             photo: undefined,
             height: user.height_cm,
@@ -36,11 +38,11 @@ export default function UserProfileScreen() {
 
     const handleLogout = () => {
         Alert.alert(
-            "Cerrar Sesión",
-            "¿Estás seguro de que deseas salir?",
+            t('profile.logoutTitle'),
+            t('profile.logoutMessage'),
             [
-                { text: "Cancelar", style: "cancel" },
-                { text: "Salir", style: "destructive", onPress: logout }
+                { text: t('common.cancel'), style: "cancel" },
+                { text: t('profile.logoutExit'), style: "destructive", onPress: logout }
             ]
         );
     };
@@ -62,18 +64,18 @@ export default function UserProfileScreen() {
                             <Ionicons name="camera" size={20} color="white" />
                         </TouchableOpacity>
                     </View>
-                    <Text style={[styles.userName, { color: colors.text }]}>{profile?.name || 'Usuario'}</Text>
+                    <Text style={[styles.userName, { color: colors.text }]}>{profile?.name || t('profile.defaultUser')}</Text>
                     <Text style={[styles.userEmail, { color: colors.outline }]}>{profile?.email}</Text>
                 </View>
 
                 <View style={styles.statsRow}>
                     <View style={[styles.statCard, { backgroundColor: colors.card }]}>
                         <Text style={[styles.statValue, { color: colors.primary }]}>{profile?.weight || '--'} kg</Text>
-                        <Text style={[styles.statLabel, { color: colors.outline }]}>Peso</Text>
+                        <Text style={[styles.statLabel, { color: colors.outline }]}>{t('profile.weight')}</Text>
                     </View>
                     <View style={[styles.statCard, { backgroundColor: colors.card }]}>
                         <Text style={[styles.statValue, { color: colors.primary }]}>{profile?.height || '--'} cm</Text>
-                        <Text style={[styles.statLabel, { color: colors.outline }]}>Altura</Text>
+                        <Text style={[styles.statLabel, { color: colors.outline }]}>{t('profile.height')}</Text>
                     </View>
                 </View>
 
@@ -85,7 +87,7 @@ export default function UserProfileScreen() {
                         <View style={[styles.iconBox, { backgroundColor: 'rgba(52, 199, 89, 0.1)' }]}>
                             <Ionicons name="person-outline" size={22} color={colors.primary} />
                         </View>
-                        <Text style={[styles.menuText, { color: colors.text }]}>Editar Perfil</Text>
+                        <Text style={[styles.menuText, { color: colors.text }]}>{t('profile.editProfile')}</Text>
                         <Ionicons name="chevron-forward" size={20} color={colors.outline} />
                     </TouchableOpacity>
 
@@ -96,7 +98,7 @@ export default function UserProfileScreen() {
                         <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 149, 0, 0.1)' }]}>
                             <Ionicons name="lock-closed-outline" size={22} color="#FF9500" />
                         </View>
-                        <Text style={[styles.menuText, { color: colors.text }]}>Seguridad</Text>
+                        <Text style={[styles.menuText, { color: colors.text }]}>{t('profile.security')}</Text>
                         <Ionicons name="chevron-forward" size={20} color={colors.outline} />
                     </TouchableOpacity>
 
@@ -107,7 +109,7 @@ export default function UserProfileScreen() {
                         <View style={[styles.iconBox, { backgroundColor: 'rgba(0, 122, 255, 0.1)' }]}>
                             <Ionicons name="settings-outline" size={22} color="#007AFF" />
                         </View>
-                        <Text style={[styles.menuText, { color: colors.text }]}>Preferencias</Text>
+                        <Text style={[styles.menuText, { color: colors.text }]}>{t('profile.preferences')}</Text>
                         <Ionicons name="chevron-forward" size={20} color={colors.outline} />
                     </TouchableOpacity>
 
@@ -118,7 +120,7 @@ export default function UserProfileScreen() {
                         <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 59, 48, 0.1)' }]}>
                             <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
                         </View>
-                        <Text style={[styles.menuText, { color: "#FF3B30" }]}>Cerrar Sesión</Text>
+                        <Text style={[styles.menuText, { color: "#FF3B30" }]}>{t('profile.logoutTitle')}</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
