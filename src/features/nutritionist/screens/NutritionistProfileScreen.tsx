@@ -1,11 +1,14 @@
+import '../../../i18n/types';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
 import { Nutritionist, nutritionistService } from '../services/nutritionist.service';
 
 const NutritionistProfileScreen = () => {
+    const { t } = useTranslation();
     const { colors, darkMode } = useTheme();
     const { user } = useUser();
 
@@ -18,7 +21,7 @@ const NutritionistProfileScreen = () => {
     useEffect(() => {
         const nutritionistId = user?.nutritionist_id;
         if (!nutritionistId) {
-            setError('No tienes un nutricionista asignado.');
+            setError(t('nutritionist.noNutritionist'));
             setLoading(false);
             return;
         }
@@ -31,21 +34,21 @@ const NutritionistProfileScreen = () => {
                 setNutritionist(nutritionistData);
             } catch (err: any) {
                 console.error("Failed to fetch nutritionist:", err);
-                setError(err.response?.data?.message || 'No se pudieron cargar los detalles del nutricionista.');
+                setError(err.response?.data?.message || t('nutritionist.loadError'));
             } finally {
                 setLoading(false);
             }
         };
 
         fetchNutritionist();
-    }, [user]);
+    }, [user, t]);
 
     if (loading) {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.centeredContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
-                    <Text style={styles.loadingText}>Cargando perfil...</Text>
+                    <Text style={styles.loadingText}>{t('nutritionist.loading')}</Text>
                 </View>
             </SafeAreaView>
         );
@@ -86,33 +89,33 @@ const NutritionistProfileScreen = () => {
                     </View>
                     <Text style={styles.name}>{fullName}</Text>
                     <Text style={styles.specialization}>
-                        {nutritionist.specialization || 'Especialista en Nutrición'}
+                        {nutritionist.specialization || t('nutritionist.defaultSpecialization')}
                     </Text>
                     <View style={styles.badgeRow}>
                         <View style={styles.badge}>
-                            <Text style={styles.badgeText}>Premium</Text>
+                            <Text style={styles.badgeText}>{t('nutritionist.premiumBadge')}</Text>
                         </View>
                     </View>
                 </View>
 
                 {/* Contact Info Card */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Información de Contacto</Text>
+                    <Text style={styles.sectionTitle}>{t('nutritionist.contactInfo')}</Text>
                     <View style={styles.detailsCard}>
                         <InfoRow 
                             icon="mail-outline" 
-                            label="Correo Electrónico" 
-                            value={nutritionist.email || 'Sin correo disponible'}
+                            label={t('nutritionist.email')} 
+                            value={nutritionist.email || t('nutritionist.noEmail')}
                         />
                         <InfoRow 
                             icon="location-outline" 
-                            label="Dirección de Consultorio" 
+                            label={t('nutritionist.officeAddress')} 
                             value={fullAddress}
                         />
                         {nutritionist.licenseNumber && (
                             <InfoRow 
                                 icon="shield-checkmark-outline" 
-                                label="Licencia Profesional" 
+                                label={t('nutritionist.license')} 
                                 value={nutritionist.licenseNumber}
                             />
                         )}
@@ -121,13 +124,13 @@ const NutritionistProfileScreen = () => {
 
                 {/* Quick Actions */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
+                    <Text style={styles.sectionTitle}>{t('nutritionist.quickActions')}</Text>
                     <View style={styles.actionsCard}>
                         <TouchableOpacity style={styles.actionItem}>
                             <View style={[styles.actionIcon, { backgroundColor: colors.primaryContainer }]}>
                                 <Ionicons name="chatbubble-ellipses" size={22} color={colors.onPrimaryContainer} />
                             </View>
-                            <Text style={styles.actionText}>Enviar Mensaje</Text>
+                            <Text style={styles.actionText}>{t('nutritionist.sendMessage')}</Text>
                             <Text style={styles.actionArrow}>→</Text>
                         </TouchableOpacity>
                         
@@ -135,7 +138,7 @@ const NutritionistProfileScreen = () => {
                             <View style={[styles.actionIcon, { backgroundColor: colors.secondaryContainer }]}>
                                 <Ionicons name="calendar-outline" size={22} color={colors.onSecondaryContainer} />
                             </View>
-                            <Text style={styles.actionText}>Agendar Cita</Text>
+                            <Text style={styles.actionText}>{t('nutritionist.bookAppointment')}</Text>
                             <Text style={styles.actionArrow}>→</Text>
                         </TouchableOpacity>
                     </View>

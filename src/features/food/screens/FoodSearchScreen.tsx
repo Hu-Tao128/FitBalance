@@ -17,6 +17,8 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import '../../../i18n/types';
 import { useTheme } from '../../../context/ThemeContext';
 import { useFoodSearch } from '../hooks/useFoodSearch';
 import { useAddFood } from '../hooks/useAddFood';
@@ -26,13 +28,14 @@ import FoodItemCard from '../components/FoodItemCard';
 import FoodDetails from '../components/FoodDetails';
 
 const categories = [
-    { id: 'breakfast', name: 'Breakfast', icon: 'food-croissant', bgColor: 'primaryContainer', iconColor: 'primary' },
-    { id: 'lunch', name: 'Lunch', icon: 'food', bgColor: 'secondaryContainer', iconColor: 'secondary' },
-    { id: 'snacks', name: 'Snacks', icon: 'cookie', bgColor: 'tertiaryContainer', iconColor: 'tertiary' },
-    { id: 'keto', name: 'Keto', icon: 'egg', bgColor: 'surfaceContainerHigh', iconColor: 'onSurfaceVariant' },
+    { id: 'breakfast', nameKey: 'food.categories.breakfast', icon: 'food-croissant', bgColor: 'primaryContainer', iconColor: 'primary' },
+    { id: 'lunch', nameKey: 'food.categories.lunch', icon: 'food', bgColor: 'secondaryContainer', iconColor: 'secondary' },
+    { id: 'snacks', nameKey: 'food.categories.snacks', icon: 'cookie', bgColor: 'tertiaryContainer', iconColor: 'tertiary' },
+    { id: 'keto', nameKey: 'food.categories.keto', icon: 'egg', bgColor: 'surfaceContainerHigh', iconColor: 'onSurfaceVariant' },
 ];
 
 export default function FoodSearchScreen({ navigation }: any) {
+    const { t } = useTranslation();
     const { colors, darkMode } = useTheme();
     const insets = useSafeAreaInsets();
     const styles = createStyles(colors, darkMode, insets);
@@ -58,7 +61,7 @@ export default function FoodSearchScreen({ navigation }: any) {
                 <Ionicons name="search" size={22} color={colors.outline} style={styles.searchIcon} />
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search foods..."
+                    placeholder={t('food.searchPlaceholder')}
                     placeholderTextColor={colors.outline}
                     value={query}
                     onChangeText={setQuery}
@@ -93,7 +96,7 @@ export default function FoodSearchScreen({ navigation }: any) {
     return (
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Find Nutrition</Text>
+                <Text style={styles.headerTitle}>{t('food.findNutrition')}</Text>
             </View>
 
             {renderSearchBar()}
@@ -108,21 +111,21 @@ export default function FoodSearchScreen({ navigation }: any) {
                 </View>
             ) : (
                 <ScrollView contentContainerStyle={styles.mainScrollContent}>
-                    <Text style={styles.sectionTitle}>Quick Categories</Text>
+                    <Text style={styles.sectionTitle}>{t('food.quickCategories')}</Text>
                     <View style={styles.categoriesGrid}>
                         {categories.map((cat) => (
-                            <Pressable key={cat.id} style={[styles.categoryCard, { backgroundColor: colors[cat.bgColor as keyof typeof colors] || colors.surfaceContainer }]} onPress={() => searchByQuery(cat.name)}>
+                            <Pressable key={cat.id} style={[styles.categoryCard, { backgroundColor: colors[cat.bgColor as keyof typeof colors] || colors.surfaceContainer }]} onPress={() => searchByQuery(t(cat.nameKey as any))}>
                                 <MaterialCommunityIcons name={cat.icon as any} size={28} color={colors[cat.iconColor as keyof typeof colors] || colors.primary} />
-                                <Text style={styles.categoryText}>{cat.name}</Text>
+                                <Text style={styles.categoryText}>{t(cat.nameKey as any)}</Text>
                             </Pressable>
                         ))}
                     </View>
 
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Recent Searches</Text>
+                        <Text style={styles.sectionTitle}>{t('food.recentSearches')}</Text>
                         {recentSearches.length > 0 && (
                             <TouchableOpacity onPress={clearRecentSearches}>
-                                <Text style={{ color: colors.primary }}>Clear all</Text>
+                                <Text style={{ color: colors.primary }}>{t('food.clearAll')}</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -163,15 +166,15 @@ export default function FoodSearchScreen({ navigation }: any) {
             <Modal visible={modalVisible} transparent animationType="slide">
                 <View style={styles.modalOverlay}>
                     <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
-                        <Text style={styles.modalTitle}>Confirm Add {foodToAdd?.food_name}</Text>
+                        <Text style={styles.modalTitle}>{t('food.confirmAdd', { foodName: foodToAdd?.food_name })}</Text>
                         <Text style={{ textAlign: 'center', marginBottom: 20, color: colors.outline }}>
-                            {foodToAdd?.serving_weight_grams}g - {foodToAdd?.nf_calories?.toFixed(0)} kcal
+                            {t('food.servingInfo', { grams: foodToAdd?.serving_weight_grams, calories: foodToAdd?.nf_calories?.toFixed(0) })}
                         </Text>
                         <TouchableOpacity style={styles.addButton} onPress={handleConfirm} disabled={addLoading}>
-                            {addLoading ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.addButtonText}>Confirm</Text>}
+                            {addLoading ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.addButtonText}>{t('common.confirm') || 'Confirm'}</Text>}
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 15 }}>
-                            <Text style={styles.closeText}>Cancel</Text>
+                            <Text style={styles.closeText}>{t('common.cancel')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

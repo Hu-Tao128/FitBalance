@@ -1,6 +1,8 @@
+import '../../../i18n/types';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useCallback } from 'react';
 import { Calendar, DateData } from 'react-native-calendars';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Dimensions,
@@ -49,6 +51,7 @@ const getWeekDates = (baseDate: Date) => {
 };
 
 const StatisticsScreen: React.FC = () => {
+    const { t, i18n } = useTranslation();
     const { colors } = useTheme();
     const { user } = useUser();
     const insets = useSafeAreaInsets();
@@ -117,7 +120,7 @@ const StatisticsScreen: React.FC = () => {
         };
     });
 
-    const labels = filledWeekData.map(e => e.date.toLocaleDateString('en-EN', { weekday: 'short' }));
+    const labels = filledWeekData.map(e => e.date.toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { weekday: 'short' }));
     const caloriesData = filledWeekData.map(e => e.calories);
     const proteinData = filledWeekData.map(e => e.protein);
     const fatData = filledWeekData.map(e => e.fat);
@@ -132,13 +135,13 @@ const StatisticsScreen: React.FC = () => {
         };
         return acc;
     }, {});
-    const weekRangeLabel = `${startOfWeek.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} - ${endOfWeek.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`;
+    const weekRangeLabel = `${startOfWeek.toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { day: '2-digit', month: 'short' })} - ${endOfWeek.toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { day: '2-digit', month: 'short' })}`;
 
     if (loading) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
                 <View style={[styles.headerContainer, { backgroundColor: colors.card }]}>
-                    <Text style={[styles.header, { color: colors.primary }]}>Nutritional Statistics</Text>
+                    <Text style={[styles.header, { color: colors.primary }]}>{t('statistics.title')}</Text>
                 </View>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
@@ -150,7 +153,7 @@ const StatisticsScreen: React.FC = () => {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
             <View style={[styles.headerContainer, { backgroundColor: colors.card }]}>
-                <Text style={[styles.header, { color: colors.primary }]}>Nutritional Statistics</Text>
+                <Text style={[styles.header, { color: colors.primary }]}>{t('statistics.title')}</Text>
             </View>
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
@@ -167,14 +170,14 @@ const StatisticsScreen: React.FC = () => {
                 <View style={[styles.calendarContainer, { backgroundColor: colors.card }]}>
                     <View style={styles.calendarHeaderRow}>
                         <View style={{ flex: 1 }}>
-                            <Text style={[styles.weekLabel, { color: colors.text }]}>Semana seleccionada</Text>
-                            <Text style={[styles.weekRangeLabel, { color: colors.textSecondary }]}>Semana: {weekRangeLabel}</Text>
+                            <Text style={[styles.weekLabel, { color: colors.text }]}>{t('statistics.selectedWeek')}</Text>
+                            <Text style={[styles.weekRangeLabel, { color: colors.textSecondary }]}>{t('statistics.weekLabel')} {weekRangeLabel}</Text>
                         </View>
                         <TouchableOpacity
                             style={[styles.calendarButton, { borderColor: colors.primary }]}
                             onPress={() => setIsCalendarVisible(true)}
                         >
-                            <Text style={[styles.calendarButtonText, { color: colors.primary }]}>Calendario</Text>
+                            <Text style={[styles.calendarButtonText, { color: colors.primary }]}>{t('statistics.calendar')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -183,7 +186,7 @@ const StatisticsScreen: React.FC = () => {
                 <View style={[styles.streakContainer, { backgroundColor: colors.card }]}>
                     {filledWeekData.map((entry, idx) => {
                         const has = entry.calories > 0 || entry.protein > 0 || entry.fat > 0 || entry.carbs > 0;
-                        const day = entry.date.toLocaleDateString('es-ES', { weekday: 'short' });
+                        const day = entry.date.toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { weekday: 'short' });
                         const dateNum = entry.date.getDate();
                         return (
                             <Pressable key={`${day}-${idx}`} style={styles.streakItem} onPress={() => setSelectedDate(entry.date)}>
@@ -200,14 +203,14 @@ const StatisticsScreen: React.FC = () => {
 
                 {/* Charts */}
                 {[
-                    { title: 'Calories', unit: 'kcal', data: caloriesData },
-                    { title: 'Proteins', unit: 'g', data: proteinData },
-                    { title: 'Fats', unit: 'g', data: fatData },
-                    { title: 'Carbs', unit: 'g', data: carbsData }
+                    { title: t('statistics.calories'), unit: 'kcal', data: caloriesData },
+                    { title: t('statistics.protein'), unit: 'g', data: proteinData },
+                    { title: t('statistics.fat'), unit: 'g', data: fatData },
+                    { title: t('statistics.carbs'), unit: 'g', data: carbsData }
                 ].map((series) => (
                     series.data.every(v => v === 0) ? (
                         <View key={series.title} style={[styles.noDataBox, { backgroundColor: colors.card }]}>
-                            <Text style={[styles.noDataText, { color: colors.textSecondary }]}>No data for {series.title}</Text>
+                            <Text style={[styles.noDataText, { color: colors.textSecondary }]}>{t('statistics.noData', { title: series.title })}</Text>
                         </View>
                     ) : (
                         <View key={series.title} style={[styles.chartBox, { backgroundColor: colors.card }]}>
@@ -265,7 +268,7 @@ const StatisticsScreen: React.FC = () => {
                             style={[styles.closeButton, { backgroundColor: colors.primary }]}
                             onPress={() => setIsCalendarVisible(false)}
                         >
-                            <Text style={styles.closeButtonText}>Cerrar</Text>
+                            <Text style={styles.closeButtonText}>{t('statistics.close')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
