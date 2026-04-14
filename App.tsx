@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import 'react-native-gesture-handler';
+import './src/i18n';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from "./src/context/ThemeContext";
 import { UserProvider } from "./src/context/UserContext";
 import AppNavigator from './src/navigation/AppNavigator';
-import { BleProvider } from './src/features/ble/context/BleContext';
 
 import {
   setupNotifications,
@@ -32,13 +32,11 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <BleProvider>
-        <ThemeProvider>
-          <UserProvider>
-            <AppNavigator />
-          </UserProvider>
-        </ThemeProvider>
-      </BleProvider>
+      <ThemeProvider>
+        <UserProvider>
+          <AppNavigator />
+        </UserProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
