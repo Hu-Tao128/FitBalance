@@ -181,13 +181,15 @@ export default function EditMealScreen() {
                         />
                         {searchFood.length > 0 && !selectedFood && (
                             <View style={[styles.resultsBox, { backgroundColor: colors.card }]}>
-                                {loadingFoods ? (
-                                    <ActivityIndicator size="small" color={colors.primary} />
-                                ) : filteredFoods.map(f => (
-                                    <TouchableOpacity key={getObjectIdFromMongoDoc(f._id)} style={styles.resultItem} onPress={() => { setSelectedFood(f); setSearchFood(f.name); }}>
-                                        <Text style={[styles.resultName, { color: colors.text }]}>{f.name}</Text>
-                                    </TouchableOpacity>
-                                ))}
+                                <ScrollView style={styles.resultsScroll} keyboardShouldPersistTaps="handled">
+                                    {loadingFoods ? (
+                                        <ActivityIndicator size="small" color={colors.primary} />
+                                    ) : filteredFoods.map(f => (
+                                        <TouchableOpacity key={getObjectIdFromMongoDoc(f._id)} style={styles.resultItem} onPress={() => { setSelectedFood(f); setSearchFood(f.name); }}>
+                                            <Text style={[styles.resultName, { color: colors.text }]}>{f.name}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
                             </View>
                         )}
                     </View>
@@ -269,6 +271,7 @@ const createDynamicStyles = (colors: any) => StyleSheet.create({
     sectionLabel: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 8 },
     input: { height: 50, borderRadius: 12, paddingHorizontal: 16, fontSize: 16 },
     resultsBox: { borderRadius: 12, marginTop: 4, maxHeight: 200, overflow: 'hidden', elevation: 3 },
+    resultsScroll: { maxHeight: 180 },
     resultItem: { padding: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' },
     resultName: { fontSize: 15 },
     amountSection: { padding: 16, borderRadius: 16, marginBottom: 20 },

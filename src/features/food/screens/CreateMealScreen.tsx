@@ -218,16 +218,18 @@ export default function CreateMealScreen({ navigation }: any) {
                         />
                         {searchFood.length > 0 && !selectedFood && filteredFoods.length > 0 && (
                             <View style={[styles.resultsBox, { backgroundColor: colors.card }]}>
-                                {displayFoods.map(f => (
-                                    <TouchableOpacity key={getObjectIdFromMongoDoc(f._id)} style={styles.resultItem} onPress={() => { setSelectedFood(f); setSearchFood(f.name); }}>
-                                        <Text style={[styles.resultName, { color: colors.text }]}>{f.name}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                                {hasMoreResults && !showAllResults && (
-                                    <TouchableOpacity style={styles.showMoreButton} onPress={() => setShowAllResults(true)}>
-                                        <Text style={[styles.showMoreText, { color: colors.primary }]}>Ver más ({filteredFoods.length - 5})</Text>
-                                    </TouchableOpacity>
-                                )}
+                                <ScrollView style={styles.resultsScroll} keyboardShouldPersistTaps="handled">
+                                    {displayFoods.map(f => (
+                                        <TouchableOpacity key={getObjectIdFromMongoDoc(f._id)} style={styles.resultItem} onPress={() => { setSelectedFood(f); setSearchFood(f.name); }}>
+                                            <Text style={[styles.resultName, { color: colors.text }]}>{f.name}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                    {hasMoreResults && !showAllResults && (
+                                        <TouchableOpacity style={styles.showMoreButton} onPress={() => setShowAllResults(true)}>
+                                            <Text style={[styles.showMoreText, { color: colors.primary }]}>Ver más ({filteredFoods.length - 5})</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </ScrollView>
                             </View>
                         )}
                     </View>
