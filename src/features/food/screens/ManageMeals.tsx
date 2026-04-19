@@ -12,6 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
 import { mealService, PatientMeal } from '../services/meal.service';
@@ -20,14 +21,13 @@ const makeStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        paddingTop: 50,
         paddingHorizontal: 20,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         color: colors.text,
-        marginBottom: 20,
+        marginVertical: 20,
     },
     mealCard: {
         backgroundColor: colors.card,
@@ -70,7 +70,6 @@ const makeStyles = (colors: any) => StyleSheet.create({
     },
     fab: {
         position: 'absolute',
-        bottom: 30,
         right: 30,
         backgroundColor: colors.primary,
         width: 60,
@@ -91,6 +90,7 @@ export default function ManageMealsScreen({ navigation }: any) {
     const { user } = useUser();
     const { colors } = useTheme();
     const styles = makeStyles(colors);
+    const insets = useSafeAreaInsets();
 
     const [patientMeals, setPatientMeals] = useState<PatientMeal[]>([]);
     const [loading, setLoading] = useState(false);
@@ -176,7 +176,7 @@ export default function ManageMealsScreen({ navigation }: any) {
     );
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
             <Text style={styles.title}>{t('food.myMeals')}</Text>
 
             {loading ? (
@@ -195,7 +195,7 @@ export default function ManageMealsScreen({ navigation }: any) {
             )}
 
             <TouchableOpacity
-                style={styles.fab}
+                style={[styles.fab, { bottom: Math.max(insets.bottom, 20) + 10 }]}
                 onPress={() => navigation.navigate('CreateMealScreen')}
             >
                 <Ionicons name="add" size={32} color="white" />
@@ -231,6 +231,6 @@ export default function ManageMealsScreen({ navigation }: any) {
                     </View>
                 </View>
             </Modal>
-        </View>
+        </SafeAreaView>
     );
 }
