@@ -51,6 +51,10 @@
         "android.permission.ACTIVITY_RECOGNITION",
         "android.permission.INTERNET",
         "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.INTERNET",
+        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
       "googleServicesFile": "./google-services.json"
@@ -58,19 +62,20 @@
     "ios": {
       "bundleIdentifier": "com.ayasc.nutifrut",
       "supportsTablet": true,
-      "infoPlist": {}
+      "infoPlist": {},
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/FitBalanceLogo.jpg"
     },
     "extra": {
       "eas": {
-        "projectId": "82f4234e-ccbc-4e4d-9b39-7ff1b567c9ff"
+        "projectId": "82f4234e-cbbc-4e4d-9b39-7ff1b567c9ff"
       }
     },
     "owner": "ayasc",
     "updates": {
-      "url": "https://u.expo.dev/82f4234e-ccbc-4e4d-9b39-7ff1b567c9ff"
+      "url": "https://u.expo.dev/82f4234e-cbbc-4e4d-9b39-7ff1b567c9ff"
     }
   }
 }
