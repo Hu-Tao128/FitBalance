@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
 import { foodService, Food } from '../services/food.service';
@@ -11,6 +11,7 @@ import BarCodeScanner from '../components/BardCodeScanner';
 import { AddFoodModal } from '../components/AddFoodModal';
 
 export default function FoodScanner({ navigation }: any) {
+    const { t } = useTranslation();
     const { colors } = useTheme();
     const { user } = useUser();
     const insets = useSafeAreaInsets();
@@ -31,10 +32,10 @@ export default function FoodScanner({ navigation }: any) {
             if (normalizedFood) {
                 setResult({ foods: [normalizedFood] });
             } else {
-                setError('Producto no encontrado en la base de datos.');
+                setError(t('food.scannerProductNotFound'));
             }
         } catch (err) {
-            setError('Error al buscar por código de barras.');
+            setError(t('food.scannerSearchError'));
         } finally {
             setLoading(false);
         }
@@ -68,7 +69,7 @@ export default function FoodScanner({ navigation }: any) {
 
     const handleSelectMeal = async (mealType: string, time: string) => {
         if (!selectedFood || !user?.id) {
-            Alert.alert("Error", "No se pudo seleccionar el alimento.");
+            Alert.alert(t('food.error'), t('food.scannerSelectFoodError'));
             return;
         }
         setModalVisible(false);
@@ -77,14 +78,26 @@ export default function FoodScanner({ navigation }: any) {
         try {
             await mealService.addFoodLog({
                 patient_id: String(user.id),
-                meal_name: selectedFood.food_name,
-                grams: selectedFood.serving_weight_grams || 100
+                type: mealType,
+                time,
+                food_data: {
+                    food_name: selectedFood.food_name,
+                    serving_weight_grams: selectedFood.serving_weight_grams || 100,
+                    nf_calories: selectedFood.nf_calories || 0,
+                    nf_protein: selectedFood.nf_protein || 0,
+                    nf_total_carbohydrate: selectedFood.nf_total_carbohydrate || 0,
+                    nf_total_fat: selectedFood.nf_total_fat || 0,
+                    nf_dietary_fiber: selectedFood.nf_dietary_fiber || 0,
+                    nf_sugars: selectedFood.nf_sugars || 0,
+                    category: 'general',
+                }
             });
-            Alert.alert("¡Éxito!", `${selectedFood.food_name} añadido.`,
+            Alert.alert(t('food.addMealSuccess'), t('food.addMealSuccessMsg'),
                 [{ text: "OK", onPress: () => resetScanner() }]
             );
-        } catch {
-            Alert.alert("Error", "No se pudo añadir el alimento.");
+        } catch (error) {
+            console.error('Error addFoodLog:', error);
+            Alert.alert(t('food.error'), t('food.scannerAddFoodError'));
         } finally {
             setLoading(false);
         }
@@ -101,7 +114,7 @@ export default function FoodScanner({ navigation }: any) {
             <View style={styles.container}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
-                    <Text style={styles.loadingText}>Buscando producto...</Text>
+                    <Text style={styles.loadingText}>{t('food.scannerSearching')}</Text>
                 </View>
             </View>
         );
@@ -112,12 +125,12 @@ export default function FoodScanner({ navigation }: any) {
             <View style={styles.container}>
                 <View style={styles.errorContainer}>
                     <View style={[styles.errorIconBox, { backgroundColor: colors.errorContainer }]}>
-                        <Ionicons name="alert-circle" size={48} color={colors.error} />
+                        <MaterialCommunityIcons name="alert-circle-outline" size={48} color={colors.error} />
                     </View>
-                    <Text style={styles.errorTitle}>Producto no encontrado</Text>
+                    <Text style={styles.errorTitle}>{t('food.scannerProductNotFound')}</Text>
                     <Text style={styles.errorText}>{error}</Text>
                     <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={resetScanner}>
-                        <Text style={styles.retryButtonText}>Intentar de nuevo</Text>
+                        <Text style={styles.retryButtonText}>{t('food.retry')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -126,20 +139,12 @@ export default function FoodScanner({ navigation }: any) {
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={colors.text} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Escáner de Alimentos</Text>
-                <View style={{ width: 40 }} />
-            </View>
-
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {!result ? (
                     <View style={styles.scannerWrapper}>
                         <View style={styles.scannerContainer}>
                             <BarCodeScanner onBarCodeScanned={handleBarCodeScanned} />
-                            <View style={styles.overlay}>
+                            <View style={styles.overlay} pointerEvents="none">
                                 <View style={styles.unfocusedContainer} />
                                 <View style={styles.focusedContainer}>
                                     <View style={styles.cornerTopLeft} />
@@ -150,7 +155,7 @@ export default function FoodScanner({ navigation }: any) {
                                 <View style={styles.unfocusedContainer} />
                             </View>
                         </View>
-                        <Text style={styles.hintText}>Centra el código de barras en el recuadro</Text>
+                        <Text style={styles.hintText}>{t('food.scannerHint')}</Text>
                     </View>
                 ) : (
                     <View style={styles.resultContainer}>
@@ -183,12 +188,12 @@ export default function FoodScanner({ navigation }: any) {
                                     onPress={() => handleAddFoodPress(food, 100)}
                                 >
                                     <MaterialCommunityIcons name="plus" size={20} color="white" />
-                                    <Text style={styles.addButtonText}>Añadir Alimento</Text>
+                                    <Text style={styles.addButtonText}>{t('food.scannerAddFood')}</Text>
                                 </TouchableOpacity>
                             </View>
                         ))}
                         <TouchableOpacity style={styles.resetButton} onPress={resetScanner}>
-                            <Text style={[styles.resetButtonText, { color: colors.primary }]}>Escanear otro producto</Text>
+                            <Text style={[styles.resetButtonText, { color: colors.primary }]}>{t('food.scannerScanAnother')}</Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -206,10 +211,7 @@ export default function FoodScanner({ navigation }: any) {
 
 const createDynamicStyles = (colors: any, insets: any) => StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: insets.top, height: 60 + insets.top },
-    headerTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text },
-    backButton: { padding: 8 },
-    scrollContent: { padding: 16 },
+    scrollContent: { padding: 16, paddingTop: insets.top + 8 },
     scannerWrapper: { alignItems: 'center', marginTop: 20 },
     scannerContainer: { width: '100%', aspectRatio: 1, borderRadius: 20, overflow: 'hidden', backgroundColor: 'black' },
     overlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center' },

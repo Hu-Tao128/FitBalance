@@ -14,6 +14,7 @@ import {
     View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useUser } from '../../../context/UserContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { mealService } from '../services/meal.service';
@@ -49,6 +50,7 @@ function isValidObjectId(id: any) {
 }
 
 export default function CreateMealScreen({ navigation }: any) {
+    const { t } = useTranslation();
     const { user } = useUser();
     const { colors } = useTheme();
     const styles = createDynamicStyles(colors);
@@ -81,13 +83,13 @@ export default function CreateMealScreen({ navigation }: any) {
                 if (mounted) setFoods(data || []);
             } catch (err) {
                 console.error('ERROR al obtener alimentos:', err);
-                Alert.alert('Error', 'No se pudieron cargar los alimentos.');
+                Alert.alert(t('food.error'), t('food.createMealLoadFoodsError'));
             } finally {
                 if (mounted) setLoadingFoods(false);
             }
         })();
         return () => { mounted = false; };
-    }, []);
+    }, [t]);
 
     useEffect(() => {
         const t: any = { energy_kcal: 0, protein_g: 0, carbohydrates_g: 0, fat_g: 0, fiber_g: 0, sugar_g: 0 };
@@ -106,9 +108,9 @@ export default function CreateMealScreen({ navigation }: any) {
     }, [ingredients]);
 
     const handleAddIngredient = () => {
-        if (!selectedFood) return Alert.alert('Error', 'Selecciona un alimento.');
+        if (!selectedFood) return Alert.alert(t('food.error'), t('food.createMealSelectFoodError'));
         const grams = parseFloat(amount);
-        if (isNaN(grams) || grams <= 0) return Alert.alert('Error', 'Ingresa una cantidad válida.');
+        if (isNaN(grams) || grams <= 0) return Alert.alert(t('food.error'), t('food.createMealInvalidAmountError'));
 
         setIngredients([...ingredients, {
             food_id: getObjectIdFromMongoDoc(selectedFood._id),
@@ -127,12 +129,12 @@ export default function CreateMealScreen({ navigation }: any) {
     };
 
     const handleSaveMeal = async () => {
-        if (!mealName.trim()) return Alert.alert('Error', 'Ingresa el nombre de la comida.');
-        if (ingredients.length === 0) return Alert.alert('Error', 'Agrega al menos un ingrediente.');
+        if (!mealName.trim()) return Alert.alert(t('food.error'), t('food.createMealNameRequiredError'));
+        if (ingredients.length === 0) return Alert.alert(t('food.error'), t('food.createMealIngredientsRequiredError'));
 
         const patientId = getObjectIdFromMongoDoc(user?.id);
         if (!isValidObjectId(patientId)) {
-            return Alert.alert('Error', 'No se pudo obtener la información de tu usuario.');
+            return Alert.alert(t('food.error'), t('food.createMealUserInfoError'));
         }
 
         setLoading(true);
@@ -151,7 +153,7 @@ export default function CreateMealScreen({ navigation }: any) {
 
             await mealService.createPatientMeal(mealData);
 
-            Alert.alert('¡Éxito!', 'Comida creada correctamente.');
+            Alert.alert(t('food.addMealSuccess'), t('food.createMealSuccessMsg'));
             setMealName('');
             setIngredients([]);
             setInstructions('');
@@ -161,7 +163,7 @@ export default function CreateMealScreen({ navigation }: any) {
             navigation.goBack();
         } catch (err: any) {
             console.error('ERROR al crear comida:', err);
-            Alert.alert('Error', 'No se pudo crear la comida.');
+            Alert.alert(t('food.error'), t('food.createMealSaveError'));
         } finally {
             setLoading(false);
         }
@@ -176,15 +178,15 @@ export default function CreateMealScreen({ navigation }: any) {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color={colors.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Crear Comida Personalizada</Text>
+                    <Text style={styles.headerTitle}>{t('food.createMealScreenTitle')}</Text>
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                     <View style={styles.section}>
-                        <Text style={styles.sectionLabel}>Nombre de la Comida</Text>
+                        <Text style={styles.sectionLabel}>{t('food.createMealNameLabel')}</Text>
                         <TextInput
                             style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
-                            placeholder="Ej: Batido de Proteína"
+                            placeholder={t('food.createMealNamePlaceholder')}
                             placeholderTextColor={colors.outline}
                             value={mealName}
                             onChangeText={setMealName}
@@ -192,10 +194,10 @@ export default function CreateMealScreen({ navigation }: any) {
                     </View>
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionLabel}>Buscar Ingrediente</Text>
+                        <Text style={styles.sectionLabel}>{t('food.createMealSearchIngredientLabel')}</Text>
                         <TextInput
                             style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
-                            placeholder="Buscar alimento..."
+                            placeholder={t('food.createMealSearchFoodPlaceholder')}
                             placeholderTextColor={colors.outline}
                             value={searchFood}
                             onChangeText={setSearchFood}
@@ -211,7 +213,7 @@ export default function CreateMealScreen({ navigation }: any) {
                                         </TouchableOpacity>
                                     ))
                                 ) : (
-                                    <Text style={[styles.noResult, { color: colors.outline }]}>No se encontraron alimentos.</Text>
+                                    <Text style={[styles.noResult, { color: colors.outline }]}>{t('food.createMealNoFoodsFound')}</Text>
                                 )}
                             </View>
                         )}
@@ -219,7 +221,9 @@ export default function CreateMealScreen({ navigation }: any) {
 
                     {selectedFood && (
                         <View style={[styles.amountSection, { backgroundColor: colors.surfaceContainerLow }]}>
-                            <Text style={[styles.amountLabel, { color: colors.text }]}>Cantidad de {selectedFood.name}:</Text>
+                            <Text style={[styles.amountLabel, { color: colors.text }]}>
+                                {t('food.createMealAmountOf', { foodName: selectedFood.name })}
+                            </Text>
                             <View style={styles.amountInputRow}>
                                 <TextInput
                                     style={[styles.amountInput, { color: colors.text, borderBottomColor: colors.primary }]}
@@ -229,7 +233,7 @@ export default function CreateMealScreen({ navigation }: any) {
                                     value={amount}
                                     onChangeText={setAmount}
                                 />
-                                <Text style={[styles.unit, { color: colors.text }]}>gramos</Text>
+                                <Text style={[styles.unit, { color: colors.text }]}>{t('food.createMealGrams')}</Text>
                                 <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.primary }]} onPress={handleAddIngredient}>
                                     <Ionicons name="add" size={24} color="white" />
                                 </TouchableOpacity>
@@ -238,7 +242,9 @@ export default function CreateMealScreen({ navigation }: any) {
                     )}
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionLabel}>Ingredientes ({ingredients.length})</Text>
+                        <Text style={styles.sectionLabel}>
+                            {t('food.createMealIngredientsCount', { count: ingredients.length })}
+                        </Text>
                         {ingredients.map((item, index) => (
                             <View key={index} style={[styles.ingredientItem, { backgroundColor: colors.card }]}>
                                 <View style={styles.ingredientInfo}>
@@ -253,7 +259,7 @@ export default function CreateMealScreen({ navigation }: any) {
                     </View>
 
                     <View style={[styles.totalsCard, { backgroundColor: colors.primary }]}>
-                        <Text style={styles.totalsTitle}>Información Nutricional Total</Text>
+                        <Text style={styles.totalsTitle}>{t('food.createMealNutritionTitle')}</Text>
                         <View style={styles.totalsGrid}>
                             <View style={styles.totalItem}>
                                 <Text style={styles.totalValue}>{totals.energy_kcal.toFixed(0)}</Text>
@@ -279,7 +285,7 @@ export default function CreateMealScreen({ navigation }: any) {
                         onPress={handleSaveMeal}
                         disabled={loading}
                     >
-                        {loading ? <ActivityIndicator color="white" /> : <Text style={styles.saveButtonText}>Guardar Comida</Text>}
+                        {loading ? <ActivityIndicator color="white" /> : <Text style={styles.saveButtonText}>{t('food.createMealSaveButton')}</Text>}
                     </TouchableOpacity>
                 </ScrollView>
             </KeyboardAvoidingView>

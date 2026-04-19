@@ -3,6 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ActivityIndicator, View } from 'react-native';
 import { useUser } from '../context/UserContext';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../context/ThemeContext';
 import Login from '../features/auth/screens/login';
 import SettingsScreen from '../features/settings/screens/settings';
 import UserProfileScreen from '../features/profile/screens/userProfileScreen';
@@ -51,6 +53,8 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   const { user, isLoading } = useUser();
+  const { t } = useTranslation();
+  const { colors } = useTheme();
 
   if (isLoading) {
     return (
@@ -62,7 +66,14 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.background },
+          headerTintColor: colors.primary,
+          headerTitleStyle: { color: colors.text, fontWeight: '600' },
+          headerShadowVisible: false,
+        }}
+      >
         {user ? (
           <>
             <Stack.Screen
@@ -74,27 +85,21 @@ export default function AppNavigator() {
               name="UserProfile"
               component={UserProfileScreen}
               options={{
-                title: 'Profile',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff'
+                title: t('common.profile', 'Profile'),
               }}
             />
             <Stack.Screen
               name="Settings"
               component={SettingsScreen}
               options={{
-                title: 'Settings',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff'
+                title: t('common.settings', 'Settings'),
               }}
             />
             <Stack.Screen
               name="weighFood"
               component={weighFood}
               options={{
-                title: 'Register Food',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('dashboard.registerFood', 'Register Food'),
                 headerShown: true
               }}
             />
@@ -102,9 +107,7 @@ export default function AppNavigator() {
               name="stadistics"
               component={StatisticsScreen}
               options={{
-                title: 'User Statistics',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('statistics.title', 'User Statistics'),
                 headerShown: true
               }}
             />
@@ -113,54 +116,42 @@ export default function AppNavigator() {
               name="FoodSearchOptions"
               component={FoodSearchOptions}
               options={{
-                title: 'Buscar Alimentos',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('food.searchOptionsTitle', 'Food Options'),
               }}
             />
             <Stack.Screen
               name="FoodScanner"
               component={FoodScanner}
               options={{
-                title: 'Scan Food',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('food.scanCode', 'Scan Food'),
               }}
             />
             <Stack.Screen
               name="FoodClassicSearch"
               component={FoodSearchScreen}
               options={{
-                title: 'Search for Food by Text',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('food.searchByName', 'Search for Food by Text'),
               }}
             />
             <Stack.Screen
               name="CreateMealScreen"
               component={CreateMealScreen}
               options={{
-                title: 'Create Custom Food', // Ahora solo para crear
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('food.createMeal', 'Create Custom Food'),
               }}
             />
             <Stack.Screen
               name="optionsFood"
               component={optionsFood}
               options={{
-                title: 'Options Foods',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('food.optionsManagementTitle', 'Meal Management'),
               }}
             />
             <Stack.Screen
               name="ManageMeals"
               component={ManageMealsScreen}
               options={{
-                title: 'Manage Meals',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('food.myMeals', 'My Meals'),
               }}
             />
             {/* ✅ NUEVA PANTALLA DE EDICIÓN */}
@@ -168,54 +159,42 @@ export default function AppNavigator() {
               name="EditMeal"
               component={EditMealScreen}
               options={{
-                title: 'Edit Meals', // Título para la pantalla de edición
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('profile.editProfile', 'Edit Meals'),
               }}
             />
             <Stack.Screen
               name="ManagementDating"
               component={ManagementDatingScreen}
               options={{
-                title: 'Appointments', // Título para la cabecera
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff'
+                title: t('appointments.title', 'Appointments'),
               }}
             />
             <Stack.Screen
               name="NutritionistProfile"
               component={NutritionistProfileScreen}
               options={{
-                title: 'My Nutritionist',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('nutritionist.myNutritionist', 'My Nutritionist'),
               }}
             />
             <Stack.Screen
               name="MealLogHistory"
               component={MealLogHistoryScreen}
               options={{
-                title: 'Meal Log',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('dashboard.mealLogHistory', 'Meal Log'),
               }}
             />
             <Stack.Screen
               name="ChangePassword"
               component={ChangePasswordScreen}
               options={{
-                title: 'Change Password',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff',
+                title: t('password.title', 'Change Password'),
               }}
             />
             <Stack.Screen
               name="EditProfile"
               component={EditProfileScreen}
               options={{
-                title: 'Edit Profile',
-                headerStyle: { backgroundColor: '#1c1c1e' },
-                headerTintColor: '#fff'
+                title: t('profile.editProfile', 'Edit Profile'),
               }}
             />
           </>

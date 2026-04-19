@@ -1,13 +1,14 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { useTheme } from '../../../context/ThemeContext';
 import { Food } from '../services/food.service';
 
 const MEAL_TYPES = [
-    { key: 'breakfast', label: 'Desayuno', time: '09:00' },
-    { key: 'lunch', label: 'Comida', time: '14:00' },
-    { key: 'dinner', label: 'Cena', time: '20:00' },
-    { key: 'snack', label: 'Snack', time: '17:00' }
+    { key: 'breakfast', time: '09:00' },
+    { key: 'lunch', time: '14:00' },
+    { key: 'dinner', time: '20:00' },
+    { key: 'snack', time: '17:00' }
 ];
 
 interface AddFoodModalProps {
@@ -18,6 +19,7 @@ interface AddFoodModalProps {
 }
 
 export const AddFoodModal = ({ visible, food, onClose, onSelectMeal }: AddFoodModalProps) => {
+    const { t } = useTranslation();
     const { colors } = useTheme();
 
     const styles = StyleSheet.create({
@@ -41,7 +43,7 @@ export const AddFoodModal = ({ visible, food, onClose, onSelectMeal }: AddFoodMo
         <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={onClose}>
             <View style={styles.modalContainer}>
                 <View style={styles.modalContent}>
-                    <Text style={styles.title}>Añadir a mis comidas</Text>
+                    <Text style={styles.title}>{t('food.addToMealsTitle')}</Text>
                     <Text style={styles.subtitle}>{food.food_name}</Text>
                     
                     <View style={styles.statsRow}>
@@ -59,7 +61,7 @@ export const AddFoodModal = ({ visible, food, onClose, onSelectMeal }: AddFoodMo
                         </View>
                     </View>
 
-                    <Text style={[styles.statLabel, { marginBottom: 12, fontWeight: 'bold' }]}>SELECCIONA MOMENTO:</Text>
+                    <Text style={[styles.statLabel, { marginBottom: 12, fontWeight: 'bold' }]}>{t('food.selectMealMoment')}</Text>
                     
                     <ScrollView bounces={false}>
                         {MEAL_TYPES.map(meal => (
@@ -68,13 +70,13 @@ export const AddFoodModal = ({ visible, food, onClose, onSelectMeal }: AddFoodMo
                                 style={styles.button}
                                 onPress={() => onSelectMeal(meal.key, meal.time)}
                             >
-                                <Text style={styles.buttonText}>{meal.label}</Text>
+                                <Text style={styles.buttonText}>{t(`food.meals.${meal.key}` as any)}</Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
                     
                     <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-                        <Text style={styles.cancelText}>Cancelar</Text>
+                        <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

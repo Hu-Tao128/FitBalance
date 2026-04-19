@@ -98,9 +98,9 @@ const ChangePasswordScreen = () => {
                 >
                     {/* Header Section */}
                     <View style={styles.headerSection}>
-                        <Text style={styles.headerTitle}>Cambiar Contraseña</Text>
+                        <Text style={styles.headerTitle}>{t('password.title', 'Cambiar Contraseña')}</Text>
                         <Text style={styles.headerDescription}>
-                            Actualiza tus credenciales para mantener tu cuenta segura.
+                            {t('password.subtitle', 'Actualiza tus credenciales para mantener tu cuenta segura.')}
                         </Text>
                     </View>
 
@@ -108,7 +108,7 @@ const ChangePasswordScreen = () => {
                     <View style={styles.formCard}>
                         {/* Current Password */}
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>CONTRASEÑA ACTUAL</Text>
+                            <Text style={styles.label}>{t('password.currentLabel', 'CONTRASEÑA ACTUAL')}</Text>
                             <View style={styles.inputWrapper}>
                                 <TextInput
                                     style={styles.input}
@@ -133,7 +133,7 @@ const ChangePasswordScreen = () => {
 
                         {/* New Password */}
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>NUEVA CONTRASEÑA</Text>
+                            <Text style={styles.label}>{t('password.newLabel', 'NUEVA CONTRASEÑA')}</Text>
                             <View style={styles.inputWrapper}>
                                 <TextInput
                                     style={styles.input}
@@ -175,7 +175,7 @@ const ChangePasswordScreen = () => {
 
                         {/* Confirm Password */}
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>CONFIRMAR NUEVA CONTRASEÑA</Text>
+                            <Text style={styles.label}>{t('password.confirmLabel', 'CONFIRMAR NUEVA CONTRASEÑA')}</Text>
                             <View style={styles.inputWrapper}>
                                 <TextInput
                                     style={styles.input}
@@ -235,7 +235,7 @@ const ChangePasswordScreen = () => {
                                 <ActivityIndicator color={colors.onPrimary} />
                             ) : (
                                 <View style={styles.buttonContent}>
-                                    <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+                                    <Text style={styles.saveButtonText}>{t('password.saveChanges', 'Guardar Cambios')}</Text>
                                     <Text style={styles.buttonIcon}>→</Text>
                                 </View>
                             )}

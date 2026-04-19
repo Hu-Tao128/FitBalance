@@ -16,6 +16,7 @@ import {
     View,
 } from 'react-native';
 import { KeyboardTypeOptions } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
 
@@ -53,6 +54,7 @@ const ProfileInput: React.FC<ProfileInputProps> = ({ icon, label, value, onChang
 export default function EditProfileScreen({ navigation }: any) {
     const { colors, darkMode } = useTheme();
     const { user, updateUser } = useUser();
+    const { t } = useTranslation();
     const styles = createDynamicStyles(colors, darkMode);
 
     const [formData, setFormData] = useState({
@@ -105,9 +107,9 @@ export default function EditProfileScreen({ navigation }: any) {
                     >
                         {/* Header */}
                         <View style={styles.header}>
-                            <Text style={styles.title}>Editar Perfil</Text>
+                            <Text style={styles.title}>{t('profile.editProfileTitle', 'Editar Perfil')}</Text>
                             <Text style={styles.subtitle}>
-                                Actualiza tu información personal
+                                {t('profile.updateInfo', 'Actualiza tu información personal')}
                             </Text>
                         </View>
 

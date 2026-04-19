@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../../context/ThemeContext';
@@ -12,26 +13,26 @@ interface ActionCard {
     color: string;
 }
 
-const mainActions: ActionCard[] = [
-    {
-        icon: 'add-circle-outline',
-        label: 'Nueva Comida',
-        sub: 'Crea un plato desde cero',
-        screen: 'CreateMealScreen',
-        color: 'primary',
-    },
-    {
-        icon: 'list-outline',
-        label: 'Mis Comidas',
-        sub: 'Ver, editar o eliminar comidas guardadas',
-        screen: 'ManageMeals',
-        color: 'secondary',
-    },
-];
-
 export default function OptionsFood({ navigation }: any) {
+    const { t } = useTranslation();
     const { colors } = useTheme();
     const insets = useSafeAreaInsets();
+    const mainActions: ActionCard[] = [
+        {
+            icon: 'add-circle-outline',
+            label: t('food.newMeal'),
+            sub: t('food.newMealSub'),
+            screen: 'CreateMealScreen',
+            color: 'primary',
+        },
+        {
+            icon: 'list-outline',
+            label: t('food.myMeals'),
+            sub: t('food.myMealsSub'),
+            screen: 'ManageMeals',
+            color: 'secondary',
+        },
+    ];
 
     const getColorScheme = (colorName: string) => {
         switch (colorName) {
@@ -53,10 +54,10 @@ export default function OptionsFood({ navigation }: any) {
                 {/* Header */}
                 <View style={styles.header}>
                     <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
-                        Gestión de Comidas
+                        {t('food.optionsManagementTitle')}
                     </Text>
                     <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-                        Crea y administra tus propias comidas y recetas
+                        {t('food.optionsManagementSub')}
                     </Text>
                 </View>
 
@@ -91,7 +92,7 @@ export default function OptionsFood({ navigation }: any) {
                 {/* Tips Section */}
                 <View style={styles.tipsSection}>
                     <Text style={[styles.tipsTitle, { color: colors.onSurface }]}>
-                        Consejos
+                        {t('food.tips')}
                     </Text>
                     <View style={[styles.tipCard, { backgroundColor: colors.card }]}>
                         <View style={styles.tipRow}>
@@ -100,10 +101,10 @@ export default function OptionsFood({ navigation }: any) {
                             </View>
                             <View style={styles.tipContent}>
                                 <Text style={[styles.tipLabel, { color: colors.onSurface }]}>
-                                    Incluye todos los ingredientes
+                                    {t('food.tipIncludeIngredientsTitle')}
                                 </Text>
                                 <Text style={[styles.tipText, { color: colors.textSecondary }]}>
-                                    Añade cada ingrediente con su cantidad para un cálculo preciso de macros.
+                                    {t('food.tipIncludeIngredientsSub')}
                                 </Text>
                             </View>
                         </View>
@@ -115,10 +116,10 @@ export default function OptionsFood({ navigation }: any) {
                             </View>
                             <View style={styles.tipContent}>
                                 <Text style={[styles.tipLabel, { color: colors.onSurface }]}>
-                                    Guarda tus recetas
+                                    {t('food.tipSaveRecipesTitle')}
                                 </Text>
                                 <Text style={[styles.tipText, { color: colors.textSecondary }]}>
-                                    Crea tus recetas favoritas y úsalas rápidamente en tu registro diario.
+                                    {t('food.tipSaveRecipesSub')}
                                 </Text>
                             </View>
                         </View>

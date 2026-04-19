@@ -29,7 +29,7 @@ export interface AddMealParams {
 export const foodService = {
     searchFood: async (query: string): Promise<Food[]> => {
         const res = await apiClient.post('/search-food', { query });
-        return res.data.results || [];
+        return res.results || [];
     },
 
     searchBarcode: async (upc: string): Promise<Food | null> => {

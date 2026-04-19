@@ -44,7 +44,9 @@
       "runtimeVersion": "1.0.1",
       "permissions": [
         "android.permission.ACTIVITY_RECOGNITION",
-        "android.permission.INTERNET"
+        "android.permission.INTERNET",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ],
       "googleServicesFile": "./google-services.json"
     },

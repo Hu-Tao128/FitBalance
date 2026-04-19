@@ -29,12 +29,12 @@ export interface Appointment {
 export const nutritionistService = {
     getById: async (nutritionistId: string) => {
         const response = await apiClient.get(`/nutritionist/${nutritionistId}`);
-        return response.data as Nutritionist;
+        return response as Nutritionist;
     },
 
     getAppointmentsByPatientId: async (patientId: string) => {
         const response = await apiClient.get(`/appointments/${patientId}`);
-        return response.data as Appointment[];
+        return response as Appointment[];
     }
 };
 

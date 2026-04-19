@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import * as WebBrowser from 'expo-web-browser';
 import { Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { RootStackParamList } from '../../../navigation/AppNavigator';
 import { useTheme } from '../../../context/ThemeContext';
@@ -92,7 +93,65 @@ const SettingsScreen = () => {
       fontWeight: 'bold',
     },
     bottomNav: {
-...
+      backgroundColor: colors.card,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+    },
+    bottomNavText: {
+      color: colors.text,
+      fontSize: 14,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContent: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 24,
+      width: '85%',
+      maxWidth: 340,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    modalText: {
+      fontSize: 16,
+      color: colors.textSecondary || colors.text,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
+    modalButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    modalButton: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    cancelButton: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cancelButtonText: {
+      color: colors.text,
+      fontWeight: '600',
+    },
+    confirmButton: {
+      backgroundColor: '#FF3B30',
+    },
     confirmButtonText: {
       color: '#fff',
       fontWeight: 'bold',
@@ -194,6 +253,14 @@ const SettingsScreen = () => {
         >
           <Ionicons name="id-card-outline" size={24} color="#34C759" />
           <Text style={styles.itemText}>{t('settings.nutritionist', 'Nutritionist')}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.item}
+          onPress={() => WebBrowser.openBrowserAsync('https://hu-tao128.github.io/fitbalance-privacy/')}
+        >
+          <Ionicons name="shield-checkmark-outline" size={24} color="#34C759" />
+          <Text style={styles.itemText}>{t('settings.privacy', 'Privacy Policy')}</Text>
         </TouchableOpacity>
 
 

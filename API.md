@@ -8,7 +8,7 @@
 
 ### Header de Autorización
 
-Todos los endpoints protegidos (excepto `/login` y `/send-reset-code`) requieren un token JWT en el header:
+Todos los endpoints protegidos (excepto `/login`, `/send-reset-code`, `/verify-reset-code` y `/reset-password`) requieren un token JWT en el header:
 
 ```
 Authorization: Bearer <token_jwt>
@@ -79,11 +79,178 @@ Enviar código de recuperación de contraseña al correo.
 }
 ```
 
-**Respuesta:**
+**Respuesta exitosa (`200 OK`):**
 
 ```json
 {
-  "message": "Codigo de recuperacion enviado al correo del paciente."
+  "message": "Codigo de recuperacion enviado al correo del paciente.",
+  "userExists": true
+}
+```
+
+**Posibles errores:**
+
+- `400 Bad Request`
+
+```json
+{
+  "message": "El campo email es obligatorio."
+}
+```
+
+- `429 Too Many Requests`
+
+```json
+{
+  "message": "Espera antes de solicitar otro codigo."
+}
+```
+
+- `404 Not Found`
+
+```json
+{
+  "message": "Usuario no encontrado.",
+  "userExists": false
+}
+```
+
+- `500 Internal Server Error`
+
+```json
+{
+  "error": "Error al enviar el correo de recuperacion."
+}
+```
+
+---
+
+#### POST /verify-reset-code
+
+Verificar si el código de recuperación es válido.
+
+**Body:**
+
+```json
+{
+  "email": "string",
+  "code": "string"
+}
+```
+
+**Respuesta exitosa (`200 OK`):**
+
+```json
+{
+  "message": "Codigo valido.",
+  "resetToken": "jwt_temporal_10m"
+}
+```
+
+**Posibles errores:**
+
+- `400 Bad Request`
+
+```json
+{
+  "message": "Los campos email y code son obligatorios."
+}
+```
+
+```json
+{
+  "message": "Codigo invalido."
+}
+```
+
+```json
+{
+  "message": "Codigo expirado."
+}
+```
+
+- `404 Not Found`
+
+```json
+{
+  "message": "Usuario no encontrado."
+}
+```
+
+- `500 Internal Server Error`
+
+```json
+{
+  "error": "Error interno del servidor."
+}
+```
+
+---
+
+#### POST /reset-password
+
+Restablecer contraseña sin sesión activa usando token temporal de recuperación.
+
+**Body:**
+
+```json
+{
+  "token": "jwt_temporal_10m",
+  "newPassword": "string"
+}
+```
+
+**Respuesta exitosa (`200 OK`):**
+
+```json
+{
+  "message": "Contrasena actualizada con exito."
+}
+```
+
+**Posibles errores:**
+
+- `400 Bad Request`
+
+```json
+{
+  "message": "Los campos token y newPassword son obligatorios."
+}
+```
+
+```json
+{
+  "message": "La contrasena debe tener al menos 6 caracteres."
+}
+```
+
+- `401 Unauthorized`
+
+```json
+{
+  "message": "Token de recuperacion invalido."
+}
+```
+
+```json
+{
+  "message": "Token de recuperacion expirado."
+}
+```
+
+- `404 Not Found`
+
+```json
+{
+  "message": "Usuario no encontrado."
+}
+```
+
+- `500 Internal Server Error`
+
+```json
+{
+  "error": "Error interno del servidor."
 }
 ```
 
@@ -450,26 +617,6 @@ Añadir una comida personalizada al registro diario. **Requiere autenticación.*
 
 ---
 
-#### DELETE /daily-meal-logs/:logId/meals/:mealId
-
-Eliminar una comida del registro diario. **Requiere autenticación.**
-
-**Parámetros:**
-
-- `logId` (path): ID del registro diario
-- `mealId` (path): ID de la comida a eliminar
-
-**Respuesta:**
-
-```json
-{
-  "message": "Meal deleted successfully.",
-  "dailyLog": { ... }
-}
-```
-
----
-
 #### POST /dailymeallogs/add-food
 
 Añadir un alimento escaneado (scanner de código de barras) al registro diario. **Requiere autenticación.**
@@ -500,6 +647,26 @@ Añadir un alimento escaneado (scanner de código de barras) al registro diario.
 ```json
 {
   "message": "Alimento añadido al log diario",
+  "dailyLog": { ... }
+}
+```
+
+---
+
+#### DELETE /daily-meal-logs/:logId/meals/:mealId
+
+Eliminar una comida del registro diario. **Requiere autenticación.**
+
+**Parámetros:**
+
+- `logId` (path): ID del registro diario
+- `mealId` (path): ID de la comida a eliminar
+
+**Respuesta:**
+
+```json
+{
+  "message": "Meal deleted successfully.",
   "dailyLog": { ... }
 }
 ```
@@ -628,8 +795,8 @@ Obtener las citas de un paciente. **Requiere autenticación.**
 | GET    | /daily-meal-logs/by-date              | Sí            | Log por fecha                   |
 | POST   | /daily-meal-logs/add-meal             | Sí            | Añadir comida                   |
 | POST   | /daily-meal-logs/add-weekly-meal      | Sí            | Añadir comida del plan          |
-| POST   | /dailymeallogs/add-food             | Sí            | Añadir alimento escaneado       |
 | POST   | /DailyMealLogs/add-custom-meal        | Sí            | Añadir comida personalizada     |
+| POST   | /dailymeallogs/add-food               | Sí            | Añadir alimento del scanner     |
 | DELETE | /daily-meal-logs/:logId/meals/:mealId | Sí            | Eliminar comida                 |
 | POST   | /PatientMeals                         | Sí            | Crear comida personalizada      |
 | GET    | /PatientMeals/:patient_id             | Sí            | Listar comidas personalizadas   |

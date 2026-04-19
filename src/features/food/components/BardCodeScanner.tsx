@@ -1,7 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { Camera } from 'expo-camera';
 import { BarcodeScanningResult, CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../context/ThemeContext';
 
 interface BarCodeScannerProps {
@@ -9,6 +11,7 @@ interface BarCodeScannerProps {
 }
 
 export default function BarCodeScanner({ onBarCodeScanned }: BarCodeScannerProps) {
+    const { t } = useTranslation();
     const [facing, setFacing] = useState<CameraType>('back');
     const [permission, requestPermission] = useCameraPermissions();
     const { colors } = useTheme();
@@ -99,10 +102,30 @@ export default function BarCodeScanner({ onBarCodeScanned }: BarCodeScannerProps
         return (
             <View style={styles.container}>
                 <Text style={styles.message}>
-                    We need permission to access your camera and scan the barcode.
+                    {t('food.permissionCameraMsg')}
                 </Text>
-                <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
-                    <Text style={styles.permissionBtnText}>Granting permission</Text>
+                <TouchableOpacity
+                    style={styles.permissionBtn}
+                    onPress={async () => {
+                        const current = await Camera.getCameraPermissionsAsync();
+                        if (current.granted) {
+                            return;
+                        }
+                        if (current.canAskAgain) {
+                            await requestPermission();
+                            return;
+                        }
+                        Alert.alert(
+                            t('food.error'),
+                            t('food.permissionBlockedMsg'),
+                            [
+                                { text: t('common.cancel'), style: 'cancel' },
+                                { text: t('food.openSettings'), onPress: () => Linking.openSettings() }
+                            ]
+                        );
+                    }}
+                >
+                    <Text style={styles.permissionBtnText}>{t('food.permissionGrant')}</Text>
                 </TouchableOpacity>
             </View>
         );

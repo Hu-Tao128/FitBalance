@@ -76,7 +76,7 @@ const StatisticsScreen: React.FC = () => {
     const fetchMealLogs = useCallback(async () => {
         try {
             const res = await apiClient.get(`/daily-meal-logs/all/${user?.id}`);
-            const sorted = (res.data as Array<any>).sort(
+            const sorted = (res as Array<any>).sort(
                 (a, b) => parseLocalDate(a.date).getTime() - parseLocalDate(b.date).getTime()
             );
             setData(sorted);
