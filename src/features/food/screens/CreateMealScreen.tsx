@@ -58,6 +58,7 @@ export default function CreateMealScreen({ navigation }: any) {
     const [foods, setFoods] = useState<Food[]>([]);
     const [loadingFoods, setLoadingFoods] = useState(false);
     const [searchFood, setSearchFood] = useState('');
+    const [showAllResults, setShowAllResults] = useState(false);
     const [selectedFood, setSelectedFood] = useState<Food | null>(null);
     const [amount, setAmount] = useState('');
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -82,14 +83,30 @@ export default function CreateMealScreen({ navigation }: any) {
                 const data = await mealService.getAllFoods();
                 if (mounted) setFoods(data || []);
             } catch (err) {
-                console.error('ERROR al obtener alimentos:', err);
-                Alert.alert(t('food.error'), t('food.createMealLoadFoodsError'));
+                console.error('ERROR al cargar alimentos:', err);
             } finally {
                 if (mounted) setLoadingFoods(false);
             }
         })();
         return () => { mounted = false; };
-    }, [t]);
+    }, []);
+
+    const handleSearchChange = (text: string) => {
+        setSearchFood(text);
+    };
+
+    const handleSearchSubmit = () => {
+        if (searchFood.trim().length < 2) return;
+        setLoadingFoods(true);
+        mealService.searchFoods(searchFood.trim())
+            .then(data => setFoods(data || []))
+            .catch(err => console.error('ERROR al buscar:', err))
+            .finally(() => setLoadingFoods(false));
+    };
+
+    const filteredFoods = searchFood.trim().length > 0 ? foods.filter(f => f.name.toLowerCase().includes(searchFood.toLowerCase())) : [];
+    const displayFoods = showAllResults ? filteredFoods : filteredFoods.slice(0, 5);
+    const hasMoreResults = filteredFoods.length > 5;
 
     useEffect(() => {
         const t: any = { energy_kcal: 0, protein_g: 0, carbohydrates_g: 0, fat_g: 0, fiber_g: 0, sugar_g: 0 };
@@ -169,15 +186,10 @@ export default function CreateMealScreen({ navigation }: any) {
         }
     };
 
-    const filteredFoods = foods.filter(f => f.name.toLowerCase().includes(searchFood.toLowerCase()));
-
     return (
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color={colors.text} />
-                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>{t('food.createMealScreenTitle')}</Text>
                 </View>
 
@@ -200,20 +212,21 @@ export default function CreateMealScreen({ navigation }: any) {
                             placeholder={t('food.createMealSearchFoodPlaceholder')}
                             placeholderTextColor={colors.outline}
                             value={searchFood}
-                            onChangeText={setSearchFood}
+                            onChangeText={handleSearchChange}
+                            onSubmitEditing={handleSearchSubmit}
+                            returnKeyType="search"
                         />
-                        {searchFood.length > 0 && !selectedFood && (
+                        {searchFood.length > 0 && !selectedFood && filteredFoods.length > 0 && (
                             <View style={[styles.resultsBox, { backgroundColor: colors.card }]}>
-                                {loadingFoods ? (
-                                    <ActivityIndicator size="small" color={colors.primary} />
-                                ) : filteredFoods.length > 0 ? (
-                                    filteredFoods.map(f => (
-                                        <TouchableOpacity key={getObjectIdFromMongoDoc(f._id)} style={styles.resultItem} onPress={() => { setSelectedFood(f); setSearchFood(f.name); }}>
-                                            <Text style={[styles.resultName, { color: colors.text }]}>{f.name}</Text>
-                                        </TouchableOpacity>
-                                    ))
-                                ) : (
-                                    <Text style={[styles.noResult, { color: colors.outline }]}>{t('food.createMealNoFoodsFound')}</Text>
+                                {displayFoods.map(f => (
+                                    <TouchableOpacity key={getObjectIdFromMongoDoc(f._id)} style={styles.resultItem} onPress={() => { setSelectedFood(f); setSearchFood(f.name); }}>
+                                        <Text style={[styles.resultName, { color: colors.text }]}>{f.name}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                                {hasMoreResults && !showAllResults && (
+                                    <TouchableOpacity style={styles.showMoreButton} onPress={() => setShowAllResults(true)}>
+                                        <Text style={[styles.showMoreText, { color: colors.primary }]}>Ver más ({filteredFoods.length - 5})</Text>
+                                    </TouchableOpacity>
                                 )}
                             </View>
                         )}
@@ -303,6 +316,7 @@ const createDynamicStyles = (colors: any) => StyleSheet.create({
     sectionLabel: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 8 },
     input: { height: 50, borderRadius: 12, paddingHorizontal: 16, fontSize: 16 },
     resultsBox: { borderRadius: 12, marginTop: 4, maxHeight: 200, overflow: 'hidden', elevation: 3 },
+    resultsScroll: { maxHeight: 180 },
     resultItem: { padding: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' },
     resultName: { fontSize: 15 },
     noResult: { padding: 14, textAlign: 'center' },
@@ -323,5 +337,7 @@ const createDynamicStyles = (colors: any) => StyleSheet.create({
     totalValue: { color: 'white', fontSize: 20, fontWeight: '800' },
     totalLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 4 },
     saveButton: { height: 56, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginBottom: 40 },
-    saveButtonText: { color: 'white', fontSize: 17, fontWeight: 'bold' }
+    saveButtonText: { color: 'white', fontSize: 17, fontWeight: 'bold' },
+    showMoreButton: { padding: 12, alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.1)', marginTop: 4 },
+    showMoreText: { fontSize: 14, fontWeight: '600', color: colors.primary }
 });

@@ -86,6 +86,7 @@
     "createMealSearchIngredientLabel": "Search Ingredient",
     "createMealSearchFoodPlaceholder": "Search food...",
     "createMealNoFoodsFound": "No foods found.",
+    "showMoreResults": "Show more ({{count}})",
     "createMealAmountOf": "Amount of {{foodName}}:",
     "createMealGrams": "grams",
     "createMealIngredientsCount": "Ingredients ({{count}})",

@@ -138,6 +138,7 @@ export default function AppNavigator() {
               component={CreateMealScreen}
               options={{
                 title: t('food.createMeal', 'Create Custom Food'),
+                headerBackTitle: '',
               }}
             />
             <Stack.Screen

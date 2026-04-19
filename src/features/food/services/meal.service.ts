@@ -41,6 +41,11 @@ export const mealService = {
         return res;
     },
 
+    searchFoods: async (query: string) => {
+        const res = await apiClient.get('/api/food', { params: { search: query } });
+        return res;
+    },
+
     createPatientMeal: async (mealData: any) => {
         const res = await apiClient.post('/PatientMeals', mealData);
         return res;
