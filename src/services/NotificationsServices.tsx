@@ -33,6 +33,29 @@ export const setupNotifications = async (): Promise<boolean> => {
 };
 
 /**
+ * Programa una notificación diaria a una hora específica.
+ */
+export const scheduleDailyNotification = async (
+  title: string,
+  body: string,
+  hour: number,
+  minute: number
+): Promise<void> => {
+  // Cancelamos todas primero para evitar duplicados del mismo recordatorio
+  // En un sistema real, usaríamos identificadores, pero aquí limpiamos el set local
+  await cancelAllNotifications();
+
+  await Notifications.scheduleNotificationAsync({
+    content: { title, body },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour,
+      minute,
+    },
+  });
+};
+
+/**
  * Programa una notificación local en segundos.
  */
 export const scheduleNotification = async (

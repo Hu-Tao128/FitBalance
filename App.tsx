@@ -8,7 +8,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 
 import {
   setupNotifications,
-  scheduleNotification
+  scheduleDailyNotification
 } from './src/services/NotificationsServices';
 
 export default function App() {
@@ -18,11 +18,12 @@ export default function App() {
         const granted = await setupNotifications();
         if (!granted) return;
 
-        scheduleNotification(
+        // Una vez al día a las 10:00 AM
+        await scheduleDailyNotification(
           '💧 Hora de hidratarte',
           'Toma un vaso de agua ahora mismo.',
-          2 * 60 * 60,
-          true
+          10,
+          0
         );
       } catch (error) {
         console.error('Error setting up notifications:', error);
