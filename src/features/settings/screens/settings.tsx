@@ -8,6 +8,8 @@ import { Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, Touchabl
 import { RootStackParamList } from '../../../navigation/AppNavigator';
 import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
+import { initNotifications } from '../../../services/FCMService';
+import { apiClient } from '../../../core/api/apiClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
@@ -17,9 +19,31 @@ const SettingsScreen = () => {
   const { t, i18n } = useTranslation();
   const { colors, darkMode, toggleTheme } = useTheme();
   const navigation = useNavigation<SettingsScreenNavigationProp>();
-  const { logout } = useUser();
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const { user, logout, updateUser } = useUser();
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+
+  const preferences = user?.notificationPreferences || {
+    planUpdates: true,
+    appointments: true,
+    reminders: true,
+  };
+
+  const togglePreference = async (key: keyof typeof preferences) => {
+    const newValue = !preferences[key];
+    const newPreferences = { ...preferences, [key]: newValue };
+
+    try {
+      // Si está activando alguna, nos aseguramos de que tenga token/permisos
+      if (newValue) {
+        await initNotifications();
+      }
+
+      await apiClient.put('/users/notification-preferences', newPreferences);
+      await updateUser({ notificationPreferences: newPreferences });
+    } catch (error) {
+      console.error('Error updating notification preferences:', error);
+    }
+  };
 
   const changeLanguage = async (lng: string) => {
     await i18n.changeLanguage(lng);
@@ -215,10 +239,32 @@ const SettingsScreen = () => {
         <Text style={styles.sectionHeader}>{t('settings.preferences', 'Preferences')}</Text>
         <View style={styles.item}>
           <Ionicons name="notifications-outline" size={24} color="#34C759" />
-          <Text style={styles.itemText}>{t('settings.notifications', 'Notifications')}</Text>
+          <Text style={styles.itemText}>{t('settings.planUpdates', 'Plan Updates')}</Text>
           <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
+            value={preferences.planUpdates}
+            onValueChange={() => togglePreference('planUpdates')}
+            trackColor={{ false: '#555', true: '#34C759' }}
+            thumbColor="#fff"
+            style={styles.switch}
+          />
+        </View>
+        <View style={styles.item}>
+          <Ionicons name="calendar-outline" size={24} color="#34C759" />
+          <Text style={styles.itemText}>{t('settings.appointmentsNotif', 'Appointments')}</Text>
+          <Switch
+            value={preferences.appointments}
+            onValueChange={() => togglePreference('appointments')}
+            trackColor={{ false: '#555', true: '#34C759' }}
+            thumbColor="#fff"
+            style={styles.switch}
+          />
+        </View>
+        <View style={styles.item}>
+          <Ionicons name="alarm-outline" size={24} color="#34C759" />
+          <Text style={styles.itemText}>{t('settings.reminders', 'Reminders')}</Text>
+          <Switch
+            value={preferences.reminders}
+            onValueChange={() => togglePreference('reminders')}
             trackColor={{ false: '#555', true: '#34C759' }}
             thumbColor="#fff"
             style={styles.switch}

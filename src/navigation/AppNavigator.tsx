@@ -1,5 +1,5 @@
 // src/navigation/AppNavigator.tsx
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ActivityIndicator, View } from 'react-native';
 import { useUser } from '../context/UserContext';
@@ -10,6 +10,8 @@ import SettingsScreen from '../features/settings/screens/settings';
 import UserProfileScreen from '../features/profile/screens/userProfileScreen';
 import weighFood from '../features/food/screens/weighFood';
 import { BottomNavigation } from './bottom-navigation';
+import { setupFCMListeners } from '../services/FCMService';
+import { useEffect, useRef } from 'react';
 
 import ChangePasswordScreen from '../features/auth/screens/ChangePasswordScreen'; // 2. Importa la pantalla
 import CreateMealScreen from '../features/food/screens/CreateMealScreen';
@@ -55,6 +57,14 @@ export default function AppNavigator() {
   const { user, isLoading } = useUser();
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
+
+  useEffect(() => {
+    if (user) {
+      const unsubscribe = setupFCMListeners(navigationRef.current);
+      return unsubscribe;
+    }
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -65,7 +75,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         screenOptions={{
           headerStyle: { backgroundColor: colors.background },

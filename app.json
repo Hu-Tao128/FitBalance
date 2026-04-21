@@ -13,6 +13,8 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
       "expo-activity-recognition",
       [
         "expo-camera",
@@ -48,10 +50,6 @@
       "edgeToEdgeEnabled": true,
       "runtimeVersion": "1.0.1",
       "permissions": [
-        "android.permission.ACTIVITY_RECOGNITION",
-        "android.permission.INTERNET",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.ACTIVITY_RECOGNITION",
         "android.permission.INTERNET",
         "android.permission.CAMERA",

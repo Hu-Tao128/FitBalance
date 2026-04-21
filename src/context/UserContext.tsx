@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { initNotifications } from '../services/FCMService';
 
 type User = {
   id: string;
@@ -18,6 +19,11 @@ type User = {
   nutritionist_id?: string;
   isActive?: boolean;
   displayName?: string | null;
+  notificationPreferences?: {
+    planUpdates: boolean;
+    appointments: boolean;
+    reminders: boolean;
+  };
 };
 
 type UserContextType = {
@@ -46,6 +52,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         const storedUser = await AsyncStorage.getItem('user');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
+          initNotifications(); // Initialize FCM if user is already logged in
         }
       } catch (error) {
         console.error('Error loading user', error);
@@ -61,6 +68,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await AsyncStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+      initNotifications(); // Initialize FCM after login
     } catch (error) {
       console.error('Error saving user', error);
     }
