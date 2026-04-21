@@ -60,6 +60,7 @@
     "ios": {
       "bundleIdentifier": "com.ayasc.nutifrut",
       "supportsTablet": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {},
       "runtimeVersion": "1.0.0"
     },
