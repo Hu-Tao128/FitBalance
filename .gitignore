@@ -37,3 +37,6 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 node_modules
+
+# IOS
+*.plist
