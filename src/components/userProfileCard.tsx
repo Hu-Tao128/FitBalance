@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 
 type UserProfileProps = {
@@ -28,14 +29,15 @@ const UserProfileCard = ({
   email,
   phone,
   age = 0,
-  gender = 'No especificado',
+  gender,
   height_cm = 0,
   weight_kg = 0,
-  objective = 'No especificado',
+  objective,
   last_consultation = null
 }: UserProfileProps) => {
 
   const { colors } = useTheme();
+  const { t } = useTranslation();
   // Se llama a la función para crear los estilos con los colores del tema
   const styles = createDynamicStyles(colors);
 
@@ -44,11 +46,11 @@ const UserProfileCard = ({
     : null;
 
   const formatLastConsultation = () => {
-    if (!last_consultation) return 'Not registered';
+    if (!last_consultation) return t('profile.notRegistered');
     try {
       return new Date(last_consultation).toLocaleDateString();
     } catch (e) {
-      return 'Invalid date';
+      return t('profile.invalidDate');
     }
   };
 
@@ -71,7 +73,7 @@ const UserProfileCard = ({
           <View style={styles.iconBox}>
             <Ionicons name="body-outline" size={22} color={colors.primary} />
           </View>
-          <Text style={styles.infoText}>{age} Age • {gender}</Text>
+          <Text style={styles.infoText}>{age} {t('profile.age')} • {gender || t('profile.notSpecified')}</Text>
         </View>
         <View style={styles.row}>
           <View style={styles.iconBox}>
@@ -85,9 +87,9 @@ const UserProfileCard = ({
               <MaterialCommunityIcons name="weight" size={22} color={colors.primary} />
             </View>
             <Text style={styles.infoText}>
-              IMC: {bmi}
+              {t('profile.bmi')}: {bmi}
               <View style={styles.bmiBadge}>
-                <Text style={styles.bmiText}> {getBmiCategory(Number(bmi))}</Text>
+                <Text style={styles.bmiText}> {getBmiCategory(Number(bmi), t)}</Text>
               </View>
             </Text>
           </View>
@@ -96,14 +98,14 @@ const UserProfileCard = ({
           <View style={styles.iconBox}>
             <Ionicons name="barbell-outline" size={22} color={colors.primary} />
           </View>
-          <Text style={styles.infoText}>Target: {objective}</Text>
+          <Text style={styles.infoText}>{t('profile.target')}: {objective || t('profile.notSpecified')}</Text>
         </View>
         <View style={styles.row}>
           <View style={styles.iconBox}>
             <Ionicons name="calendar-outline" size={22} color={colors.primary} />
           </View>
           <Text style={styles.infoText}>
-            Last consultation: {formatLastConsultation()}
+            {t('profile.lastConsultation')}: {formatLastConsultation()}
           </Text>
         </View>
       </View>
@@ -112,11 +114,11 @@ const UserProfileCard = ({
 };
 
 // --- LA LÓGICA NO SE MODIFICA ---
-function getBmiCategory(bmi: number): string {
-  if (bmi < 18.5) return 'Underweight';
-  if (bmi < 25) return 'Normal';
-  if (bmi < 30) return 'Overweight';
-  return 'Obese';
+function getBmiCategory(bmi: number, t: (key: string) => string): string {
+  if (bmi < 18.5) return t('profile.underweight');
+  if (bmi < 25) return t('profile.normal');
+  if (bmi < 30) return t('profile.overweight');
+  return t('profile.obese');
 }
 
 // --- SECCIÓN DE ESTILOS ACTUALIZADA ---

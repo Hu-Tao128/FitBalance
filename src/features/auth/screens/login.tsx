@@ -160,7 +160,12 @@ export default function LoginScreen() {
     };
 
     const passwordStrength = getPasswordStrength(newPassword);
-    const strengthLabels = ['Muy Débil', 'Débil', 'Media', 'Fuerte'];
+    const strengthLabels = [
+        t('auth.veryWeak'),
+        t('auth.weak'),
+        t('auth.medium'),
+        t('auth.strong')
+    ];
     const strengthColors = [ui.error, '#FF9800', colors.warning || '#FFC107', ui.success];
 
     const persistForgotFlow = async (override?: Partial<ForgotFlowState>) => {
@@ -233,7 +238,7 @@ export default function LoginScreen() {
             const res = await authService.login(username.trim(), password);
 
             if (!res.patient || !res.patient.username) {
-                throw new Error('Credenciales inválidas');
+                throw new Error(t('auth.invalidCredentials'));
             }
 
             await login({
@@ -278,11 +283,11 @@ export default function LoginScreen() {
 
     const showCancelRecoveryAlert = () => {
         Alert.alert(
-            'Cancelar recuperación',
-            'Si cancelas, se perderá el progreso de recuperación.',
+            t('auth.cancelRecovery'),
+            t('auth.cancelRecoveryMessage'),
             [
-                { text: 'Continuar proceso', style: 'cancel' },
-                { text: 'Cancelar recuperación', style: 'destructive', onPress: () => resetForgotFlow() }
+                { text: t('auth.continueProcess'), style: 'cancel' },
+                { text: t('auth.cancelRecoveryButton'), style: 'destructive', onPress: () => resetForgotFlow() }
             ]
         );
     };
@@ -298,7 +303,7 @@ export default function LoginScreen() {
 
     const handleSendResetCode = async () => {
         if (!forgotEmail.trim()) {
-            setForgotMessage('Ingresa el correo vinculado a tu cuenta.');
+            setForgotMessage(t('auth.enterEmail'));
             setForgotMessageType('error');
             return;
         }
@@ -307,14 +312,14 @@ export default function LoginScreen() {
             setForgotLoading(true);
             setForgotMessage('');
             const response = await authService.sendResetCode(forgotEmail.trim().toLowerCase());
-            setForgotMessage(response?.message || 'Codigo de recuperacion enviado al correo del paciente.');
+            setForgotMessage(response?.message || t('auth.recoveryCodeSent'));
             setForgotMessageType('success');
             setForgotStep('code');
             await persistForgotFlow({ visible: true, step: 'code', email: forgotEmail.trim().toLowerCase() });
         } catch (error: any) {
             const backendMsg = error?.response?.data?.message;
             const status = error?.response?.status;
-            setForgotMessage(backendMsg || `No se pudo enviar el código de recuperación${status ? ` (HTTP ${status})` : ''}.`);
+            setForgotMessage(backendMsg || `${t('auth.couldNotSendCode')}${status ? ` (HTTP ${status})` : ''}.`);
             setForgotMessageType('error');
         } finally {
             setForgotLoading(false);
@@ -323,7 +328,7 @@ export default function LoginScreen() {
 
     const handleVerifyResetCode = async () => {
         if (!forgotEmail.trim() || !resetCode.trim()) {
-            setForgotMessage('Ingresa correo y código de recuperación.');
+            setForgotMessage(t('auth.enterEmailAndCode'));
             setForgotMessageType('error');
             return;
         }
@@ -333,11 +338,11 @@ export default function LoginScreen() {
             setForgotMessage('');
             const response = await authService.verifyResetCode(forgotEmail.trim().toLowerCase(), resetCode.trim());
             if (!response?.resetToken) {
-                throw new Error('No se recibió token temporal de recuperación.');
+                throw new Error(t('auth.noResetToken'));
             }
             setResetToken(response.resetToken);
             setForgotStep('reset');
-            setForgotMessage(response?.message || 'Codigo valido.');
+            setForgotMessage(response?.message || t('auth.validCode'));
             setForgotMessageType('success');
             await persistForgotFlow({
                 visible: true,
@@ -346,7 +351,7 @@ export default function LoginScreen() {
                 resetToken: response.resetToken,
             });
         } catch (error: any) {
-            setForgotMessage(error.response?.data?.message || 'Código inválido o expirado.');
+            setForgotMessage(error.response?.data?.message || t('auth.invalidOrExpiredCode'));
             setForgotMessageType('error');
         } finally {
             setForgotLoading(false);
@@ -355,27 +360,27 @@ export default function LoginScreen() {
 
     const handleResetPassword = async () => {
         if (!resetToken) {
-            setForgotMessage('Token de recuperación inválido.');
+            setForgotMessage(t('auth.invalidResetToken'));
             setForgotMessageType('error');
             return;
         }
         if (!newPassword || !confirmNewPassword) {
-            setForgotMessage('Todos los campos son obligatorios.');
+            setForgotMessage(t('auth.allFieldsRequired'));
             setForgotMessageType('error');
             return;
         }
         if (newPassword !== confirmNewPassword) {
-            setForgotMessage('Las nuevas contraseñas no coinciden.');
+            setForgotMessage(t('auth.passwordsDoNotMatch'));
             setForgotMessageType('error');
             return;
         }
         if (newPassword.length < 8) {
-            setForgotMessage('La nueva contraseña debe tener al menos 8 caracteres.');
+            setForgotMessage(t('auth.minPasswordLength'));
             setForgotMessageType('error');
             return;
         }
         if (!/\d/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
-            setForgotMessage('La contraseña debe incluir número, mayúscula y carácter especial.');
+            setForgotMessage(t('auth.passwordRequirements'));
             setForgotMessageType('error');
             return;
         }
@@ -384,10 +389,10 @@ export default function LoginScreen() {
             setForgotLoading(true);
             setForgotMessage('');
             const response = await authService.resetPassword(resetToken, newPassword);
-            Alert.alert('Éxito', response?.message || 'Contrasena actualizada con exito.');
+            Alert.alert(t('auth.success'), response?.message || t('auth.passwordUpdated'));
             await resetForgotFlow();
         } catch (error: any) {
-            setForgotMessage(error.response?.data?.message || 'No se pudo actualizar la contraseña.');
+            setForgotMessage(error.response?.data?.message || t('auth.couldNotUpdatePassword'));
             setForgotMessageType('error');
         } finally {
             setForgotLoading(false);
@@ -503,16 +508,16 @@ export default function LoginScreen() {
             >
                 <View style={modalStyles.overlay}>
                     <View style={[modalStyles.container, { backgroundColor: ui.background, borderColor: ui.border }]}>
-                        <Text style={[modalStyles.title, { color: ui.text }]}>Recuperar contraseña</Text>
+                        <Text style={[modalStyles.title, { color: ui.text }]}>{t('auth.recoverPassword')}</Text>
                         <Text style={[modalStyles.subtitle, { color: ui.textMuted }]}>
-                            {forgotStep === 'email' && 'Escribe el correo vinculado a tu cuenta y te enviaremos un código.'}
-                            {forgotStep === 'code' && 'Revisa tu correo e ingresa el código de recuperación.'}
-                            {forgotStep === 'reset' && 'Crea tu nueva contraseña con los requisitos de seguridad.'}
+                            {forgotStep === 'email' && t('auth.emailStepDescription')}
+                            {forgotStep === 'code' && t('auth.codeStepDescription')}
+                            {forgotStep === 'reset' && t('auth.resetStepDescription')}
                         </Text>
 
                         {forgotStep === 'email' && (
                             <TextInput
-                                placeholder="Correo electrónico"
+                                placeholder={t('auth.emailPlaceholder')}
                                 placeholderTextColor="#9CA3AF"
                                 style={[modalStyles.input, { backgroundColor: ui.surface, color: ui.text, borderColor: ui.border }]}
                                 value={forgotEmail}
@@ -525,7 +530,7 @@ export default function LoginScreen() {
                         {forgotStep === 'code' && (
                             <>
                                 <TextInput
-                                    placeholder="Código de recuperación"
+                                    placeholder={t('auth.recoveryCodePlaceholder')}
                                     placeholderTextColor="#9CA3AF"
                                     style={[modalStyles.input, { backgroundColor: ui.surface, color: ui.text, borderColor: ui.border }]}
                                     value={resetCode}
@@ -533,7 +538,7 @@ export default function LoginScreen() {
                                     autoCapitalize="none"
                                 />
                                 <TouchableOpacity onPress={handleSendResetCode} disabled={forgotLoading}>
-                                    <Text style={[modalStyles.secondaryLink, { color: ui.primary }]}>Reenviar código</Text>
+                                    <Text style={[modalStyles.secondaryLink, { color: ui.primary }]}>{t('auth.resendCode')}</Text>
                                 </TouchableOpacity>
                             </>
                         )}
@@ -542,7 +547,7 @@ export default function LoginScreen() {
                             <>
                                 <View style={[modalStyles.passwordWrapper, { backgroundColor: ui.surface, borderColor: ui.border }]}>
                                     <TextInput
-                                        placeholder="Nueva contraseña"
+                                        placeholder={t('auth.newPasswordPlaceholder')}
                                         placeholderTextColor="#9CA3AF"
                                         style={[modalStyles.passwordInput, { color: ui.text }]}
                                         value={newPassword}
@@ -560,7 +565,7 @@ export default function LoginScreen() {
 
                                 <View style={[modalStyles.passwordWrapper, { backgroundColor: ui.surface, borderColor: ui.border }]}>
                                     <TextInput
-                                        placeholder="Confirmar nueva contraseña"
+                                        placeholder={t('auth.confirmNewPasswordPlaceholder')}
                                         placeholderTextColor="#9CA3AF"
                                         style={[modalStyles.passwordInput, { color: ui.text }]}
                                         value={confirmNewPassword}
@@ -588,23 +593,23 @@ export default function LoginScreen() {
                                     ))}
                                     {newPassword.length > 0 && (
                                         <Text style={{ color: strengthColors[passwordStrength - 1] || '#6B7280', fontSize: 10, fontWeight: '700' }}>
-                                            {strengthLabels[passwordStrength - 1] || 'Muy Débil'}
+                                            {strengthLabels[passwordStrength - 1] || t('auth.veryWeak')}
                                         </Text>
                                     )}
                                 </View>
 
                                 <View style={[modalStyles.requirementsCard, { backgroundColor: '#F9FAFB', borderColor: ui.border }]}>
                                     <Text style={[modalStyles.requirementItem, { color: newPassword.length >= 8 ? ui.success : '#6B7280' }]}>
-                                        {newPassword.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
+                                        {newPassword.length >= 8 ? '✓' : '○'} {t('auth.min8Chars')}
                                     </Text>
                                     <Text style={[modalStyles.requirementItem, { color: /\d/.test(newPassword) ? ui.success : '#6B7280' }]}>
-                                        {/\d/.test(newPassword) ? '✓' : '○'} Al menos un número
+                                        {/\d/.test(newPassword) ? '✓' : '○'} {t('auth.atLeastOneNumber')}
                                     </Text>
                                     <Text style={[modalStyles.requirementItem, { color: /[A-Z]/.test(newPassword) ? ui.success : '#6B7280' }]}>
-                                        {/[A-Z]/.test(newPassword) ? '✓' : '○'} Una letra mayúscula
+                                        {/[A-Z]/.test(newPassword) ? '✓' : '○'} {t('auth.atLeastOneUppercase')}
                                     </Text>
                                     <Text style={[modalStyles.requirementItem, { color: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? ui.success : '#6B7280' }]}>
-                                        {/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? '✓' : '○'} Un carácter especial
+                                        {/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? '✓' : '○'} {t('auth.specialCharacter')}
                                     </Text>
                                 </View>
                             </>
@@ -632,7 +637,7 @@ export default function LoginScreen() {
                                     }}
                                     disabled={forgotLoading}
                                 >
-                                    <Text style={{ color: ui.text }}>Atrás</Text>
+                                    <Text style={{ color: ui.text }}>{t('common.back')}</Text>
                                 </TouchableOpacity>
                             )}
 
@@ -649,9 +654,9 @@ export default function LoginScreen() {
                                     <ActivityIndicator color={colors.onPrimary} />
                                 ) : (
                                     <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>
-                                        {forgotStep === 'email' && 'Enviar código'}
-                                        {forgotStep === 'code' && 'Verificar código'}
-                                        {forgotStep === 'reset' && 'Actualizar contraseña'}
+                                        {forgotStep === 'email' && t('auth.resendCode')}
+                                        {forgotStep === 'code' && t('auth.confirm')}
+                                        {forgotStep === 'reset' && t('password.saveChanges')}
                                     </Text>
                                 )}
                             </TouchableOpacity>

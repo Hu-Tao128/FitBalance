@@ -76,7 +76,7 @@ export default function EditMealScreen() {
                 setFoods(data || []);
             } catch (err) {
                 console.error('ERROR al obtener alimentos:', err);
-                Alert.alert('Error', 'No se pudieron cargar los alimentos.');
+                Alert.alert(t('error'), t('food.foodsLoadError'));
             } finally {
                 setLoadingFoods(false);
             }
@@ -101,9 +101,9 @@ export default function EditMealScreen() {
     }, [ingredients]);
 
     const handleAddIngredient = () => {
-        if (!selectedFood) return Alert.alert('Error', 'Selecciona un ingrediente.');
+        if (!selectedFood) return Alert.alert(t('error'), t('food.selectFoodError'));
         const grams = parseFloat(amount);
-        if (isNaN(grams) || grams <= 0) return Alert.alert('Error', 'Ingresa una cantidad válida.');
+        if (isNaN(grams) || grams <= 0) return Alert.alert(t('error'), t('food.invalidAmountError'));
 
         setIngredients([...ingredients, {
             food_id: getObjectIdFromMongoDoc(selectedFood._id),
@@ -122,8 +122,8 @@ export default function EditMealScreen() {
     };
 
     const handleUpdateMeal = async () => {
-        if (!mealName.trim()) return Alert.alert('Error', 'Ingresa el nombre.');
-        if (ingredients.length === 0) return Alert.alert('Error', 'Agrega ingredientes.');
+        if (!mealName.trim()) return Alert.alert(t('error'), t('food.enterNameError'));
+        if (ingredients.length === 0) return Alert.alert(t('error'), t('food.addIngredientsError'));
 
         setLoading(true);
         try {
@@ -138,11 +138,11 @@ export default function EditMealScreen() {
             };
 
             await mealService.updatePatientMeal(mealToEdit._id, mealData);
-            Alert.alert('¡Éxito!', 'Comida actualizada.');
+            Alert.alert(t('auth.success'), t('food.mealUpdated'));
             navigation.goBack();
         } catch (err) {
             console.error('ERROR al actualizar comida:', err);
-            Alert.alert('Error', 'No se pudo actualizar.');
+            Alert.alert(t('error'), t('food.updateError'));
         } finally {
             setLoading(false);
         }
@@ -157,12 +157,12 @@ export default function EditMealScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Ionicons name="arrow-back" size={24} color={colors.text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Editar Comida</Text>
+                    <Text style={styles.headerTitle}>{t('food.editMeal')}</Text>
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                     <View style={styles.section}>
-                        <Text style={styles.sectionLabel}>Nombre de la Comida</Text>
+                        <Text style={styles.sectionLabel}>{t('food.mealNameLabel')}</Text>
                         <TextInput
                             style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
                             value={mealName}
@@ -171,10 +171,10 @@ export default function EditMealScreen() {
                     </View>
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionLabel}>Buscar Ingrediente</Text>
+                        <Text style={styles.sectionLabel}>{t('food.searchIngredientLabel')}</Text>
                         <TextInput
                             style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
-                            placeholder="Buscar alimento..."
+                            placeholder={t('food.searchFoodPlaceholder')}
                             placeholderTextColor={colors.outline}
                             value={searchFood}
                             onChangeText={setSearchFood}
@@ -196,7 +196,7 @@ export default function EditMealScreen() {
 
                     {selectedFood && (
                         <View style={[styles.amountSection, { backgroundColor: colors.surfaceContainerLow }]}>
-                            <Text style={[styles.amountLabel, { color: colors.text }]}>Cantidad para {selectedFood.name}:</Text>
+                            <Text style={[styles.amountLabel, { color: colors.text }]}>{t('food.createMealAmountOf', { foodName: selectedFood.name })}</Text>
                             <View style={styles.amountInputRow}>
                                 <TextInput
                                     style={[styles.amountInput, { color: colors.text, borderBottomColor: colors.primary }]}
@@ -204,7 +204,7 @@ export default function EditMealScreen() {
                                     value={amount}
                                     onChangeText={setAmount}
                                 />
-                                <Text style={[styles.unit, { color: colors.text }]}>g</Text>
+                                <Text style={[styles.unit, { color: colors.text }]}>{t('food.createMealGrams')}</Text>
                                 <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.primary }]} onPress={handleAddIngredient}>
                                     <Ionicons name="add" size={24} color="white" />
                                 </TouchableOpacity>
@@ -213,12 +213,12 @@ export default function EditMealScreen() {
                     )}
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionLabel}>Ingredientes</Text>
+                        <Text style={styles.sectionLabel}>{t('food.ingredientsCount', { count: ingredients.length })}</Text>
                         {ingredients.map((item, index) => (
                             <View key={index} style={[styles.ingredientItem, { backgroundColor: colors.card }]}>
                                 <View style={styles.ingredientInfo}>
                                     <Text style={[styles.ingredientName, { color: colors.text }]}>{item.food_data.name}</Text>
-                                    <Text style={[styles.ingredientMeta, { color: colors.outline }]}>{item.amount_g}g • {Math.round((item.food_data.nutrients?.energy_kcal || 0) * (item.amount_g / (item.food_data.portion_size_g || 100)))} kcal</Text>
+                                    <Text style={[styles.ingredientMeta, { color: colors.outline }]}>{item.amount_g}g • {Math.round((item.food_data.nutrients?.energy_kcal || 0) * (item.amount_g / (item.food_data.portion_size_g || 100)))} {t('food.kcal')}</Text>
                                 </View>
                                 <TouchableOpacity onPress={() => handleRemoveIngredient(index)}>
                                     <Ionicons name="trash-outline" size={20} color={colors.error} />
@@ -228,23 +228,23 @@ export default function EditMealScreen() {
                     </View>
 
                     <View style={[styles.totalsCard, { backgroundColor: colors.primary }]}>
-                        <Text style={styles.totalsTitle}>Totales de la Comida</Text>
+                        <Text style={styles.totalsTitle}>{t('food.mealTotals')}</Text>
                         <View style={styles.totalsGrid}>
                             <View style={styles.totalItem}>
                                 <Text style={styles.totalValue}>{totals.energy_kcal.toFixed(0)}</Text>
-                                <Text style={styles.totalLabel}>kcal</Text>
+                                <Text style={styles.totalLabel}>{t('food.kcal')}</Text>
                             </View>
                             <View style={styles.totalItem}>
                                 <Text style={styles.totalValue}>{totals.protein_g.toFixed(1)}g</Text>
-                                <Text style={styles.totalLabel}>Prot</Text>
+                                <Text style={styles.totalLabel}>{t('food.prot')}</Text>
                             </View>
                             <View style={styles.totalItem}>
                                 <Text style={styles.totalValue}>{totals.carbohydrates_g.toFixed(1)}g</Text>
-                                <Text style={styles.totalLabel}>Carbs</Text>
+                                <Text style={styles.totalLabel}>{t('food.carbs')}</Text>
                             </View>
                             <View style={styles.totalItem}>
                                 <Text style={styles.totalValue}>{totals.fat_g.toFixed(1)}g</Text>
-                                <Text style={styles.totalLabel}>Grasas</Text>
+                                <Text style={styles.totalLabel}>{t('food.fats')}</Text>
                             </View>
                         </View>
                     </View>
@@ -254,7 +254,7 @@ export default function EditMealScreen() {
                         onPress={handleUpdateMeal}
                         disabled={loading}
                     >
-                        {loading ? <ActivityIndicator color="white" /> : <Text style={styles.saveButtonText}>Actualizar Comida</Text>}
+                        {loading ? <ActivityIndicator color="white" /> : <Text style={styles.saveButtonText}>{t('food.updateMeal')}</Text>}
                     </TouchableOpacity>
                 </ScrollView>
             </KeyboardAvoidingView>

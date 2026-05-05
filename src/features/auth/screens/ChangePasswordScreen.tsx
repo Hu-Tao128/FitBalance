@@ -39,15 +39,15 @@ const ChangePasswordScreen = () => {
 
     const handleSaveChanges = async () => {
         if (!currentPassword || !newPassword || !confirmPassword) {
-            setError('Todos los campos son obligatorios.');
+            setError(t('auth.allFieldsRequired'));
             return;
         }
         if (newPassword !== confirmPassword) {
-            setError('Las nuevas contraseñas no coinciden.');
+            setError(t('auth.passwordsDoNotMatch'));
             return;
         }
         if (newPassword.length < 6) {
-            setError('La nueva contraseña debe tener al menos 6 caracteres.');
+            setError(t('auth.newPasswordMin6Chars'));
             return;
         }
 
@@ -56,17 +56,17 @@ const ChangePasswordScreen = () => {
 
         try {
             if (!pid) {
-                throw new Error('Paciente no identificado');
+                throw new Error(t('auth.patientNotIdentified'));
             }
             const response = await authService.changePassword(pid, currentPassword, newPassword);
 
-            Alert.alert('Éxito', response.message || 'Contraseña actualizada con éxito.');
+            Alert.alert(t('auth.success'), response.message || t('auth.passwordUpdated'));
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
 
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Ocurrió un error al actualizar.');
+            setError(err.response?.data?.message || t('auth.errorUpdating'));
             console.error(err.response?.data);
         } finally {
             setLoading(false);
@@ -83,7 +83,12 @@ const ChangePasswordScreen = () => {
     };
 
     const passwordStrength = getPasswordStrength(newPassword);
-    const strengthLabels = ['Muy Débil', 'Débil', 'Media', 'Fuerte'];
+    const strengthLabels = [
+        t('auth.veryWeak'),
+        t('auth.weak'),
+        t('auth.medium'),
+        t('auth.strong')
+    ];
     const strengthColors = [colors.error, '#FF9800', colors.warning, colors.success];
 
     return (
@@ -200,29 +205,29 @@ const ChangePasswordScreen = () => {
 
                         {/* Requirements Checklist */}
                         <View style={styles.requirementsCard}>
-                            <Text style={styles.requirementsTitle}>Requisitos de seguridad</Text>
+                            <Text style={styles.requirementsTitle}>{t('auth.securityRequirements')}</Text>
                             <View style={styles.requirementsList}>
                                 <View style={styles.requirementItem}>
                                     <Text style={styles.checkIcon}>✓</Text>
-                                    <Text style={styles.requirementText}>Mínimo 8 caracteres</Text>
+                                    <Text style={styles.requirementText}>{t('auth.min8Chars')}</Text>
                                 </View>
                                 <View style={styles.requirementItem}>
                                     <Text style={[styles.checkIcon, { color: /\d/.test(newPassword) ? colors.success : colors.outline }]}>
                                         {/\d/.test(newPassword) ? '✓' : '○'}
                                     </Text>
-                                    <Text style={styles.requirementText}>Al menos un número</Text>
+                                    <Text style={styles.requirementText}>{t('auth.atLeastOneNumber')}</Text>
                                 </View>
                                 <View style={styles.requirementItem}>
                                     <Text style={[styles.checkIcon, { color: /[A-Z]/.test(newPassword) ? colors.success : colors.outline }]}>
                                         {/[A-Z]/.test(newPassword) ? '✓' : '○'}
                                     </Text>
-                                    <Text style={styles.requirementText}>Una letra mayúscula</Text>
+                                    <Text style={styles.requirementText}>{t('auth.atLeastOneUppercase')}</Text>
                                 </View>
                                 <View style={styles.requirementItem}>
                                     <Text style={[styles.checkIcon, { color: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? colors.success : colors.outline }]}>
                                         {/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? '✓' : '○'}
                                     </Text>
-                                    <Text style={styles.requirementText}>Carácter especial (!@#)</Text>
+                                    <Text style={styles.requirementText}>{t('auth.specialCharacter')}</Text>
                                 </View>
                             </View>
                         </View>
@@ -248,9 +253,9 @@ const ChangePasswordScreen = () => {
                             <Text style={styles.noticeIcon}>🛡️</Text>
                         </View>
                         <View style={styles.noticeContent}>
-                            <Text style={styles.noticeTitle}>Protección de Cuenta</Text>
+                            <Text style={styles.noticeTitle}>{t('auth.accountProtection')}</Text>
                             <Text style={styles.noticeText}>
-                                Nunca compartas tu contraseña con terceros. FitBalance utiliza cifrado de extremo a extremo para proteger tus datos de salud y privacidad.
+                                {t('auth.accountProtectionDesc')}
                             </Text>
                         </View>
                     </View>

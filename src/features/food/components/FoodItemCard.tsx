@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Image, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../context/ThemeContext';
 import { Food } from '../services/food.service';
 
@@ -10,6 +11,7 @@ interface Props {
 
 export default function FoodItemCard({ food, onAddFood }: Props) {
     const { colors } = useTheme();
+    const { t } = useTranslation();
 
     const [grams, setGrams] = useState(food.serving_weight_grams?.toFixed(0) || '100');
 
@@ -43,7 +45,7 @@ export default function FoodItemCard({ food, onAddFood }: Props) {
     const handleAdd = () => {
         const numericGrams = parseInt(grams, 10);
         if (isNaN(numericGrams) || numericGrams <= 0) {
-            alert('Please enter a valid number of grams.');
+            alert(t('food.invalidAmountError'));
             return;
         }
         onAddFood(food, numericGrams);
@@ -73,10 +75,10 @@ export default function FoodItemCard({ food, onAddFood }: Props) {
             {food.photo?.thumb && <Image source={{ uri: food.photo.thumb }} style={styles.image} />}
 
             <Text style={styles.foodName}>{food.food_name}</Text>
-            <Text style={styles.servingText}>Info. basis for {food.serving_weight_grams?.toFixed(0)}g</Text>
+            <Text style={styles.servingText}>{t('food.infoBasisFor')} {food.serving_weight_grams?.toFixed(0)}g</Text>
 
             <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Quantity:</Text>
+                <Text style={styles.inputLabel}>{t('food.quantity')}:</Text>
                 <TextInput
                     style={styles.input}
                     value={grams}
@@ -90,24 +92,24 @@ export default function FoodItemCard({ food, onAddFood }: Props) {
             <View style={styles.macrosRow}>
                 <View style={styles.macroItem}>
                     <Text style={styles.macroValue}>{calculatedNutrients.calories.toFixed(0)}</Text>
-                    <Text style={styles.macroLabel}>Kcal</Text>
+                    <Text style={styles.macroLabel}>{t('food.kcal')}</Text>
                 </View>
                 <View style={styles.macroItem}>
                     <Text style={styles.macroValue}>{calculatedNutrients.protein.toFixed(1)}</Text>
-                    <Text style={styles.macroLabel}>Protein</Text>
+                    <Text style={styles.macroLabel}>{t('food.prot')}</Text>
                 </View>
                 <View style={styles.macroItem}>
                     <Text style={styles.macroValue}>{calculatedNutrients.carbs.toFixed(1)}</Text>
-                    <Text style={styles.macroLabel}>Carbs</Text>
+                    <Text style={styles.macroLabel}>{t('food.carbs')}</Text>
                 </View>
                 <View style={styles.macroItem}>
                     <Text style={styles.macroValue}>{calculatedNutrients.fat.toFixed(1)}</Text>
-                    <Text style={styles.macroLabel}>Fats</Text>
+                    <Text style={styles.macroLabel}>{t('food.fats')}</Text>
                 </View>
             </View>
 
             <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
-                <Text style={styles.addButtonText}>Add to the Register</Text>
+                <Text style={styles.addButtonText}>{t('food.addToRegister')}</Text>
             </TouchableOpacity>
         </View>
     );

@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 
 export interface Appointment {
@@ -19,6 +20,7 @@ interface AppointmentCardProps {
 
 const AppointmentCard = ({ appointment }: AppointmentCardProps) => {
     const { colors } = useTheme();
+    const { t } = useTranslation();
     const appointmentDate = new Date(appointment.appointment_date);
 
     // Date formatters for English abbreviations (SUN, AUG, etc.)
@@ -29,12 +31,12 @@ const AppointmentCard = ({ appointment }: AppointmentCardProps) => {
     const getStatusStyle = () => {
         switch (appointment.status) {
             case 'completed':
-                return { icon: 'check-circle', color: colors.success || '#34C759', text: 'Completed' };
+                return { icon: 'check-circle', color: colors.success || '#34C759', text: t('appointments.completed') };
             case 'cancelled':
-                return { icon: 'close-circle', color: colors.danger || '#FF453A', text: 'Cancelled' };
+                return { icon: 'close-circle', color: colors.danger || '#FF453A', text: t('appointments.cancelled') };
             case 'scheduled':
             default:
-                return { icon: 'clock-time-three', color: colors.warning || '#FF9500', text: 'Scheduled' };
+                return { icon: 'clock-time-three', color: colors.warning || '#FF9500', text: t('appointments.scheduled') };
         }
     };
 
@@ -50,7 +52,7 @@ const AppointmentCard = ({ appointment }: AppointmentCardProps) => {
 
             <View style={styles.detailsContainer}>
                 <Text style={[styles.typeText, { color: colors.primary }]}>
-                    {appointment.appointment_type || 'General Consultation'}
+                    {appointment.appointment_type || t('appointments.generalConsultation')}
                 </Text>
                 <Text style={[styles.timeText, { color: colors.text }]}>
                     <MaterialCommunityIcons name="clock-outline" size={16} color={colors.textSecondary} />

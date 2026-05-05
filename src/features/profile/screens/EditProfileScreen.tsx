@@ -83,12 +83,12 @@ export default function EditProfileScreen({ navigation }: any) {
 
         try {
             await updateUser(updatedData);
-            Alert.alert('Éxito', 'Tu perfil ha sido actualizado.', [
-                { text: 'OK', onPress: () => navigation.goBack() }
+            Alert.alert(t('auth.success'), t('profile.profileUpdated'), [
+                { text: t('profile.ok'), onPress: () => navigation.goBack() }
             ]);
         } catch (error) {
             console.error("Error saving profile:", error);
-            Alert.alert('Error', 'No se pudo actualizar tu perfil.');
+            Alert.alert(t('error'), t('profile.profileUpdateError'));
         } finally {
             setLoading(false);
         }
@@ -115,40 +115,40 @@ export default function EditProfileScreen({ navigation }: any) {
 
                         {/* Form Card */}
                         <View style={styles.formCard}>
-                            <ProfileInput 
-                                icon="mail-outline" 
-                                label="Correo Electrónico" 
-                                value={formData.email} 
-                                onChangeText={(v) => handleInputChange('email', v)} 
+                            <ProfileInput
+                                icon="mail-outline"
+                                label={t('profile.emailLabel')}
+                                value={formData.email}
+                                onChangeText={(v) => handleInputChange('email', v)}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                             />
-                            <ProfileInput 
-                                icon="phone-portrait-outline" 
-                                label="Teléfono" 
-                                value={formData.phone} 
-                                onChangeText={(v) => handleInputChange('phone', v)} 
+                            <ProfileInput
+                                icon="phone-portrait-outline"
+                                label={t('profile.phoneLabel')}
+                                value={formData.phone}
+                                onChangeText={(v) => handleInputChange('phone', v)}
                                 keyboardType="phone-pad"
                             />
-                            <ProfileInput 
-                                icon="calendar-outline" 
-                                label="Edad" 
-                                value={formData.age} 
-                                onChangeText={(v) => handleInputChange('age', v)} 
+                            <ProfileInput
+                                icon="calendar-outline"
+                                label={t('profile.ageLabel')}
+                                value={formData.age}
+                                onChangeText={(v) => handleInputChange('age', v)}
                                 keyboardType="numeric"
                             />
-                            <ProfileInput 
-                                icon="resize-outline" 
-                                label="Altura (cm)" 
-                                value={formData.height_cm} 
-                                onChangeText={(v) => handleInputChange('height_cm', v)} 
+                            <ProfileInput
+                                icon="resize-outline"
+                                label={t('profile.heightLabel')}
+                                value={formData.height_cm}
+                                onChangeText={(v) => handleInputChange('height_cm', v)}
                                 keyboardType="numeric"
                             />
-                            <ProfileInput 
-                                icon="fitness-outline" 
-                                label="Peso (kg)" 
-                                value={formData.weight_kg} 
-                                onChangeText={(v) => handleInputChange('weight_kg', v)} 
+                            <ProfileInput
+                                icon="fitness-outline"
+                                label={t('profile.weightLabel')}
+                                value={formData.weight_kg}
+                                onChangeText={(v) => handleInputChange('weight_kg', v)}
                                 keyboardType="numeric"
                             />
                         </View>
@@ -163,18 +163,18 @@ export default function EditProfileScreen({ navigation }: any) {
                                 <ActivityIndicator color={colors.onPrimary} />
                             ) : (
                                 <View style={styles.buttonContent}>
-                                    <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+                                    <Text style={styles.saveButtonText}>{t('profile.saveChanges')}</Text>
                                     <Ionicons name="checkmark-circle" size={22} color={colors.onPrimary} />
                                 </View>
                             )}
                         </TouchableOpacity>
 
                         {/* Cancel Button */}
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={styles.cancelButton}
                             onPress={() => navigation.goBack()}
                         >
-                            <Text style={styles.cancelButtonText}>Cancelar</Text>
+                            <Text style={styles.cancelButtonText}>{t('profile.cancel')}</Text>
                         </TouchableOpacity>
                     </ScrollView>
                 </TouchableWithoutFeedback>
